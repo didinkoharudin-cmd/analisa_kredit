@@ -4684,7 +4684,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
             const isTHTProvisi = kodeProdukProvisi.includes('THT');
             const isG2HProvisi = kodeProdukProvisi === 'G2H';
 
-            const jangkaWaktuProvisiTahun = Math.ceil(tenorBulan / 12);
+            const jangkaWaktuProvisiTahun = Math.floor(tenorBulan / 12);
             const tarifProvisi = isTHTProvisi
                 ? 1 / 100
                 : (isG2HProvisi
@@ -9635,7 +9635,7 @@ function simFeeCalc(gross,tenor,product,status,age,baki,installment,runningInter
   const isTHTProvisi=kodeProdukProvisi.includes('THT');
   const isG2HProvisi=kodeProdukProvisi==='G2H';
 
-  const jangkaWaktuProvisiTahun=Math.ceil(tenor/12);
+  const jangkaWaktuProvisiTahun=Math.floor(tenor/12);
   const tarifProvisi=isTHTProvisi
     ? 1/100
     : (isG2HProvisi
