@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- V17 V4: stable base; WA selected-row + tenor preview + NEW fix -->
     <!-- V18.3.2 SAFE: G2H 9.5 percent flat interest -->
-    <title>Analisis Kredit - Presisi Parameter Produk, RPC & Tenor Pegawai</title>
+    <title>Analisis Kredit - Konsumer</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (XLSX) CDN -->
@@ -3186,7 +3186,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Analisis Kredit Presisi
+                Simulasi Kredit Konsumer
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
@@ -3616,7 +3616,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
                 </div>
                 <div class="flex gap-2 flex-wrap">
                   <button id="adminExecutivePreview" type="button" class="px-3 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold"><i class="fa-solid fa-chart-pie"></i> Tampilkan Rekap</button>
-                  <button id="adminExecutivePdf" type="button" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow"><i class="fa-solid fa-file-arrow-down"></i> Download PDF 1 Klik</button>
+                  <button id="adminExecutivePdf" type="button" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-black shadow"><i class="fa-solid fa-file-arrow-down"></i> Download PDF</button>
                 </div>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-6 gap-2 mb-4">
@@ -4979,7 +4979,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
             const isTHTProvisi = kodeProdukProvisi.includes('THT');
             const isG2HProvisi = kodeProdukProvisi === 'G2H';
 
-            const jangkaWaktuProvisiTahun = Math.ceil(tenorBulan / 12);
+            const jangkaWaktuProvisiTahun = Math.floor(tenorBulan / 12);
             const tarifProvisi = isTHTProvisi
                 ? 1 / 100
                 : (isG2HProvisi
@@ -10105,7 +10105,7 @@ function simFeeCalc(gross,tenor,product,status,age,baki,installment,runningInter
   const isTHTProvisi=kodeProdukProvisi.includes('THT');
   const isG2HProvisi=kodeProdukProvisi==='G2H';
 
-  const jangkaWaktuProvisiTahun=Math.ceil(tenor/12);
+  const jangkaWaktuProvisiTahun=Math.floor(tenor/12);
   const tarifProvisi=isTHTProvisi
     ? 1/100
     : (isG2HProvisi
