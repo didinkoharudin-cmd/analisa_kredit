@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- V17 V4: stable base; WA selected-row + tenor preview + NEW fix -->
     <!-- V18.3.2 SAFE: G2H 9.5 percent flat interest -->
-    <title>Analisis Kredit - Presisi Parameter Produk, RPC & Tenor Pegawai</title>
+    <title>Analisis Kredit - Kredit Konsumer</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (XLSX) CDN -->
@@ -2843,7 +2843,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
           <input id="v17SimInstallment" type="text" readonly>
         </label>
 
-        <label id="v17SimMandatorySavingWrap">Pengali Tabungan Wajib (× Angsuran)
+        <label id="v17SimMandatorySavingWrap">Tabungan Wajib (× Angsuran)
           <input id="v17SimMandatorySaving" type="number" inputmode="decimal" min="0" step="1" autocomplete="off" value="0">
         </label>
 
@@ -3051,7 +3051,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Analisis Kredit Presisi
+                Simulasi Kredit Konsumer
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
@@ -4684,7 +4684,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
             const isTHTProvisi = kodeProdukProvisi.includes('THT');
             const isG2HProvisi = kodeProdukProvisi === 'G2H';
 
-            const jangkaWaktuProvisiTahun = Math.ceil(tenorBulan / 12);
+            const jangkaWaktuProvisiTahun = Math.floor(tenorBulan / 12);
             const tarifProvisi = isTHTProvisi
                 ? 1 / 100
                 : (isG2HProvisi
@@ -9635,7 +9635,7 @@ function simFeeCalc(gross,tenor,product,status,age,baki,installment,runningInter
   const isTHTProvisi=kodeProdukProvisi.includes('THT');
   const isG2HProvisi=kodeProdukProvisi==='G2H';
 
-  const jangkaWaktuProvisiTahun=Math.ceil(tenor/12);
+  const jangkaWaktuProvisiTahun=Math.floor(tenor/12);
   const tarifProvisi=isTHTProvisi
     ? 1/100
     : (isG2HProvisi
