@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.120-resumable-upload';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.121-android-double-back-exit';
 const SHELL=['./','./index.html',
   './upload-v120.js','./android-back-v111.js','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});

@@ -1,10 +1,12 @@
-/* V112: Android/iOS back navigation. Compatibility filename retained. */
+/* V121: Android/iOS back navigation. Compatibility filename retained. */
 (function(){
 'use strict';
 const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-if((!/Android/i.test(navigator.userAgent)&&!ios)||window.v111AndroidBack)return;
+const android=/Android/i.test(navigator.userAgent);
+if((!android&&!ios)||window.v111AndroidBack)return;
 const registry=new Map();
 let pages=['home'],replaying=false,armed=false,leaving=false,account='',frame=0;
+let exitUntil=0,exitNoticeTimer=0;
 const visible=el=>!!el&&el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden';
 const session=()=>String(window.currentUser?.email||window.currentUser?.EMAIL||'');
 function arm(){
@@ -13,6 +15,17 @@ function arm(){
  armed=true;
 }
 function register(id,back){registry.set(id,back);}
+function cancelExit(){exitUntil=0;}
+function showExitNotice(){
+ let el=document.getElementById('v121ExitNotice');
+ if(!el){
+  el=document.createElement('div');el.id='v121ExitNotice';el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  Object.assign(el.style,{position:'fixed',left:'50%',bottom:'max(28px, env(safe-area-inset-bottom))',transform:'translate(-50%,16px)',zIndex:'2147483647',background:'rgba(15,23,42,.94)',color:'#fff',padding:'11px 18px',borderRadius:'999px',font:'700 13px/1.35 system-ui,-apple-system,sans-serif',boxShadow:'0 10px 30px rgba(15,23,42,.28)',whiteSpace:'nowrap',maxWidth:'calc(100vw - 32px)',opacity:'0',transition:'opacity .16s ease,transform .16s ease',pointerEvents:'none'});
+  el.textContent='Tekan sekali lagi untuk keluar';document.body.appendChild(el);
+ }
+ clearTimeout(exitNoticeTimer);el.style.display='block';requestAnimationFrame(()=>{el.style.opacity='1';el.style.transform='translate(-50%,0)';});
+ exitNoticeTimer=setTimeout(()=>{el.style.opacity='0';el.style.transform='translate(-50%,16px)';setTimeout(()=>{el.style.display='none';},180);},2200);
+}
 // Call existing close/back controls so cleanup, timers and form behavior are preserved.
 const buttons=[
  'v81CloseDetail','v81CloseProductivity','v80CloseFunnelDetail',
@@ -64,12 +77,12 @@ function page(name){
  if(replaying)return;
  const next=session();if(next!==account){account=next;pages=['home'];}
  if(name==='home')pages=['home'];
- else if(pages[pages.length-1]!==name){pages.push(name);if(pages.length>40)pages.splice(1,1);}
+ else if(pages[pages.length-1]!==name){cancelExit();pages.push(name);if(pages.length>40)pages.splice(1,1);}
  arm();
 }
 function back(){
  const top=actions();
- if(top){top.back();return true;}
+ if(top){cancelExit();top.back();return true;}
  const active=document.querySelector('.v9-page.active');
  const map={v9PageHome:'home',v9PageMenu:'menu',v9PageDebitur:'debitur',v9PageActivity:'activity'};
  const current=map[active?.id];
@@ -77,7 +90,7 @@ function back(){
   if(pages[pages.length-1]===current)pages.pop();
   const previous=pages[pages.length-1]||'home';
   const button=document.querySelector('#v9BottomNav [data-v9-page="'+previous+'"]');
-  if(button){replaying=true;try{button.click();}finally{replaying=false;}return true;}
+  if(button){cancelExit();replaying=true;try{button.click();}finally{replaying=false;}return true;}
  }
  return false;
 }
@@ -86,8 +99,12 @@ window.addEventListener('popstate',()=>{
  if(!armed)return;
  armed=false;
  if(session()&&back()){arm();return;}
+ if(android&&session()&&!leaving){
+  const now=Date.now();
+  if(now>=exitUntil){exitUntil=now+2200;showExitNotice();arm();return;}
+ }
  // At Home/login hand navigation back to Android/browser; no endless history trap.
- leaving=true;history.back();
+ cancelExit();leaving=true;history.back();
 });
 document.addEventListener('click',schedule,true);
 // Safari uses its native edge gesture/history. Installed iOS web apps also get
@@ -124,7 +141,7 @@ if(standalone){
  document.addEventListener('touchcancel',()=>{gesture=null;},{passive:true});
 }
 window.addEventListener('focus',schedule);
-window.addEventListener('pageshow',()=>{leaving=false;armed=!!history.state?.v111BackGuard;schedule();});
+window.addEventListener('pageshow',()=>{leaving=false;cancelExit();armed=!!history.state?.v111BackGuard;schedule();});
 // Login is asynchronous; observe only changes to account/layout containers.
 const observer=new MutationObserver(records=>{
  if(records.some(r=>/^(mobileV9Home|v12RoleGate|v12MobileAdmin|login|auth)/i.test(r.target.id||'')))schedule();
