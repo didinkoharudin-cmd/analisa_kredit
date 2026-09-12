@@ -16334,6 +16334,9 @@ function v872FindHeader(headers,aliases){const w=(aliases||[]).map(v872NormHeade
 // ilmiah secara tekstual agar tidak melewati Number/kehilangan digit.
 function v127ExpandScientificCif_(value){
   let s=String(value??'').trim().replace(/^'+/,'').replace(/[\s\u00a0]/g,'');
+  // Huruf E juga dapat menjadi bagian CIF alfanumerik (contoh 11E767).
+  // Anggap sebagai notasi ilmiah hanya jika ada desimal atau tanda eksponen.
+  if(!/[.,]\d*[eE][+-]?\d+$/.test(s)&&!/[eE][+-]\d+$/.test(s))return s.replace(/\.0+$/,'');
   const m=s.match(/^([+-]?)(\d+)(?:[.,](\d*))?[eE]([+-]?\d+)$/);
   if(!m)return s.replace(/\.0+$/,'');
   const sign=m[1]==='-'?'-':'',whole=m[2],fraction=m[3]||'',exponent=Number(m[4]);
