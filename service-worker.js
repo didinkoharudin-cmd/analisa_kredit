@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.127.1-cif-alphanumeric';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.128-upload-reset';
 const SHELL=['./','./index.html',
   './upload-v120.js','./android-back-v111.js','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./usage-traffic-v122.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});

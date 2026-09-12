@@ -4535,6 +4535,14 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                   <label class="block border-2 border-dashed rounded-xl p-3 text-center cursor-pointer"><input id="v87KreditFile" type="file" accept=".xlsx,.xls" class="hidden" onchange="v87ChooseImportFile('KREDIT',this)"><i class="fa-solid fa-file-invoice-dollar text-indigo-600"></i><b class="block text-xs mt-1">Pilih Data Kredit</b><span id="v87KreditFileName" class="text-[10px] text-slate-500">Belum dipilih</span></label>
                   <label class="block border-2 border-dashed rounded-xl p-3 text-center cursor-pointer"><input id="v87PenghasilanFile" type="file" accept=".xlsx,.xls" class="hidden" onchange="v87ChooseImportFile('PENGHASILAN',this)"><i class="fa-solid fa-wallet text-teal-600"></i><b class="block text-xs mt-1">Pilih Data Penghasilan</b><span id="v87PenghasilanFileName" class="text-[10px] text-slate-500">Belum dipilih</span></label>
                   <div class="grid grid-cols-2 gap-2"><button type="button" onclick="v87Import('KREDIT')" class="bg-indigo-600 text-white rounded-lg p-2 text-xs font-bold">Upload Kredit</button><button type="button" onclick="v87Import('PENGHASILAN')" class="bg-teal-600 text-white rounded-lg p-2 text-xs font-bold">Upload Penghasilan</button></div>
+                  <div class="rounded-xl border border-amber-200 bg-amber-50 p-3 space-y-2">
+                    <div class="text-[10px] font-bold text-amber-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Upload tertunda atau tidak dapat dilanjutkan?</div>
+                    <div class="grid grid-cols-[1fr_auto] gap-2">
+                      <select id="v128ResetUploadType" class="border border-amber-200 bg-white rounded-lg p-2 text-xs font-bold text-slate-700"><option value="PENGHASILAN">Data Penghasilan</option><option value="KREDIT">Data Kredit</option></select>
+                      <button id="v128ResetUploadBtn" type="button" onclick="v128ResetPendingUpload()" class="bg-amber-600 hover:bg-amber-500 text-white rounded-lg px-3 py-2 text-xs font-black"><i class="fa-solid fa-rotate-left mr-1"></i>Reset Upload</button>
+                    </div>
+                    <p class="text-[9px] text-amber-800">Hanya sesi dan sheet upload sementara yang dibersihkan. Database aktif tidak dihapus.</p>
+                  </div>
                   <div id="v87ImportStatus" class="text-[10px] bg-slate-50 border rounded-lg p-2">Siap.</div>
                   <div class="text-[10px] text-slate-500">Baris saat ini: Kredit <b id="v87KreditRows">0</b> • Penghasilan <b id="v87PenghasilanRows">0</b></div>
                 </div>

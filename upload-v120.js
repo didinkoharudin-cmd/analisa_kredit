@@ -73,4 +73,22 @@
       status.textContent='Upload terhenti: '+e.message+' Pilih file yang sama lalu klik Upload untuk melanjutkan. Jika sesi habis, login kembali dahulu.';
     }finally{busy=false;try{await wake?.release();}catch(_){}}
   };
+  window.v128ResetPendingUpload=async function(){
+    if(busy){alert('Tunggu proses upload yang sedang berjalan selesai.');return;}
+    const type=String(document.getElementById('v128ResetUploadType')?.value||'').toUpperCase();
+    if(!['KREDIT','PENGHASILAN'].includes(type))return;
+    if(!confirm('Reset upload tertunda '+type+'?\n\nDatabase aktif tidak akan dihapus. Hanya sesi dan sheet upload sementara yang dibersihkan.'))return;
+    const status=document.getElementById('v87ImportStatus'),btn=document.getElementById('v128ResetUploadBtn');
+    busy=true;if(btn)btn.disabled=true;
+    try{
+      if(status)status.textContent='Mereset upload tertunda '+type+'...';
+      const r=await callApi('importBranchData',window.googleCredential||'',{uploadProtocol:120,operation:'RESET',dataType:type});
+      if(!r?.success||r.uploadProtocol!==120||!r.reset)throw Error(r?.error||'Reset upload belum didukung backend.');
+      const user=window.currentUser||{},prefix='upload120:'+String(user.email||'')+':'+type+':';
+      try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(prefix))localStorage.removeItem(k);}}catch(_){}
+      const f=v87AdminState.files[type];if(f)delete f.uploadId;
+      if(status)status.textContent='Sesi upload '+type+' berhasil direset. Pilih file lalu mulai upload kembali dari awal.';
+    }catch(e){if(status)status.textContent='Reset gagal: '+(e.message||e);}
+    finally{busy=false;if(btn)btn.disabled=false;}
+  };
 })();
