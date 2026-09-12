@@ -4539,9 +4539,14 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     <div class="text-[10px] font-bold text-amber-900"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Upload tertunda atau tidak dapat dilanjutkan?</div>
                     <div class="grid grid-cols-[1fr_auto] gap-2">
                       <select id="v128ResetUploadType" class="border border-amber-200 bg-white rounded-lg p-2 text-xs font-bold text-slate-700"><option value="PENGHASILAN">Data Penghasilan</option><option value="KREDIT">Data Kredit</option></select>
-                      <button id="v128ResetUploadBtn" type="button" onclick="v128ResetPendingUpload()" class="bg-amber-600 hover:bg-amber-500 text-white rounded-lg px-3 py-2 text-xs font-black"><i class="fa-solid fa-rotate-left mr-1"></i>Reset Upload</button>
+                      <button id="v128ResetUploadBtn" type="button" onclick="v129ResetPendingUpload()" class="bg-amber-600 hover:bg-amber-500 disabled:bg-amber-300 text-white rounded-lg px-3 py-2 text-xs font-black"><i class="fa-solid fa-rotate-left mr-1"></i>Reset Upload</button>
                     </div>
                     <p class="text-[9px] text-amber-800">Hanya sesi dan sheet upload sementara yang dibersihkan. Database aktif tidak dihapus.</p>
+                    <div id="v129ResetProgress" class="hidden rounded-lg border border-amber-200 bg-white p-2" aria-live="polite">
+                      <div class="flex items-center justify-between gap-2 text-[9px] font-bold"><span id="v129ResetProgressText" class="text-amber-900">Menyiapkan reset...</span><span id="v129ResetProgressPct" class="text-amber-700">0%</span></div>
+                      <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-amber-100"><div id="v129ResetProgressBar" class="h-full rounded-full bg-amber-500 transition-all duration-300" style="width:0%"></div></div>
+                      <div id="v129ResetProgressDetail" class="mt-1 text-[9px] text-slate-500">Belum dimulai.</div>
+                    </div>
                   </div>
                   <div id="v87ImportStatus" class="text-[10px] bg-slate-50 border rounded-lg p-2">Siap.</div>
                   <div class="text-[10px] text-slate-500">Baris saat ini: Kredit <b id="v87KreditRows">0</b> • Penghasilan <b id="v87PenghasilanRows">0</b></div>
@@ -16784,7 +16789,7 @@ document.addEventListener('visibilitychange',()=>{
 <script src="./android-back-v111.js"></script>
 <script src="./customer-care-v109.js"></script>
 <script src="./bundling-g6b-g2c-v117.js"></script>
-<script src="upload-v120.js"></script>
+<script src="./upload-v120.js?v=129" onerror="document.getElementById('v87ImportStatus').textContent='Modul upload V129 gagal dimuat. Muat ulang aplikasi atau hapus cache situs.'"></script>
 <script src="./usage-traffic-v122.js"></script>
 </body>
 </html>
