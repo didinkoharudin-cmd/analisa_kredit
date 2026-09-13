@@ -1,0 +1,449 @@
+/* SCORE header and role-specific actions. */
+:root{--score-header-height:56px}
+@media(max-width:420px){:root{--score-header-height:50px}}
+@media(min-width:769px){:root{--score-header-height:60px}}
+#mobileV9Home{background:#f4f8fc!important}
+#mobileV9Home .score-header{
+  position:relative!important;top:auto!important;z-index:40!important;
+  display:flex!important;align-items:center!important;gap:8px!important;
+  min-height:72px!important;padding:12px 14px!important;margin:0 0 10px!important;
+  border-radius:0 0 20px 20px!important;overflow:visible!important;
+  background:radial-gradient(ellipse at 90% 0,rgba(43,190,237,.28),transparent 62%),linear-gradient(115deg,#124b78,#087cb6)!important;
+  box-shadow:0 7px 20px rgba(17,77,119,.12)!important;
+  transform:none!important;opacity:1!important;pointer-events:auto!important;
+}
+#mobileV9Home .v9-shell:not(.v94-page-not-home)>.score-header{position:sticky!important;top:0!important}
+#scoreHeader .score-brand{flex:0 0 auto;border:0;border-radius:11px;padding:0;background:#fff;overflow:hidden;cursor:pointer;min-height:44px}
+#scoreHeader .score-wordmark{display:block;width:156px;height:44px;background:#fff url('./score-wordmark-reference.jpeg') no-repeat -78px -26px;background-size:472px 101px}
+#scoreHeader .score-menu{margin-left:auto}
+#scoreHeader .score-menu,#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show,#scoreHeader #v16AdminBackMenu.show{
+  flex:0 0 auto!important;width:40px!important;height:40px!important;min-height:40px!important;
+  display:flex;align-items:center!important;justify-content:center!important;
+  border:1px solid rgba(255,255,255,.28)!important;border-radius:12px!important;
+  background:rgba(255,255,255,.09)!important;color:#fff!important;
+  padding:0!important;margin-top:0!important;box-shadow:none!important;font-size:0!important;
+}
+#scoreHeader button i{font-size:19px!important;line-height:1!important;margin:0!important}
+#scoreHeader #v16AdminActions{gap:6px!important;margin-left:0!important}
+#scoreHeader #v17TopLogout{order:10;margin-left:0!important}
+#scoreHeader button:focus-visible{outline:3px solid #ffcf48;outline-offset:3px}
+#mobileV9Home .score-profile{
+  position:static!important;display:flex!important;align-items:center!important;gap:10px!important;
+  border:1px solid #dceaf4!important;background:#fff!important;border-radius:14px!important;
+  padding:10px 12px!important;margin:0 0 14px!important;min-height:60px!important;
+  box-shadow:0 4px 12px rgba(24,83,117,.04)!important;
+}
+#mobileV9Home .score-profile .v9-avatar{width:36px!important;height:36px!important;flex:0 0 36px!important;background:#eaf6ff!important;color:#087ebc!important;font-size:16px!important}
+#mobileV9Home .score-profile-text{min-width:0}
+#mobileV9Home .score-profile small{display:block;font-size:8px;letter-spacing:.09em;color:#7690a4;font-weight:700}
+#mobileV9Home .score-profile b{font-size:12px!important;line-height:1.5!important;color:#173e59!important;overflow-wrap:anywhere}
+#mobileV9Home .score-profile span{display:block;font-size:10px!important;line-height:1.5!important;color:#678297!important;overflow-wrap:anywhere}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-profile{display:none!important}
+#v9BottomNav .wa-nav{
+  background:linear-gradient(145deg,#32dcf5,#05a9e8 55%,#087bcd)!important;
+  border:5px solid #e8faff!important;box-shadow:0 0 0 2px rgba(104,211,244,.22),0 8px 22px rgba(5,165,221,.32)!important;
+}
+#v9BottomNav .wa-nav i{color:#fff!important;font-size:31px!important;font-weight:400!important}
+/* Keep these declarations after the V133 base rules. */
+#mobileV9Home .v9-shell{padding-top:0!important}
+#mobileV9Home .v9-shell:not(.v94-page-not-home){background:linear-gradient(to bottom,#0d639b 0,#0d639b 145px,#f4f8fc 145px,#f4f8fc 100%)!important}
+#mobileV9Home .v9-shell.v94-page-not-home{background:#f4f8fc!important}
+#mobileV9Home .v9-shell>.score-header{
+  width:calc(100% + 20px)!important;max-width:none!important;box-sizing:border-box!important;
+  margin:0 -10px 10px!important;padding:6px 14px!important;min-height:68px!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;background:#0d639b!important;
+}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-header{display:none!important}
+#scoreHeader .score-brand{background:transparent!important;border-radius:0!important;margin-right:auto!important;min-height:0!important}
+#scoreHeader .score-logo-white{display:block;width:180px;height:60px;object-fit:contain}
+#scoreHeader #v16AdminBackMenu{display:none!important}
+#scoreHeader #scoreContactUs:not([hidden]){display:flex!important;align-items:center;justify-content:center;color:#fff;width:42px;height:42px;border:0;background:transparent;flex-shrink:0}
+#scoreHeader #scoreContactUs[hidden]{display:none!important}
+#scoreHeader #v16AdminSwitch.show,#scoreHeader #v17TopLogout{background:transparent!important;border:0!important;box-shadow:none!important}
+#scoreHeader svg{width:27px;height:27px;display:block;flex-shrink:0}
+#scoreHeader a:focus-visible{outline:3px solid #ffcf48;outline-offset:3px}
+@media (max-width:420px){
+  #mobileV9Home .score-header{padding:10px!important;gap:5px!important}
+  #scoreHeader .score-wordmark{width:136px;background-size:430px 92px;background-position:-74px -22px}
+  #scoreHeader .score-menu,#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show,#scoreHeader #v16AdminBackMenu.show{width:34px!important;height:38px!important;min-height:38px!important}
+  #scoreHeader #v16AdminActions{gap:4px!important}
+}
+@media (max-width:360px){
+  #scoreHeader .score-wordmark{width:128px;background-size:405px 87px;background-position:-69px -20px}
+  #scoreHeader .score-menu,#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show,#scoreHeader #v16AdminBackMenu.show{width:30px!important}
+}
+@media (min-width:769px) and (min-height:521px), (min-width:769px) and (pointer:fine){
+  #mobileV9Home .v9-shell>.score-header{width:calc(100% + 64px)!important;margin:0 -32px 12px!important;min-height:72px!important;padding:6px 32px!important;border-radius:0!important}
+  #mobileV9Home .score-profile{padding:10px 16px!important}
+  #v9BottomNav::before{content:'SCORE'!important;color:#14618d!important;letter-spacing:.025em}
+  #v9BottomNav .wa-nav{border:0!important;box-shadow:0 5px 14px rgba(5,165,221,.16)!important}
+}
+
+/* V135: compact left aligned header and opaque Home content surface. */
+#mobileV9Home .v9-shell>.score-header{
+  min-height:56px!important;
+  height:56px!important;
+  padding:2px 10px!important;
+  align-items:center!important;
+}
+#scoreHeader .score-brand{margin-left:0!important;margin-right:auto!important;padding:0!important}
+#scoreHeader .score-logo-white{width:164px!important;height:50px!important;object-fit:contain;object-position:left center}
+#mobileV9Home .score-home-surface{
+  position:relative!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:1320px!important;
+  margin:0 auto!important;
+  padding:10px 10px 36px!important;
+  background:#fff!important;
+  border:1px solid #dce6ef!important;
+  border-radius:18px 18px 12px 12px!important;
+  box-shadow:0 5px 18px rgba(22,67,101,.07)!important;
+}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-home-surface{
+  background:transparent!important;border-color:transparent!important;
+  box-shadow:none!important;padding:0!important;border-radius:0!important;
+}
+#mobileV9Home .score-home-surface>.score-profile{margin-top:0!important}
+@media (max-width:420px){
+  #mobileV9Home .v9-shell>.score-header{min-height:50px!important;height:50px!important;padding:1px 8px!important}
+  #scoreHeader .score-logo-white{width:148px!important;height:46px!important}
+  #scoreHeader #scoreContactUs:not([hidden]),#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show{width:34px!important;height:36px!important;min-height:36px!important}
+  #mobileV9Home .score-home-surface{padding:8px 8px 30px!important;border-radius:15px 15px 10px 10px!important}
+}
+@media (min-width:769px) and (min-height:521px), (min-width:769px) and (pointer:fine){
+  #mobileV9Home .v9-shell>.score-header{min-height:60px!important;height:60px!important;padding:2px 32px!important}
+  #scoreHeader .score-logo-white{width:174px!important;height:52px!important}
+  #mobileV9Home .score-home-surface{padding:14px 16px 42px!important}
+}
+
+/* V137: image supplied by the user, compact logo, curved sticky footer. */
+#mobileV9Home .v9-shell:not(.v94-page-not-home){
+  background:linear-gradient(#238ebc 0 145px,#f4f8fc 145px)!important;
+}
+#mobileV9Home .v9-shell>.score-header{
+  background:#238ebc url('./score-header-background-v137.jpg?v=137') center 15%/cover no-repeat!important;
+  transition:border-radius .18s ease,box-shadow .18s ease!important;
+}
+#scoreHeader .score-logo-white{width:128px!important;height:36px!important}
+#mobileV9Home .v9-shell>.score-header.score-scrolled{
+  border-radius:0 0 18px 18px!important;
+  box-shadow:0 3px 8px rgba(17,77,119,.12)!important;
+}
+@media(max-width:420px){
+  #scoreHeader .score-logo-white{width:116px!important;height:32px!important}
+  #mobileV9Home .v9-shell>.score-header.score-scrolled{border-radius:0 0 15px 15px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #mobileV9Home .v9-shell>.score-header{transition:none!important}
+}
+
+/* V138: one image spans the status area and the sticky Home header. */
+#mobileV9Home{background:#238ebc!important;box-sizing:border-box!important}
+#mobileV9Home:has(.v9-shell:not(.v94-page-not-home)){
+  padding-top:0!important;
+}
+#mobileV9Home .v9-shell:not(.v94-page-not-home)>.score-header{
+  height:calc(var(--score-header-height) + var(--safe-top))!important;
+  min-height:calc(var(--score-header-height) + var(--safe-top))!important;
+  padding-top:calc(2px + var(--safe-top))!important;
+  padding-bottom:2px!important;
+  box-sizing:border-box!important;
+  background-position:center top!important;
+}
+
+/* V139: share the same image behind iOS status icons and header. */
+html,body{
+  background-color:#fff!important;
+  background-image:url('./score-header-background-v137.jpg?v=137')!important;
+  background-position:center top!important;
+  background-size:100% auto!important;
+  background-repeat:no-repeat!important;
+}
+#mobileV9Home:has(.v9-shell:not(.v94-page-not-home)){
+  background:#f4f8fc url('./score-header-background-v137.jpg?v=137') center top/100% auto no-repeat!important;
+}
+#mobileV9Home .v9-shell:not(.v94-page-not-home)>.score-header{
+  background-position:center top!important;
+  background-size:100% auto!important;
+}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-home-surface{display:none!important}
+
+/* V140: admin chrome shares one safe-area-aware height with its content. */
+body.v15-mobile-admin-active{
+  --score-admin-bar-height:calc(56px + env(safe-area-inset-top,0px));
+  background:#f5f7fb!important;
+  padding-bottom:0!important;
+  min-height:100dvh!important;
+}
+html:has(body.v15-mobile-admin-active){background:#f5f7fb!important}
+body.v15-mobile-admin-active #v15AdminMobileBar{
+  height:var(--score-admin-bar-height)!important;
+  min-height:var(--score-admin-bar-height)!important;
+  padding:calc(7px + env(safe-area-inset-top,0px)) 10px 7px!important;
+  box-sizing:border-box!important;
+  background:#373381!important;
+}
+body.v15-mobile-admin-active main{
+  inset:0!important;
+  height:100dvh!important;
+  max-height:none!important;
+  padding:0!important;
+  background:#f5f7fb!important;
+}
+body.v15-mobile-admin-active #viewAdmin{
+  inset:var(--score-admin-bar-height) 0 0!important;
+  height:auto!important;
+  max-height:none!important;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;
+  background:#f5f7fb!important;
+}
+@media (min-width:769px) and (min-height:521px), (min-width:769px) and (pointer:fine){
+  body.v15-mobile-admin-active{--score-admin-bar-height:calc(64px + env(safe-area-inset-top,0px))}
+  body.v15-mobile-admin-active #v15AdminMobileBar{padding:calc(12px + env(safe-area-inset-top,0px)) 24px 12px!important}
+}
+
+/* V141: paint the complete mobile navigation area, including the home indicator. */
+@media (max-width:768px), (pointer:coarse) and (orientation:landscape) and (max-height:520px){
+  body:not(.v15-mobile-admin-active){padding-bottom:0!important}
+  #v9BottomNav{
+    bottom:0!important;
+    box-sizing:border-box!important;
+    height:calc(68px + env(safe-area-inset-bottom,0px))!important;
+    padding-bottom:env(safe-area-inset-bottom,0px)!important;
+    background:#fff!important;
+  }
+}
+
+/* V142: continue the white navigation behind the iPhone home indicator. */
+@media(max-width:768px){
+  body:not(.v15-mobile-admin-active) #v9BottomNav{
+    bottom:calc(-1 * env(safe-area-inset-bottom,0px))!important;
+    height:calc(68px + env(safe-area-inset-bottom,0px))!important;
+    padding:10px 7px 0!important;
+    border-radius:20px 20px 0 0!important;
+    background:#fff!important;
+  }
+}
+
+
+/* ================================================================
+   V152 — STABLE MOBILE NAV RESET
+   Base restored from V142. Only the normal mobile bottom navigation
+   is restyled. Full-screen pages/modals keep the proven V142 layout.
+   ================================================================ */
+@media (max-width:768px){
+  /* Normal mobile navigation only. Keep the original stable layer level. */
+  #v9BottomNav{
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    top:auto!important;
+    bottom:0!important;
+    width:100%!important;
+    height:calc(64px + env(safe-area-inset-bottom,0px))!important;
+    min-height:calc(64px + env(safe-area-inset-bottom,0px))!important;
+    box-sizing:border-box!important;
+    padding:4px 9px calc(4px + env(safe-area-inset-bottom,0px))!important;
+    margin:0!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr 1.08fr 1fr 1fr!important;
+    grid-template-rows:1fr!important;
+    align-items:center!important;
+    justify-items:stretch!important;
+    gap:0!important;
+    border:0!important;
+    border-radius:24px 24px 0 0!important;
+    background:linear-gradient(180deg,#2b9cd1 0%,#0d639b 58%,#084f7e 100%)!important;
+    box-shadow:0 -7px 22px rgba(13,99,155,.20)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    overflow:visible!important;
+    z-index:100100!important;
+    transform:translateZ(0)!important;
+  }
+  #v9BottomNav::before,#v9BottomNav::after{display:none!important;content:none!important;}
+
+  #v9BottomNav button[data-v9-page="home"]{grid-column:1!important;grid-row:1!important;}
+  #v9BottomNav button[data-v9-page="debitur"]{grid-column:2!important;grid-row:1!important;}
+  #v9BottomNav button[data-v9-page="activity"]{grid-column:4!important;grid-row:1!important;}
+  #v9BottomNav button[data-v9-page="menu"]{grid-column:5!important;grid-row:1!important;}
+
+  #v9BottomNav button:not(.wa-nav){
+    width:100%!important;
+    height:52px!important;
+    min-height:52px!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:5px 2px 2px!important;
+    border:0!important;
+    border-radius:16px!important;
+    background:transparent!important;
+    color:rgba(255,255,255,.82)!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    box-shadow:none!important;
+  }
+  #v9BottomNav button:not(.wa-nav) i{
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    border-radius:0!important;
+    color:currentColor!important;
+    font-size:21px!important;
+    line-height:1!important;
+  }
+  #v9BottomNav button:not(.wa-nav) span{
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    color:currentColor!important;
+    font-size:8.5px!important;
+    line-height:1.08!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+  }
+  #v9BottomNav button.v9-nav-active:not(.wa-nav){
+    color:#fff!important;
+    background:rgba(255,255,255,.10)!important;
+  }
+
+  /* One clean concentric ring only. No pseudo-element halo. */
+  #v9BottomNav .wa-nav{
+    position:absolute!important;
+    left:50%!important;
+    right:auto!important;
+    top:-22px!important;
+    bottom:auto!important;
+    transform:translateX(-50%)!important;
+    width:72px!important;
+    height:72px!important;
+    min-width:72px!important;
+    min-height:72px!important;
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:0!important;
+    border:5px solid rgba(255,255,255,.95)!important;
+    border-radius:50%!important;
+    background:linear-gradient(145deg,#48c9ef 0%,#1faedb 52%,#0d7dad 100%)!important;
+    color:#fff!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:0!important;
+    box-shadow:0 0 0 4px rgba(184,229,243,.72),0 8px 18px rgba(8,79,126,.22)!important;
+    overflow:hidden!important;
+    z-index:100102!important;
+  }
+  #v9BottomNav .wa-nav::before,#v9BottomNav .wa-nav::after{display:none!important;content:none!important;}
+  #v9BottomNav .wa-nav i{
+    display:block!important;
+    width:auto!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    color:#fff!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    font-size:30px!important;
+    line-height:1!important;
+  }
+  #v9BottomNav .wa-nav span{display:none!important;}
+
+  /* Never place the app navigation over admin/full-screen/modal content. */
+  body.app-locked #v9BottomNav,
+  body.v15-mobile-admin-active #v9BottomNav,
+  body.v12-mobile-admin-active #v9BottomNav,
+  body.v20-photo-modal-open #v9BottomNav,
+  body.v80-funnel-detail-open #v9BottomNav,
+  body:has(#v12MobileAdminPanel.show) #v9BottomNav,
+  body:has(#v9PageSimulasi.active) #v9BottomNav,
+  body:has(.v17-sim-modal.show) #v9BottomNav,
+  body:has(.v41-modal.show) #v9BottomNav,
+  body:has(#v56BulkModal.show) #v9BottomNav,
+  body:has(#v46PipelineModal.show) #v9BottomNav,
+  body:has(#v25AoMonitoringModal.show) #v9BottomNav,
+  body:has(#v39ChatModal.show) #v9BottomNav,
+  body:has(#v74SharedDocumentModal.show) #v9BottomNav,
+  body:has(#v77OfferComposer.show) #v9BottomNav,
+  body:has(#v77PublicOffer.show) #v9BottomNav,
+  body:has(#v80FunnelDetailModal.show) #v9BottomNav,
+  body:has(#v81ProductivityModal.show) #v9BottomNav,
+  body:has(#v81ProductivityDetail.show) #v9BottomNav,
+  body:has(#v64CloudTestModal.show) #v9BottomNav,
+  body:has(#debtorModal:not(.hidden)) #v9BottomNav,
+  body:has(#mengulangDetailModal:not(.hidden)) #v9BottomNav{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+
+  /* Simulation is a true full-screen page; the global SCORE header must not overlap it. */
+  body:has(#v9PageSimulasi.active) #scoreHeader{display:none!important;}
+  #v9PageSimulasi.active{padding-top:0!important;}
+  #v9PageSimulasi.active .v17-sim-head{
+    padding-top:calc(13px + env(safe-area-inset-top,0px))!important;
+  }
+}
+
+/* ================================================================
+   V153 — COLOR-ONLY BOTTOM NAV + iPHONE SAFE-TOP TARGETED FIX
+   1) Do not change bottom-nav geometry: only force the nav surface
+      to the same SCORE blue used by the header base.
+   2) Add safe top spacing only to the four reported iPhone views:
+      Customer Care (birthday/retirement) and V41 brochure/requirements.
+   ================================================================ */
+@media (max-width:768px){
+  /* V142 has a more-specific white rule; match its specificity so only
+     the background color changes while every proven position/size stays. */
+  body:not(.v15-mobile-admin-active) #v9BottomNav{
+    background:#238ebc!important;
+  }
+}
+
+/* iPhone / iOS WebKit only. Android and desktop layout remain untouched. */
+@supports (-webkit-touch-callout:none){
+  @media (max-width:768px){
+    :root{--score-ios-safe-top:max(44px,env(safe-area-inset-top,0px));}
+
+    /* Debitur ulang tahun + 3 bulan menuju pensiun. Keep the full-screen
+       dialog intact; only lower the header controls below the status bar. */
+    #v109Care > header{
+      padding-top:calc(var(--score-ios-safe-top) + 8px)!important;
+    }
+
+    /* Tabel Angsuran Produk + Persyaratan Produk share .v41-modal.
+       Anchor the card below the iPhone status area instead of letting the
+       first header row sit underneath it. No inner UI styling is changed. */
+    .v41-modal.show{
+      align-items:flex-start!important;
+      padding-top:calc(var(--score-ios-safe-top) + 8px)!important;
+    }
+    .v41-modal.show > .v41-card{
+      max-height:calc(100dvh - var(--score-ios-safe-top) - 22px)!important;
+    }
+  }
+}
+
+
+/* ================================================================
+   V154 — iPHONE BOTTOM NAV FINAL MICRO-LIFT
+   Keep V153 styling; only add a tiny extra safe bottom room so the
+   bottom labels/icons are no longer visually clipped on iPhone.
+   ================================================================ */
+@supports (-webkit-touch-callout:none){
+  @media (max-width:768px){
+    body:not(.v15-mobile-admin-active) #v9BottomNav{
+      height:calc(68px + env(safe-area-inset-bottom,0px))!important;
+      min-height:calc(68px + env(safe-area-inset-bottom,0px))!important;
+      padding:4px 9px calc(8px + env(safe-area-inset-bottom,0px))!important;
+    }
+  }
+}
