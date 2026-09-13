@@ -6,7 +6,7 @@
   "display": "standalone",
   "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "background_color": "#f4f8fc",
-  "theme_color": "#0d639b",
+  "theme_color": "#238ebc",
   "orientation": "portrait-primary",
   "icons": [
     {"src":"./score-icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
