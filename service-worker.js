@@ -1,5 +1,5 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.134.2-score-home-frame';
-const SHELL=['./','./index.html','./score-v135.css','./score-logo-white-compact.png','./score-icon-192.png','./score-icon-512.png',
+const CACHE = 'analisis-kredit-pwa-V18.3.11.136-score-header';
+const SHELL=['./','./index.html','./score-v136.css','./score-header-v136.js','./score-header-background.png','./score-logo-white-compact.png','./score-icon-192.png','./score-icon-512.png',
   './upload-v120.js?v=129','./android-back-v111.js?v=134','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./usage-traffic-v122.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});

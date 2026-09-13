@@ -1,0 +1,115 @@
+/* SCORE header and role-specific actions. */
+#mobileV9Home{background:#f4f8fc!important}
+#mobileV9Home .score-header{
+  position:relative!important;top:auto!important;z-index:40!important;
+  display:flex!important;align-items:center!important;gap:8px!important;
+  min-height:72px!important;padding:12px 14px!important;margin:0 0 10px!important;
+  border-radius:0 0 20px 20px!important;overflow:visible!important;
+  background:radial-gradient(ellipse at 90% 0,rgba(43,190,237,.28),transparent 62%),linear-gradient(115deg,#124b78,#087cb6)!important;
+  box-shadow:0 7px 20px rgba(17,77,119,.12)!important;
+  transform:none!important;opacity:1!important;pointer-events:auto!important;
+}
+#mobileV9Home .v9-shell:not(.v94-page-not-home)>.score-header{position:sticky!important;top:0!important}
+#scoreHeader .score-brand{flex:0 0 auto;border:0;border-radius:11px;padding:0;background:#fff;overflow:hidden;cursor:pointer;min-height:44px}
+#scoreHeader .score-wordmark{display:block;width:156px;height:44px;background:#fff url('./score-wordmark-reference.jpeg') no-repeat -78px -26px;background-size:472px 101px}
+#scoreHeader .score-menu{margin-left:auto}
+#scoreHeader .score-menu,#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show,#scoreHeader #v16AdminBackMenu.show{
+  flex:0 0 auto!important;width:40px!important;height:40px!important;min-height:40px!important;
+  display:flex;align-items:center!important;justify-content:center!important;
+  border:1px solid rgba(255,255,255,.28)!important;border-radius:12px!important;
+  background:rgba(255,255,255,.09)!important;color:#fff!important;
+  padding:0!important;margin-top:0!important;box-shadow:none!important;font-size:0!important;
+}
+#scoreHeader button i{font-size:19px!important;line-height:1!important;margin:0!important}
+#scoreHeader #v16AdminActions{gap:6px!important;margin-left:0!important}
+#scoreHeader #v17TopLogout{order:10;margin-left:0!important}
+#scoreHeader button:focus-visible{outline:3px solid #ffcf48;outline-offset:3px}
+#mobileV9Home .score-profile{
+  position:static!important;display:flex!important;align-items:center!important;gap:10px!important;
+  border:1px solid #dceaf4!important;background:#fff!important;border-radius:14px!important;
+  padding:10px 12px!important;margin:0 0 14px!important;min-height:60px!important;
+  box-shadow:0 4px 12px rgba(24,83,117,.04)!important;
+}
+#mobileV9Home .score-profile .v9-avatar{width:36px!important;height:36px!important;flex:0 0 36px!important;background:#eaf6ff!important;color:#087ebc!important;font-size:16px!important}
+#mobileV9Home .score-profile-text{min-width:0}
+#mobileV9Home .score-profile small{display:block;font-size:8px;letter-spacing:.09em;color:#7690a4;font-weight:700}
+#mobileV9Home .score-profile b{font-size:12px!important;line-height:1.5!important;color:#173e59!important;overflow-wrap:anywhere}
+#mobileV9Home .score-profile span{display:block;font-size:10px!important;line-height:1.5!important;color:#678297!important;overflow-wrap:anywhere}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-profile{display:none!important}
+#v9BottomNav .wa-nav{
+  background:linear-gradient(145deg,#32dcf5,#05a9e8 55%,#087bcd)!important;
+  border:5px solid #e8faff!important;box-shadow:0 0 0 2px rgba(104,211,244,.22),0 8px 22px rgba(5,165,221,.32)!important;
+}
+#v9BottomNav .wa-nav i{color:#fff!important;font-size:31px!important;font-weight:400!important}
+/* Keep these declarations after the V133 base rules. */
+#mobileV9Home .v9-shell{padding-top:0!important}
+#mobileV9Home .v9-shell:not(.v94-page-not-home){background:linear-gradient(to bottom,#0d639b 0,#0d639b 145px,#f4f8fc 145px,#f4f8fc 100%)!important}
+#mobileV9Home .v9-shell.v94-page-not-home{background:#f4f8fc!important}
+#mobileV9Home .v9-shell>.score-header{
+  width:calc(100% + 20px)!important;max-width:none!important;box-sizing:border-box!important;
+  margin:0 -10px 10px!important;padding:6px 14px!important;min-height:68px!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;background:#0d639b!important;
+}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-header{display:none!important}
+#scoreHeader .score-brand{background:transparent!important;border-radius:0!important;margin-right:auto!important;min-height:0!important}
+#scoreHeader .score-logo-white{display:block;width:180px;height:60px;object-fit:contain}
+#scoreHeader #v16AdminBackMenu{display:none!important}
+#scoreHeader #scoreContactUs:not([hidden]){display:flex!important;align-items:center;justify-content:center;color:#fff;width:42px;height:42px;border:0;background:transparent;flex-shrink:0}
+#scoreHeader #scoreContactUs[hidden]{display:none!important}
+#scoreHeader #v16AdminSwitch.show,#scoreHeader #v17TopLogout{background:transparent!important;border:0!important;box-shadow:none!important}
+#scoreHeader svg{width:27px;height:27px;display:block;flex-shrink:0}
+#scoreHeader a:focus-visible{outline:3px solid #ffcf48;outline-offset:3px}
+@media (max-width:420px){
+  #mobileV9Home .score-header{padding:10px!important;gap:5px!important}
+  #scoreHeader .score-wordmark{width:136px;background-size:430px 92px;background-position:-74px -22px}
+  #scoreHeader .score-menu,#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show,#scoreHeader #v16AdminBackMenu.show{width:34px!important;height:38px!important;min-height:38px!important}
+  #scoreHeader #v16AdminActions{gap:4px!important}
+}
+@media (max-width:360px){
+  #scoreHeader .score-wordmark{width:128px;background-size:405px 87px;background-position:-69px -20px}
+  #scoreHeader .score-menu,#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show,#scoreHeader #v16AdminBackMenu.show{width:30px!important}
+}
+@media (min-width:769px) and (min-height:521px), (min-width:769px) and (pointer:fine){
+  #mobileV9Home .v9-shell>.score-header{width:calc(100% + 64px)!important;margin:0 -32px 12px!important;min-height:72px!important;padding:6px 32px!important;border-radius:0!important}
+  #mobileV9Home .score-profile{padding:10px 16px!important}
+  #v9BottomNav::before{content:'SCORE'!important;color:#14618d!important;letter-spacing:.025em}
+  #v9BottomNav .wa-nav{border:0!important;box-shadow:0 5px 14px rgba(5,165,221,.16)!important}
+}
+
+/* V135: compact left aligned header and opaque Home content surface. */
+#mobileV9Home .v9-shell>.score-header{
+  min-height:56px!important;
+  height:56px!important;
+  padding:2px 10px!important;
+  align-items:center!important;
+}
+#scoreHeader .score-brand{margin-left:0!important;margin-right:auto!important;padding:0!important}
+#scoreHeader .score-logo-white{width:164px!important;height:50px!important;object-fit:contain;object-position:left center}
+#mobileV9Home .score-home-surface{
+  position:relative!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:1320px!important;
+  margin:0 auto!important;
+  padding:10px 10px 36px!important;
+  background:#fff!important;
+  border:1px solid #dce6ef!important;
+  border-radius:18px 18px 12px 12px!important;
+  box-shadow:0 5px 18px rgba(22,67,101,.07)!important;
+}
+#mobileV9Home .v9-shell.v94-page-not-home>.score-home-surface{
+  background:transparent!important;border-color:transparent!important;
+  box-shadow:none!important;padding:0!important;border-radius:0!important;
+}
+#mobileV9Home .score-home-surface>.score-profile{margin-top:0!important}
+@media (max-width:420px){
+  #mobileV9Home .v9-shell>.score-header{min-height:50px!important;height:50px!important;padding:1px 8px!important}
+  #scoreHeader .score-logo-white{width:148px!important;height:46px!important}
+  #scoreHeader #scoreContactUs:not([hidden]),#scoreHeader #v17TopLogout,#scoreHeader #v16AdminSwitch.show{width:34px!important;height:36px!important;min-height:36px!important}
+  #mobileV9Home .score-home-surface{padding:8px 8px 30px!important;border-radius:15px 15px 10px 10px!important}
+}
+@media (min-width:769px) and (min-height:521px), (min-width:769px) and (pointer:fine){
+  #mobileV9Home .v9-shell>.score-header{min-height:60px!important;height:60px!important;padding:2px 32px!important}
+  #scoreHeader .score-logo-white{width:174px!important;height:52px!important}
+  #mobileV9Home .score-home-surface{padding:14px 16px 42px!important}
+}
