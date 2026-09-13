@@ -2848,7 +2848,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
 .v62-bulk-history{background:#ecfdf5;color:#047857;border:1px solid #bbf7d0!important}.v62-history-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}.v62-history-list{display:grid;gap:9px;margin-top:10px}.v62-history-item{border:1px solid #e2e8f0;border-radius:14px;background:#fff;padding:10px}.v62-history-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.v62-history-top b{font-size:9.5px;color:#17324d}.v62-history-top small{display:block;margin-top:2px;font-size:7.5px;color:#94a3b8}.v62-history-status{padding:4px 7px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}.v62-history-status.complete{background:#dcfce7;color:#166534}.v62-history-status.stopped{background:#fee2e2;color:#991b1b}.v62-history-status.other{background:#e2e8f0;color:#475569}.v62-history-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}.v62-history-meta span{border-radius:9px;background:#f8fafc;padding:6px;text-align:center}.v62-history-meta small{display:block;font-size:6.5px;color:#94a3b8;font-weight:800}.v62-history-meta b{display:block;margin-top:2px;font-size:9px;color:#334155}.v62-history-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.v62-history-actions button{border:0;border-radius:9px;padding:7px 9px;font-size:7.5px;font-weight:900}.v62-history-retry{background:#dcfce7;color:#166534}.v62-history-detail{background:#eff6ff;color:#1d4ed8}.v62-history-detailbox{margin-top:8px;border-top:1px dashed #cbd5e1;padding-top:8px;font-size:7.5px;color:#64748b;line-height:1.5}.v62-history-detailbox summary{cursor:pointer;font-weight:900;color:#475569}.v62-cloud-ready{display:flex;gap:9px;align-items:flex-start;border:1px solid #bfdbfe;background:#eff6ff;border-radius:13px;padding:10px;margin-top:10px}.v62-cloud-ready i{font-size:17px;color:#2563eb;margin-top:1px}.v62-cloud-ready b{display:block;font-size:9px;color:#1e3a8a}.v62-cloud-ready span{display:block;margin-top:3px;font-size:7.5px;line-height:1.45;color:#475569}.v62-empty{text-align:center;padding:28px 10px;color:#94a3b8;font-size:9px}.v62-history-note{font-size:7.5px;color:#64748b;line-height:1.45;margin-top:7px}.v62-history-danger{background:#fee2e2!important;color:#991b1b!important}.v62-history-owner{font-size:7px;color:#64748b;margin-top:3px}
 @media(max-width:560px){.v62-history-kpis,.v62-history-meta{grid-template-columns:repeat(2,1fr)}.v62-history-actions button{flex:1}}
 </style>
-<meta name="app-build" content="V18.3.11.88-admin-cabang-stage2">
+<meta name="app-build" content="V18.3.11.134-score-home">
 <style id="v93-responsive-ao">
 /* Shared AO shell; the legacy AO DOM remains available to calculation code. */
 #mobileV9Home .v9-top{background:linear-gradient(120deg,#003a8c,#1768d7)!important;border-radius:16px;padding:10px!important;margin-bottom:12px!important}
@@ -3053,7 +3053,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   #v9DebtorList .v16-card-finance strong{font-size:clamp(9px,3.2vw,11px)!important}
 }
 </style>
-<link rel="stylesheet" href="./score-v133.css">
+<link rel="stylesheet" href="./score-v134.css">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -3083,13 +3083,13 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <div id="mobileV9Home">
 <div class="v9-shell">
 <div class="v9-top score-header" id="scoreHeader">
-<button type="button" class="score-brand" aria-label="SCORE — Beranda" onclick="document.querySelector('#v9BottomNav [data-v9-page=home]')?.click()"><span class="score-wordmark" role="img" aria-label="SCORE"></span></button>
-<button type="button" class="score-menu" title="Menu dan Filter" aria-label="Menu dan Filter" onclick="document.querySelector('#v9BottomNav [data-v9-page=menu]')?.click()"><i class="fa-solid fa-bars"></i></button>
+<button type="button" class="score-brand" aria-label="SCORE — Beranda" onclick="document.querySelector('#v9BottomNav [data-v9-page=home]')?.click()"><img class="score-logo-white" src="./score-logo-white.png" alt="SCORE" width="180" height="60"></button>
+<a id="scoreContactUs" hidden href="https://wa.me/628111292999?text=Halo%2C%20Saya%20ada%20kenadala%E2%80%A6" target="_blank" rel="noopener noreferrer" title="Hubungi Kami" aria-label="Hubungi Kami melalui WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13V10a8 8 0 0 1 16 0v3M4 12H3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h3v-6H4Zm16 0h1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-3v-6h2Zm0 6v1a3 3 0 0 1-3 3h-4"/><path d="M10 21h3"/></svg></a>
 <button id="v17TopLogout" type="button" class="v17-top-logout" title="Keluar" aria-label="Keluar">
   <i class="fa-solid fa-arrow-right-from-bracket"></i>
 </button>
 <div id="v16AdminActions" style="display:none;gap:5px;align-items:center">
-<button id="v16AdminSwitch" type="button" onclick="v16SwitchToAdmin()" style="display:none;border:0;border-radius:12px;background:#eef2ff;color:#3730a3;padding:8px 10px;font-size:10px;font-weight:900;white-space:nowrap"><i class="fa-solid fa-chart-line"></i> Admin</button>
+<button id="v16AdminSwitch" type="button" onclick="v16SwitchToAdmin()" title="Pengaturan Admin" aria-label="Pengaturan Admin" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3 1-1h4l1 3 3 1 3 1 1 4-2 2-1 3v3l-3 2-3-1-3-1-3 1-3-3 1-3-1-3-2-2 2-4 3-1Z"/><circle cx="12" cy="12" r="3.5"/></svg></button>
 <button id="v16AdminBackMenu" type="button" onclick="v16BackToAdminMenu()" style="display:none;border:0;border-radius:12px;background:#f1f5f9;color:#475569;padding:8px 10px;font-size:10px;font-weight:900;white-space:nowrap"><i class="fa-solid fa-arrow-left"></i> Menu Admin</button>
 </div></div>
 <div class="v9-user score-profile" id="scoreProfileCard"><div class="v9-avatar"><i class="fa-solid fa-user"></i></div><div class="score-profile-text"><small>SELAMAT DATANG</small><b id="v9UserName">Pengguna</b><span id="v9UserRole">Hak akses</span></div></div>
@@ -12051,6 +12051,8 @@ function roleNow(){
 function syncAdminButtons(){
   const role=roleNow();
   const yes=role==='ADMIN'||role==='SUPERVISOR'||role==='SPV';
+  const contact=document.getElementById('scoreContactUs');
+  if(contact) contact.hidden=role!=='AO';
   const actions=document.getElementById('v16AdminActions');
   const dash=document.getElementById('v16AdminSwitch');
   const menu=document.getElementById('v16AdminBackMenu');
