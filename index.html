@@ -3053,7 +3053,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   #v9DebtorList .v16-card-finance strong{font-size:clamp(9px,3.2vw,11px)!important}
 }
 </style>
-<link rel="stylesheet" href="./score-v148.css?v=148">
+<link rel="stylesheet" href="./score-v150.css?v=150">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -16848,14 +16848,17 @@ document.addEventListener('visibilitychange',()=>{
 <script src="./usage-traffic-v122.js"></script>
 <script src="./score-header-v137.js?v=137"></script>
 
-
-
-
-
-<style id="v148-blue-bottom-nav-mobile-only-fix">
-/* V148: mobile-only bottom navigation fix; desktop keeps side navigation. */
-@media (max-width:768px) {
-  body.app-locked{padding-bottom:0!important;}
+<style id="v149-stable-mobile-bottom-nav">
+/*
+  V149 — stable mobile navigation.
+  Key fixes:
+  - border-box sizing prevents safe-area padding from making the bar too tall;
+  - every normal nav item is assigned to a fixed grid column so the absolute WA button
+    never shifts My Activity/Menu;
+  - no MutationObserver/runtime style rewriting;
+  - desktop rules remain untouched.
+*/
+@media (max-width:768px), (pointer:coarse) and (orientation:landscape) and (max-height:520px) {
   body.app-locked #v9BottomNav,
   body.v15-mobile-admin-active #v9BottomNav{
     display:none!important;
@@ -16870,166 +16873,148 @@ document.addEventListener('visibilitychange',()=>{
     top:auto!important;
     bottom:0!important;
     width:100%!important;
-    height:calc(90px + env(safe-area-inset-bottom,0px))!important;
-    min-height:calc(90px + env(safe-area-inset-bottom,0px))!important;
-    padding:10px 12px calc(8px + env(safe-area-inset-bottom,0px))!important;
+    height:calc(68px + env(safe-area-inset-bottom,0px))!important;
+    min-height:calc(68px + env(safe-area-inset-bottom,0px))!important;
+    box-sizing:border-box!important;
     margin:0!important;
+    padding:5px 10px calc(5px + env(safe-area-inset-bottom,0px))!important;
     display:grid!important;
-    grid-template-columns:1fr 1fr 1.24fr 1fr 1fr!important;
-    align-items:end!important;
-    justify-items:center!important;
-    gap:2px!important;
+    grid-template-columns:1fr 1fr 1.06fr 1fr 1fr!important;
+    grid-template-rows:1fr!important;
+    align-items:center!important;
+    justify-items:stretch!important;
+    gap:0!important;
     border:0!important;
-    border-radius:26px 26px 0 0!important;
-    background:linear-gradient(180deg,#0d71d7 0%,#0757c7 58%,#0646a2 100%)!important;
-    box-shadow:0 -10px 30px rgba(7,87,199,.28)!important;
+    border-radius:24px 24px 0 0!important;
+    background:linear-gradient(180deg,#2b9cd1 0%,#0d639b 58%,#084f7e 100%)!important;
+    box-shadow:0 -7px 22px rgba(13,99,155,.22)!important;
     backdrop-filter:none!important;
     -webkit-backdrop-filter:none!important;
     overflow:visible!important;
     z-index:2147483000!important;
-    transform:translateZ(0)!important;
+    transform:none!important;
   }
-  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav::before{display:none!important;content:none!important;}
+
+  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav::before{
+    display:none!important;
+    content:none!important;
+  }
+
+  /* Explicit columns stop the floating WA button from changing auto-placement. */
+  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button[data-v9-page="home"]{grid-column:1!important;grid-row:1!important;}
+  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button[data-v9-page="debitur"]{grid-column:2!important;grid-row:1!important;}
+  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button[data-v9-page="activity"]{grid-column:4!important;grid-row:1!important;}
+  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button[data-v9-page="menu"]{grid-column:5!important;grid-row:1!important;}
 
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button:not(.wa-nav){
     width:100%!important;
-    height:58px!important;
-    min-height:58px!important;
-    padding:8px 2px 2px!important;
+    height:54px!important;
+    min-height:54px!important;
+    box-sizing:border-box!important;
     margin:0!important;
+    padding:5px 2px 3px!important;
     border:0!important;
-    border-radius:18px!important;
+    border-radius:16px!important;
     background:transparent!important;
-    color:rgba(255,255,255,.78)!important;
+    color:rgba(255,255,255,.82)!important;
     display:flex!important;
     flex-direction:column!important;
     align-items:center!important;
     justify-content:center!important;
-    gap:4px!important;
+    gap:3px!important;
     box-shadow:none!important;
+    line-height:1!important;
   }
+
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button:not(.wa-nav) i{
+    display:block!important;
     width:auto!important;
     height:auto!important;
     margin:0!important;
+    padding:0!important;
+    color:currentColor!important;
     background:transparent!important;
     box-shadow:none!important;
     border-radius:0!important;
-    color:currentColor!important;
-    font-size:22px!important;
+    font-size:21px!important;
     line-height:1!important;
   }
+
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button:not(.wa-nav) span{
     display:block!important;
+    margin:0!important;
+    padding:0!important;
     color:currentColor!important;
-    font-size:8.8px!important;
-    line-height:1.12!important;
+    font-size:8.5px!important;
+    line-height:1.08!important;
     font-weight:900!important;
     white-space:nowrap!important;
   }
+
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav button.v9-nav-active:not(.wa-nav){
     color:#fff!important;
-    background:rgba(255,255,255,.11)!important;
+    background:rgba(255,255,255,.10)!important;
   }
 
-  /* WA button is taken out of grid flow to avoid offset and stay perfectly centered. */
+  /* Floating WA: fixed geometric center, independent of grid flow. */
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav .wa-nav{
     position:absolute!important;
     left:50%!important;
-    top:0!important;
     right:auto!important;
+    top:0!important;
     bottom:auto!important;
-    transform:translate(-50%,-42%)!important;
-    width:88px!important;
-    height:88px!important;
-    min-height:88px!important;
+    transform:translate(-50%,-36%)!important;
+    width:76px!important;
+    height:76px!important;
+    min-width:76px!important;
+    min-height:76px!important;
+    box-sizing:border-box!important;
     margin:0!important;
     padding:0!important;
+    border:6px solid rgba(255,255,255,.90)!important;
     border-radius:50%!important;
-    border:7px solid rgba(255,255,255,.84)!important;
-    background:radial-gradient(circle at 30% 30%,#35d7ff 0%,#17c0fb 50%,#109fe1 100%)!important;
+    background:linear-gradient(145deg,#48c9ef 0%,#1faedb 52%,#0d7dad 100%)!important;
     color:#fff!important;
     display:flex!important;
     align-items:center!important;
     justify-content:center!important;
-    box-shadow:0 10px 24px rgba(5,76,173,.25)!important;
+    gap:0!important;
+    box-shadow:0 8px 20px rgba(8,79,126,.24),0 0 0 5px rgba(190,233,248,.42)!important;
     overflow:visible!important;
-    z-index:2147483001!important;
+    z-index:2147483002!important;
   }
+
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav .wa-nav::before{
-    content:"";
-    position:absolute;
-    inset:-8px;
-    border-radius:50%;
-    border:8px solid rgba(194,234,248,.55);
-    z-index:-1;
+    content:""!important;
+    position:absolute!important;
+    inset:-8px!important;
+    border-radius:50%!important;
+    border:2px solid rgba(168,222,241,.48)!important;
+    background:transparent!important;
+    z-index:-1!important;
   }
-  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav .wa-nav::after{
-    content:"";
-    position:absolute;
-    inset:-14px;
-    border-radius:50%;
-    border:2px solid rgba(168,219,237,.5);
-    z-index:-2;
-  }
+  body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav .wa-nav::after{display:none!important;content:none!important;}
+
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav .wa-nav i{
-    color:#fff!important;
+    display:block!important;
     width:auto!important;
     height:auto!important;
     margin:0!important;
+    padding:0!important;
+    color:#fff!important;
     background:transparent!important;
     box-shadow:none!important;
-    font-size:37px!important;
+    font-size:31px!important;
     line-height:1!important;
   }
   body:not(.app-locked):not(.v15-mobile-admin-active) #v9BottomNav .wa-nav span{display:none!important;}
 
+  /* Keep scrollable content clear of the fixed bar without creating a large blank footer. */
   body:not(.app-locked):not(.v15-mobile-admin-active) #mobileV9Home .v9-shell{
-    padding-bottom:calc(106px + env(safe-area-inset-bottom,0px))!important;
+    padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))!important;
   }
 }
 </style>
-<script id="v148-bottom-nav-runtime-fix">
-(function(){
-  function syncNav(){
-    var nav=document.getElementById('v9BottomNav');
-    if(!nav) return;
-    var isMobile=window.matchMedia('(max-width: 768px)').matches;
-    if(!isMobile){
-      // Desktop/tablet landscape: remove any V147/V148 inline mobile overrides and let the native side navigation CSS win.
-      ['display','visibility','pointer-events','top','left','right','bottom','width','height','min-height','padding','margin','background','background-color','border','border-radius','box-shadow','grid-template-columns','align-items','justify-items','overflow','z-index','transform','position'].forEach(function(p){nav.style.removeProperty(p);});
-      var desktopWa=nav.querySelector('.wa-nav');
-      if(desktopWa){['position','left','right','top','bottom','transform','width','height','min-height','margin','padding','background','background-color','border','border-radius','box-shadow','display','align-items','justify-content','overflow','z-index'].forEach(function(p){desktopWa.style.removeProperty(p);});}
-      return;
-    }
-    var locked=document.body.classList.contains('app-locked');
-    var admin=document.body.classList.contains('v15-mobile-admin-active');
-    var hide=locked || admin;
-    if(hide){
-      nav.style.setProperty('display','none','important');
-      nav.style.setProperty('visibility','hidden','important');
-      nav.style.setProperty('pointer-events','none','important');
-      return;
-    }
-    ['display','visibility','pointer-events','top','left','right','bottom','width','height','min-height','padding','margin','background','background-color','border','border-radius','box-shadow','grid-template-columns','align-items','justify-items','overflow','z-index','transform'].forEach(function(p){nav.style.removeProperty(p);});
-    var wa=nav.querySelector('.wa-nav');
-    if(wa){['position','left','right','top','bottom','transform','width','height','min-height','margin','padding','background','background-color','border','border-radius','box-shadow','display','align-items','justify-content','overflow','z-index'].forEach(function(p){wa.style.removeProperty(p);});}
-  }
-  function boot(){
-    syncNav();
-    document.addEventListener('click', function(e){ if(e.target.closest && e.target.closest('#v9BottomNav')) setTimeout(syncNav,0); }, {passive:true});
-    window.addEventListener('resize', function(){ setTimeout(syncNav,60); });
-    window.addEventListener('orientationchange', function(){ setTimeout(syncNav,120); });
-    var obs=new MutationObserver(function(muts){
-      for(var i=0;i<muts.length;i++){
-        if(muts[i].attributeName==='class'){ setTimeout(syncNav,0); setTimeout(syncNav,220); break; }
-      }
-    });
-    obs.observe(document.body,{attributes:true,attributeFilter:['class']});
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
-})();
-</script>
 
 </body>
 </html>
