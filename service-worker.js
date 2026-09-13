@@ -1,6 +1,6 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.136-score-header';
-const SHELL=['./','./index.html','./score-v136.css','./score-header-v136.js','./score-header-background.png','./score-logo-white-compact.png','./score-icon-192.png','./score-icon-512.png',
-  './upload-v120.js?v=129','./android-back-v111.js?v=134','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./usage-traffic-v122.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
+const CACHE = 'analisis-kredit-pwa-V18.3.11.137-score-header-back';
+const SHELL=['./','./index.html','./score-v137.css?v=137','./score-header-v137.js?v=137','./score-header-background-v137.jpg?v=137','./score-logo-white-compact.png','./score-icon-192.png','./score-icon-512.png',
+  './upload-v120.js?v=129','./android-back-v111.js?v=137','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./usage-traffic-v122.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);if(r.mode==='navigate'){e.respondWith(fetch(r).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res;}).catch(()=>caches.match('./index.html').then(x=>x||caches.match('./offline.html'))));return;}if(u.origin===self.location.origin){e.respondWith(caches.match(r).then(x=>x||fetch(r).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(r,copy));return res;})));}});

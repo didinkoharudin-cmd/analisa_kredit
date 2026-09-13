@@ -9,9 +9,11 @@ let pages=['home'],replaying=false,armed=false,leaving=false,account='',frame=0;
 let exitUntil=0,exitNoticeTimer=0;
 const visible=el=>!!el&&el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden';
 const session=()=>String(window.currentUser?.email||window.currentUser?.EMAIL||'');
-function arm(){
- if(armed||leaving||!session())return;
- if(!history.state?.v111BackGuard)history.pushState({...history.state,v111BackGuard:true},'',location.href);
+function arm(force){
+ if(leaving||!session())return;
+ // A reload can restore a guarded history entry with no safe entry behind it.
+ // On login always add a fresh entry so the first device Back fires popstate.
+ if(force||!history.state?.v111BackGuard)history.pushState({...history.state,v111BackGuard:true},'',location.href);
  armed=true;
 }
 function register(id,back){registry.set(id,back);}
@@ -77,7 +79,7 @@ function activate(){
  pages=['home'];
  armed=false;
  leaving=false;
- arm();
+ arm(true);
 }
 function schedule(){if(!frame)frame=requestAnimationFrame(sync);}
 function page(name){
@@ -104,12 +106,12 @@ function back(){
 }
 window.v111AndroidBack={page,register,activate};
 window.addEventListener('popstate',()=>{
- if(!armed)return;
+ if(leaving||!session())return;
  armed=false;
- if(session()&&back()){arm();return;}
- if(android&&session()&&!leaving){
+ if(back()){arm(true);return;}
+ if(android){
   const now=Date.now();
-  if(now>=exitUntil){exitUntil=now+2200;showExitNotice();arm();return;}
+  if(now>=exitUntil){exitUntil=now+2200;showExitNotice();arm(true);return;}
  }
  // At Home/login hand navigation back to Android/browser; no endless history trap.
  cancelExit();leaving=true;history.back();
@@ -149,7 +151,7 @@ if(standalone){
  document.addEventListener('touchcancel',()=>{gesture=null;},{passive:true});
 }
 window.addEventListener('focus',schedule);
-window.addEventListener('pageshow',()=>{leaving=false;if(Date.now()>=exitUntil)cancelExit();armed=!!history.state?.v111BackGuard;schedule();});
+window.addEventListener('pageshow',()=>{leaving=false;if(Date.now()>=exitUntil)cancelExit();armed=!!history.state?.v111BackGuard;arm();schedule();});
 // Login is asynchronous; observe only changes to account/layout containers.
 const observer=new MutationObserver(records=>{
  if(records.some(r=>/^(mobileV9Home|v12RoleGate|v12MobileAdmin|login|auth)/i.test(r.target.id||'')))schedule();
