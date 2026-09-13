@@ -1,5 +1,5 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.152-stable-layout-reset';
-const SHELL=['./','./index.html','./score-v152.css?v=152','./score-header-v137.js?v=137','./score-header-background-v137.jpg?v=137','./score-logo-white-compact.png','./score-icon-192.png','./score-icon-512.png',
+const CACHE = 'analisis-kredit-pwa-V18.3.11.153-bottom-blue-ios-safe-top';
+const SHELL=['./','./index.html','./score-v153.css?v=153','./score-header-v137.js?v=137','./score-header-background-v137.jpg?v=137','./score-logo-white-compact.png','./score-icon-192.png','./score-icon-512.png',
   './upload-v120.js?v=129','./android-back-v111.js?v=137','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./usage-traffic-v122.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
