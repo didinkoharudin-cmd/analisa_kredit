@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <!-- V17 V4: stable base; WA selected-row + tenor preview + NEW fix -->
     <!-- V18.3.2 SAFE: G2H 9.5 percent flat interest -->
-    <title>Analisis Kredit - Presisi Parameter Produk, RPC & Tenor Pegawai</title>
+    <title>SCORE — Simulation, Credit Offer, Result & Evaluation</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS (XLSX) CDN -->
@@ -1464,12 +1464,13 @@ body.v15-mobile-admin-active #viewAdmin button{
 
 
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#0d639b">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Analisis Kredit">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-title" content="SCORE">
+<link rel="apple-touch-icon" href="./score-icon-192.png">
+<link rel="icon" type="image/png" href="./score-icon-192.png">
 <style id="v17-v11-native-shell">
 @media all{
 :root{--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
@@ -3052,6 +3053,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   #v9DebtorList .v16-card-finance strong{font-size:clamp(9px,3.2vw,11px)!important}
 }
 </style>
+<link rel="stylesheet" href="./score-v133.css">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -3080,13 +3082,17 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 </style>
 <div id="mobileV9Home">
 <div class="v9-shell">
-<div class="v9-top"><div class="v9-user"><div class="v9-avatar"><i class="fa-solid fa-user"></i></div><div><b id="v9UserName">Pengguna</b><span id="v9UserRole">Hak akses</span></div></div><button id="v17TopLogout" type="button" class="v17-top-logout" title="Keluar" aria-label="Keluar">
+<div class="v9-top score-header" id="scoreHeader">
+<button type="button" class="score-brand" aria-label="SCORE — Beranda" onclick="document.querySelector('#v9BottomNav [data-v9-page=home]')?.click()"><span class="score-wordmark" role="img" aria-label="SCORE"></span></button>
+<button type="button" class="score-menu" title="Menu dan Filter" aria-label="Menu dan Filter" onclick="document.querySelector('#v9BottomNav [data-v9-page=menu]')?.click()"><i class="fa-solid fa-bars"></i></button>
+<button id="v17TopLogout" type="button" class="v17-top-logout" title="Keluar" aria-label="Keluar">
   <i class="fa-solid fa-arrow-right-from-bracket"></i>
 </button>
 <div id="v16AdminActions" style="display:none;gap:5px;align-items:center">
 <button id="v16AdminSwitch" type="button" onclick="v16SwitchToAdmin()" style="display:none;border:0;border-radius:12px;background:#eef2ff;color:#3730a3;padding:8px 10px;font-size:10px;font-weight:900;white-space:nowrap"><i class="fa-solid fa-chart-line"></i> Admin</button>
 <button id="v16AdminBackMenu" type="button" onclick="v16BackToAdminMenu()" style="display:none;border:0;border-radius:12px;background:#f1f5f9;color:#475569;padding:8px 10px;font-size:10px;font-weight:900;white-space:nowrap"><i class="fa-solid fa-arrow-left"></i> Menu Admin</button>
 </div></div>
+<div class="v9-user score-profile" id="scoreProfileCard"><div class="v9-avatar"><i class="fa-solid fa-user"></i></div><div class="score-profile-text"><small>SELAMAT DATANG</small><b id="v9UserName">Pengguna</b><span id="v9UserRole">Hak akses</span></div></div>
 <div class="v9-greeting"><h1>Dashboard Kredit</h1><p>Potensi debitur berdasarkan jenis pengajuan</p></div>
 <div class="v15-home-search">
   <i class="fa-solid fa-magnifying-glass"></i>
@@ -3791,7 +3797,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Simulasi & Monitoring Kredit Konsumer
+                Analisis Kredit Presisi
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
