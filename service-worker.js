@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.130-birthdate-ddmm';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.132-g2b-pension-savings';
 const SHELL=['./','./index.html',
   './upload-v120.js?v=129','./android-back-v111.js','./customer-care-v109.js','./bundling-g6b-g2c-v117.js','./usage-traffic-v122.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting();});
