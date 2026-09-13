@@ -5568,12 +5568,26 @@ Terima kasih.`
         }
 
         function parseExcelDate(val) {
-            if (!val) return null;
-            if (val instanceof Date) return val;
-            if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
-            if (typeof val === 'string') {
-                const parsed = new Date(val);
-                if (!isNaN(parsed.getTime())) return parsed;
+            if (val === null || val === undefined || val === '') return null;
+            if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+            if (typeof val === 'number') {
+                if (!Number.isFinite(val) || val < 1 || val > 2958465) return null;
+                const d = new Date(Math.round((val - 25569) * 86400000));
+                return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+            }
+            const str = String(val).trim();
+            let m = str.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+            if (m) {
+                // Tanggal sumber cabang DD/MM/YYYY, termasuk 01/02/1990.
+                const day=Number(m[1]),month=Number(m[2]),year=Number(m[3]);
+                const date=new Date(year,month-1,day);
+                return date.getFullYear()===year && date.getMonth()===month-1 && date.getDate()===day ? date : null;
+            }
+            m=str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+            if (m) {
+                const year=Number(m[1]),month=Number(m[2]),day=Number(m[3]);
+                const date=new Date(year,month-1,day);
+                return date.getFullYear()===year && date.getMonth()===month-1 && date.getDate()===day ? date : null;
             }
             return null;
         }
@@ -6269,8 +6283,8 @@ Terima kasih.`
                             'SERTIFIKASI': p.sertifikasi || 0
                         },
                         bup: p.bup || 60,
-                        tgl_lahir: p.tgl_lahir ? new Date(p.tgl_lahir) : null,
-                        tgl_pelantikan: p.tgl_pelantikan ? new Date(p.tgl_pelantikan) : null,
+                        tgl_lahir: parseExcelDate(p.tgl_lahir),
+                        tgl_pelantikan: parseExcelDate(p.tgl_pelantikan),
                         masa_jabatan_bulan: Number(p.masa_jabatan_bulan || 0),
                         status_pegawai: parsedStatus,
                         facilities: []
@@ -6285,8 +6299,8 @@ Terima kasih.`
                     if (p.tpp !== undefined) existingDebtor.income.TPP = p.tpp || 0;
                     if (p.sertifikasi !== undefined) existingDebtor.income.SERTIFIKASI = p.sertifikasi || 0;
                     if (p.bup) existingDebtor.bup = p.bup;
-                    if (p.tgl_lahir) existingDebtor.tgl_lahir = new Date(p.tgl_lahir);
-                    if (p.tgl_pelantikan) existingDebtor.tgl_pelantikan = new Date(p.tgl_pelantikan);
+                    if (parseExcelDate(p.tgl_lahir)) existingDebtor.tgl_lahir = parseExcelDate(p.tgl_lahir);
+                    if (parseExcelDate(p.tgl_pelantikan)) existingDebtor.tgl_pelantikan = parseExcelDate(p.tgl_pelantikan);
                     if (Number(p.masa_jabatan_bulan) > 0) existingDebtor.masa_jabatan_bulan = Number(p.masa_jabatan_bulan);
                     existingDebtor.status_pegawai = parsedStatus || existingDebtor.status_pegawai;
                 }
@@ -6299,8 +6313,8 @@ Terima kasih.`
                 const tipeProd = (k.tipe_pinjaman || 'G6B').toString().trim().toUpperCase();
                 const prodInfo = getProdRule(tipeProd);
 
-                const tMulai = k.tgl_mulai ? new Date(k.tgl_mulai) : null;
-                const tAkhir = k.tgl_berakhir ? new Date(k.tgl_berakhir) : null;
+                const tMulai = parseExcelDate(k.tgl_mulai);
+                const tAkhir = parseExcelDate(k.tgl_berakhir);
 
                 if (!cifDatabase[cifKey]) {
                     cifDatabase[cifKey] = {
@@ -16382,6 +16396,16 @@ function v127ReadImportRows_(ws){
   }else if(cifH){
     formatted.forEach(row=>{row[cifH]=v127NormalizeCifCell_(row[cifH]);});
   }
+  const dateHeaders=formattedHeaders.filter(h=>{
+    const key=v872NormHeader(h);
+    return /LAHIR|PELANTIKAN|TGLJABATAN|TANGGALJABATAN|TGLMULAI|TANGGALMULAI|TGLAWAL|TGLBERAKHIR|TANGGALBERAKHIR|JATUHTEMPO|TGLAKHIR/.test(key);
+  });
+  formatted.forEach((row,i)=>dateHeaders.forEach(h=>{
+    const original=row[h];if(original===null||original===undefined||String(original).trim()==='')return;
+    const date=parseExcelDate(original);
+    if(!date)throw new Error('Tanggal pada baris '+(i+2)+' kolom '+h+' tidak valid: '+original+'. Gunakan DD/MM/YYYY.');
+    row[h]=[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+  }));
   return formatted;
 }
 function v872CleanImportRows(type,rawRows){
