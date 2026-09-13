@@ -3053,7 +3053,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   #v9DebtorList .v16-card-finance strong{font-size:clamp(9px,3.2vw,11px)!important}
 }
 </style>
-<link rel="stylesheet" href="./score-v143.css?v=143">
+<link rel="stylesheet" href="./score-v143.css?v=144">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -16847,5 +16847,156 @@ document.addEventListener('visibilitychange',()=>{
 <script src="./upload-v120.js?v=129" onerror="document.getElementById('v87ImportStatus').textContent='Modul upload V129 gagal dimuat. Muat ulang aplikasi atau hapus cache situs.'"></script>
 <script src="./usage-traffic-v122.js"></script>
 <script src="./score-header-v137.js?v=137"></script>
+
+<style id="v144-bottom-nav-blue-raised-overrides">
+@media (max-width: 900px), (pointer: coarse) {
+  :root{
+    --v144-nav-blue:#0757c7;
+    --v144-nav-blue-top:#0a68cf;
+    --v144-nav-blue-dark:#064cad;
+    --v144-nav-text:rgba(255,255,255,.76);
+    --v144-nav-text-active:#ffffff;
+  }
+
+  #v9BottomNav{
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    width:100%!important;
+    height:calc(84px + env(safe-area-inset-bottom,0px))!important;
+    padding:10px 12px calc(8px + env(safe-area-inset-bottom,0px))!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr 1.22fr 1fr 1fr!important;
+    align-items:end!important;
+    gap:2px!important;
+    border-radius:26px 26px 0 0!important;
+    border:0!important;
+    background:linear-gradient(180deg,var(--v144-nav-blue-top) 0%,var(--v144-nav-blue) 60%,var(--v144-nav-blue-dark) 100%)!important;
+    box-shadow:0 -10px 30px rgba(7,87,199,.26)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    overflow:visible!important;
+    z-index:2147483000!important;
+    transform:translateZ(0)!important;
+  }
+
+  #v9BottomNav button:not(.wa-nav){
+    border:0!important;
+    background:transparent!important;
+    color:var(--v144-nav-text)!important;
+    height:58px!important;
+    min-height:58px!important;
+    padding:6px 2px 2px!important;
+    border-radius:18px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+    box-shadow:none!important;
+  }
+
+  #v9BottomNav button:not(.wa-nav) i{
+    color:currentColor!important;
+    width:auto!important;
+    height:auto!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    border-radius:0!important;
+    font-size:22px!important;
+    line-height:1!important;
+    margin:0!important;
+  }
+
+  #v9BottomNav button:not(.wa-nav) span{
+    color:currentColor!important;
+    font-size:9px!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+    letter-spacing:.01em!important;
+  }
+
+  #v9BottomNav button.v9-nav-active:not(.wa-nav){
+    color:var(--v144-nav-text-active)!important;
+    background:rgba(255,255,255,.10)!important;
+  }
+
+  #v9BottomNav button.v9-nav-active:not(.wa-nav) i,
+  #v9BottomNav button.v9-nav-active:not(.wa-nav) span{
+    color:#fff!important;
+    opacity:1!important;
+  }
+
+  #v9BottomNav .wa-nav{
+    position:relative!important;
+    justify-self:center!important;
+    align-self:start!important;
+    margin-top:-52px!important;
+    width:94px!important;
+    height:94px!important;
+    min-height:94px!important;
+    border-radius:50%!important;
+    border:8px solid rgba(255,255,255,.84)!important;
+    background:radial-gradient(circle at 30% 30%, #33d6ff 0%, #18bfff 45%, #0da2ea 100%)!important;
+    color:#fff!important;
+    box-shadow:0 12px 26px rgba(5,76,173,.28), 0 0 0 12px rgba(186,234,250,.52)!important;
+    overflow:visible!important;
+    z-index:2147483001!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:0!important;
+  }
+
+  #v9BottomNav .wa-nav::before{
+    content:"";
+    position:absolute;
+    inset:-14px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(221,245,252,.96) 0%, rgba(205,238,249,.78) 52%, rgba(197,235,248,.18) 74%, rgba(197,235,248,0) 100%);
+    z-index:-2;
+  }
+
+  #v9BottomNav .wa-nav::after{
+    content:"";
+    position:absolute;
+    inset:-5px;
+    border-radius:50%;
+    border:2px solid rgba(168,219,237,.72);
+    z-index:-1;
+  }
+
+  #v9BottomNav .wa-nav i{
+    color:#fff!important;
+    font-size:38px!important;
+    line-height:1!important;
+    margin:0!important;
+    width:auto!important;
+    height:auto!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+
+  #v9BottomNav .wa-nav span{display:none!important}
+
+  body,
+  #mobileV9Home,
+  #mobileV9Home .v9-shell,
+  .v9-page,
+  #v9PageHome,
+  #v9PageDebitur,
+  #v9PageActivity,
+  #v9PageMenu{
+    padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  body:has(#v9PageSimulasi.active) #v9BottomNav{
+    display:none!important;
+  }
+}
+</style>
+
 </body>
 </html>
