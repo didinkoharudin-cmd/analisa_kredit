@@ -8516,13 +8516,127 @@ function updateWaPreview() {
     }
   }
 
+  // =========================================================
+  // V161 — STARTUP NETWORK COORDINATOR
+  // Tujuan: setelah login sukses, request latar belakang tidak berebut koneksi
+  // dengan sinkronisasi parameter + Smart Sync database. Request tidak dibuang;
+  // request GET latar belakang ditunda, diserialkan sementara, dan request sama
+  // yang datang berulang digabung menjadi satu Promise.
+  // =========================================================
+  const SCORE_STARTUP_BACKGROUND_ACTIONS = new Set([
+    'trackUsage',
+    'getBanners',
+    'getAoHomeStandings',
+    'getMonthlyOfferFlags',
+    'getMonthlyOfferFlagSummary',
+    'getChatUnread',
+    'getChatContacts',
+    'getWebPushConfig',
+    'getSharedFormDocuments',
+    'getVerifiedOfferSummary',
+    'getProspectPipeline',
+    'getBranchAdminStage2',
+    'getBranchAdminData',
+    'getSuperAdminDashboard',
+    'getUsageTraffic',
+    'getActivityLogs',
+    'getAoMonitoringStatus',
+    'getAoMonitoringUserData',
+    'getAoMonitoringAdminData'
+  ]);
+  const SCORE_COALESCE_ACTIONS = new Set([
+    ...SCORE_STARTUP_BACKGROUND_ACTIONS,
+    'getParameters',
+    'getDataVersion',
+    'getData'
+  ]);
+  const scoreStartupNetwork = window.__scoreStartupNetwork = window.__scoreStartupNetwork || {
+    authAt:0,
+    quietUntil:0,
+    syncActive:false,
+    syncStartedAt:0,
+    parameterPromise:null
+  };
+  let scoreBackgroundTail = Promise.resolve();
+  const scoreRequestInFlight = new Map();
+  const scoreSleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
+
+  function scoreMarkAuthenticated(){
+    scoreStartupNetwork.authAt=Date.now();
+    // Beri ruang sekitar 9 detik agar user dapat memilih Smart Sync tanpa
+    // didahului banner/klasemen/chat/traffic yang otomatis berjalan.
+    scoreStartupNetwork.quietUntil=Date.now()+9000;
+    scoreStartupNetwork.syncActive=false;
+    scoreStartupNetwork.syncStartedAt=0;
+    scoreStartupNetwork.parameterPromise=null;
+    scoreRequestInFlight.clear();
+    scoreBackgroundTail=Promise.resolve();
+  }
+
+  function scoreStartParameterBootstrap(){
+    if(scoreStartupNetwork.parameterPromise) return scoreStartupNetwork.parameterPromise;
+    const promise=Promise.resolve()
+      .then(()=>window.loadCentralParameters?.())
+      .catch(err=>{
+        console.warn('Parameter awal gagal dimuat; cache lokal tetap digunakan:',err);
+        return {success:false,error:String(err?.message||err||'')};
+      });
+    scoreStartupNetwork.parameterPromise=promise;
+    return promise;
+  }
+
+  function scoreBeginCriticalSync(){
+    scoreStartupNetwork.syncActive=true;
+    scoreStartupNetwork.syncStartedAt=Date.now();
+    // Request background yang sudah menunggu tetap ditahan sampai Smart Sync selesai.
+    scoreStartupNetwork.quietUntil=Math.max(scoreStartupNetwork.quietUntil,Date.now()+800);
+  }
+
+  function scoreEndCriticalSync(){
+    scoreStartupNetwork.syncActive=false;
+    scoreStartupNetwork.syncStartedAt=0;
+    // Setelah database selesai, beri jeda kecil lalu izinkan antrean background jalan.
+    scoreStartupNetwork.quietUntil=Date.now()+550;
+  }
+
+  function scoreIsStartupWindow(){
+    return !!scoreStartupNetwork.authAt && (Date.now()-scoreStartupNetwork.authAt)<25000;
+  }
+
+  async function scoreAcquireBackgroundSlot(action){
+    if(!SCORE_STARTUP_BACKGROUND_ACTIONS.has(String(action||''))) return null;
+    const shouldCoordinate = scoreStartupNetwork.syncActive ||
+      Date.now()<Number(scoreStartupNetwork.quietUntil||0) || scoreIsStartupWindow();
+    if(!shouldCoordinate) return null;
+
+    let release;
+    const gate=new Promise(resolve=>{ release=resolve; });
+    const previous=scoreBackgroundTail;
+    scoreBackgroundTail=previous.catch(()=>{}).then(()=>gate);
+    await previous.catch(()=>{});
+
+    // Jangan memulai request latar belakang saat Smart Sync aktif atau selama
+    // quiet window pasca-login. Menunggu di sini tidak memakai timeout fetch.
+    while(scoreStartupNetwork.syncActive || Date.now()<Number(scoreStartupNetwork.quietUntil||0)){
+      await scoreSleep(220);
+    }
+    return release;
+  }
+
+  function scoreCoalesceKey(action,payload,credential){
+    // Sertakan potongan signature credential agar request dua user/sesi tidak
+    // pernah berbagi Promise hasil yang sama. Token penuh tidak disimpan.
+    const sessionKey=String(credential||'').slice(-32);
+    try{return String(action||'')+'|'+sessionKey+'|'+JSON.stringify(payload||{});}catch(e){return String(action||'')+'|'+sessionKey;}
+  }
+
   function runPostLoginBootstrap(completingReauth){
-    // Semua proses setelah autentikasi dibuat non-blocking. Kegagalan banner,
-    // parameter, klasemen, heartbeat, dsb. tidak boleh mengembalikan pengguna
-    // ke layar login setelah backend sudah menyatakan akun valid.
-    setTimeout(()=>{
-      Promise.resolve(window.loadCentralParameters?.()).catch(err=>console.warn('Parameter awal gagal dimuat:',err));
-    },0);
+    // V161: tandai login sukses terlebih dahulu. Hanya sinkronisasi parameter
+    // yang dimulai segera; request otomatis lain dikoordinasikan oleh callApi.
+    // Dengan demikian login tetap selesai cepat dan request tidak dibatalkan.
+    scoreMarkAuthenticated();
+    scoreStartParameterBootstrap();
+
     if(completingReauth){
       drainReauthTasks();
       return;
@@ -8533,10 +8647,11 @@ function updateWaPreview() {
       console.error('Routing setelah login gagal:',err);
       // Fallback: aplikasi tetap dibuka. Jangan batalkan sesi yang sudah valid.
     }
-    setTimeout(()=>window.sendUsageHeartbeat?.(true),300);
-    [150,900,2200].forEach(ms=>setTimeout(()=>window.refreshAoBanners?.(),ms));
-    [700,1800,4200].forEach(ms=>setTimeout(()=>window.refreshHomeAoStandings?.(true),ms));
-    setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),700);
+
+    // Flag bulanan tidak mempunyai retry cepat sendiri bila timer awal terjadi
+    // sebelum credential siap. Jalankan satu fail-safe saja; banner, klasemen,
+    // chat, traffic, dokumen, dan funnel sudah mempunyai bootstrap masing-masing.
+    setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),9500);
   }
 
   async function loginBackendWithRetry(credential){
@@ -8679,52 +8794,80 @@ function updateWaPreview() {
   }
 
   async function callApi(action,credential,extraPayload={}){
-    const expiresAt=credentialExpiryMs(credential);
-    if(expiresAt && expiresAt<=Date.now()){
-      if(credential===googleCredential&&currentUser)showSessionExpiredPopup();
-      return {success:false,code:'SESSION_EXPIRED',error:'Sesi habis, silakan login kembali.'};
+    const coalesceKey=SCORE_COALESCE_ACTIONS.has(String(action||''))
+      ? scoreCoalesceKey(action,extraPayload,credential)
+      : '';
+    if(coalesceKey && scoreRequestInFlight.has(coalesceKey)){
+      return scoreRequestInFlight.get(coalesceKey);
     }
-    let lastError=null;
-    const isBackgroundActivity = action === 'logActivity' || action === 'trackUsage' || action === 'sendWebPushChatFast';
 
-    // getData memproses Kredit + Penghasilan + konversi/normalisasi server,
-    // sehingga jangan dibatasi 60 detik. Login tetap cepat.
-    const timeoutMs = action === 'getData'
-      ? Number(window.DATABASE_LOAD_TIMEOUT_MS || 300000)
-      : ((action === 'uploadActivityPhoto' || action === 'sendChatMessage' || action === 'getChatAttachment' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || action === 'importBranchData') ? 120000 : 60000);
+    const task=(async()=>{
+      const expiresAt=credentialExpiryMs(credential);
+      if(expiresAt && expiresAt<=Date.now()){
+        if(credential===googleCredential&&currentUser)showSessionExpiredPopup();
+        return {success:false,code:'SESSION_EXPIRED',error:'Sesi habis, silakan login kembali.'};
+      }
 
-    // Jangan mengulang getData yang besar karena retry dapat membuat
-    // request kedua berjalan bersamaan/menambah beban server.
-    const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'getData' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
-
-    for(let attempt=1; attempt<=maxAttempts; attempt++){
-      const controller = ('AbortController' in window) ? new AbortController() : null;
-      const timer = controller ? setTimeout(()=>controller.abort(), timeoutMs) : null;
+      // Selama fase startup, GET otomatis menunggu giliran. Timer HTTP baru
+      // dibuat SETELAH giliran diperoleh, sehingga request tidak timeout hanya
+      // karena menunggu Smart Sync selesai.
+      const backgroundRelease=await scoreAcquireBackgroundSlot(action);
       try{
-        const response=await fetch(AUTH_CONFIG.API_URL,{
-          method:'POST',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body:JSON.stringify(Object.assign({action,credential}, extraPayload || {})),
-          cache:'no-store',
-          keepalive:isBackgroundActivity,
-          signal:controller ? controller.signal : undefined
-        });
-        if(timer) clearTimeout(timer);
-        const text=await response.text();
-        let result;
-        try{ result=JSON.parse(text); }catch(e){ throw new Error('Respons server bukan JSON. Periksa deployment Apps Script dan akses Web App.'); }
-        if(isSessionFailure(result,response.status)&&credential===googleCredential&&currentUser)showSessionExpiredPopup();
-        return result;
-      }catch(err){
-        if(timer) clearTimeout(timer);
-        lastError = err && err.name === 'AbortError' ? new Error(
-              'Proses database membutuhkan waktu lebih lama dari biasanya (batas 5 menit). ' +
-              'Sesi tetap dipertahankan. Silakan tunggu atau coba Muat Database lagi.'
-            ) : err;
-        if(attempt<2) await new Promise(r=>setTimeout(r,1200));
+        let lastError=null;
+        const isBackgroundActivity = action === 'logActivity' || action === 'trackUsage' || action === 'sendWebPushChatFast';
+
+        // getData memproses Kredit + Penghasilan + konversi/normalisasi server,
+        // sehingga jangan dibatasi 60 detik. Login tetap cepat.
+        const timeoutMs = action === 'getData'
+          ? Number(window.DATABASE_LOAD_TIMEOUT_MS || 300000)
+          : ((action === 'uploadActivityPhoto' || action === 'sendChatMessage' || action === 'getChatAttachment' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || action === 'importBranchData') ? 120000 : 60000);
+
+        // Jangan mengulang getData yang besar karena retry dapat membuat
+        // request kedua berjalan bersamaan/menambah beban server.
+        const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'getData' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
+
+        for(let attempt=1; attempt<=maxAttempts; attempt++){
+          const controller = ('AbortController' in window) ? new AbortController() : null;
+          const timer = controller ? setTimeout(()=>controller.abort(), timeoutMs) : null;
+          try{
+            const response=await fetch(AUTH_CONFIG.API_URL,{
+              method:'POST',
+              headers:{'Content-Type':'text/plain;charset=utf-8'},
+              body:JSON.stringify(Object.assign({action,credential}, extraPayload || {})),
+              cache:'no-store',
+              keepalive:isBackgroundActivity,
+              signal:controller ? controller.signal : undefined
+            });
+            if(timer) clearTimeout(timer);
+            const text=await response.text();
+            let result;
+            try{ result=JSON.parse(text); }catch(e){ throw new Error('Respons server bukan JSON. Periksa deployment Apps Script dan akses Web App.'); }
+            if(isSessionFailure(result,response.status)&&credential===googleCredential&&currentUser)showSessionExpiredPopup();
+            return result;
+          }catch(err){
+            if(timer) clearTimeout(timer);
+            lastError = err && err.name === 'AbortError' ? new Error(
+                  action==='getData'
+                    ? 'Proses database membutuhkan waktu lebih lama dari biasanya (batas 5 menit). Sesi tetap dipertahankan. Silakan tunggu atau coba Muat Database lagi.'
+                    : 'Permintaan ke server membutuhkan waktu lebih lama dari biasanya. Sesi tetap dipertahankan.'
+                ) : err;
+            if(attempt<maxAttempts) await scoreSleep(1200);
+          }
+        }
+        throw lastError || new Error('Gagal menghubungi server API.');
+      }finally{
+        if(typeof backgroundRelease==='function') backgroundRelease();
+      }
+    })();
+
+    if(coalesceKey) scoreRequestInFlight.set(coalesceKey,task);
+    try{
+      return await task;
+    }finally{
+      if(coalesceKey && scoreRequestInFlight.get(coalesceKey)===task){
+        scoreRequestInFlight.delete(coalesceKey);
       }
     }
-    throw lastError || new Error('Gagal menghubungi server API.');
   }
 
 
@@ -8748,15 +8891,9 @@ function updateWaPreview() {
       window.googleCredential=googleCredential;
       persistActiveSession();
       showApp(currentUser);
-      // Restore dianggap berhasil segera setelah login backend valid. Bootstrap
-      // lain tidak boleh membatalkan sesi jika salah satu modul gagal.
-      setTimeout(()=>Promise.resolve(window.loadCentralParameters?.()).catch(err=>console.warn('Parameter restore gagal:',err)),0);
-      try{ if(typeof window.v12RouteAfterLogin==='function') window.v12RouteAfterLogin(currentUser); }catch(err){ console.error('Routing restore gagal:',err); }
-      [300,1200].forEach(ms=>setTimeout(()=>window.sendUsageHeartbeat?.(true),ms));
-      [400,1500].forEach(ms=>setTimeout(()=>window.refreshAoBanners?.(),ms));
-      // V84: klasemen Home juga harus dimuat ulang saat sesi dipulihkan (PWA resume/refresh).
-      [700,1800,4200].forEach(ms=>setTimeout(()=>window.refreshHomeAoStandings?.(true),ms));
-      setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),700);
+      // V161: gunakan bootstrap yang sama dengan login baru supaya pemulihan sesi
+      // juga tidak menembakkan banyak request secara bersamaan.
+      runPostLoginBootstrap(false);
     }catch(err){
       console.warn('Pemulihan sesi aktif gagal:',err);
       googleCredential=null;
@@ -9287,6 +9424,33 @@ function updateWaPreview() {
       showAuthError(err.message||'Data gagal dimuat.');
       window.lastProtectedLoadOk=false;
     }
+  };
+
+
+  // V161: satu Smart Sync aktif pada satu waktu. Klik ganda / dua pemanggil
+  // memakai Promise yang sama, bukan membuat getDataVersion/getData paralel.
+  const scoreOriginalLoadProtectedData=window.loadProtectedData;
+  let scoreProtectedLoadInFlight=null;
+  window.loadProtectedData=function(){
+    if(scoreProtectedLoadInFlight) return scoreProtectedLoadInFlight;
+    const ctx=this, args=arguments;
+    scoreBeginCriticalSync();
+    const task=(async()=>{
+      try{
+        // Utamakan parameter pusat agar perhitungan database memakai konfigurasi
+        // terbaru. Batasi penantian 7,5 detik; jika server parameter lambat,
+        // Smart Sync tetap lanjut dan parameter lokal tetap menjadi fallback.
+        const parameterPromise=scoreStartupNetwork.parameterPromise || scoreStartParameterBootstrap();
+        if(parameterPromise){
+          await Promise.race([parameterPromise,scoreSleep(7500)]).catch(()=>{});
+        }
+        return await scoreOriginalLoadProtectedData.apply(ctx,args);
+      }finally{
+        scoreEndCriticalSync();
+      }
+    })();
+    scoreProtectedLoadInFlight=task.finally(()=>{ scoreProtectedLoadInFlight=null; });
+    return scoreProtectedLoadInFlight;
   };
 
 
@@ -11500,7 +11664,24 @@ if(document.readyState==='loading'){
 <script id="v17-v11-pwa-js">
 (function(){
 'use strict';
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=160').catch(console.warn));}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    const registerWhenStartupIdle=()=>{
+      const st=window.__scoreStartupNetwork||{};
+      if(st.syncActive || (st.authAt && Date.now()<Number(st.quietUntil||0))){
+        setTimeout(registerWhenStartupIdle,1200);
+        return;
+      }
+      navigator.serviceWorker.register('./service-worker.js?v=161').catch(err=>console.warn('Service worker:',err));
+    };
+    // Jangan memulai download cache baru tepat saat login/Smart Sync.
+    if('requestIdleCallback' in window){
+      requestIdleCallback(()=>setTimeout(registerWhenStartupIdle,2200),{timeout:6500});
+    }else{
+      setTimeout(registerWhenStartupIdle,3500);
+    }
+  },{once:true});
+}
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!matchMedia('(display-mode: standalone)').matches){const c=document.getElementById('pwaInstallCard');if(c)c.style.display='block';}});
 document.addEventListener('DOMContentLoaded',()=>{
@@ -11684,6 +11865,15 @@ async function bannerApi(action,payload={}){
   const credential=bannerCredential();
   if(!credential) throw new Error('Sesi login Google tidak tersedia.');
 
+  // V161: gunakan jalur API utama agar request banner ikut antrean startup,
+  // coalescing, timeout, dan proteksi sesi yang sama dengan modul lain.
+  if(typeof window.callApi==='function'){
+    const result=await window.callApi(action,credential,payload||{});
+    if(!result?.success) throw new Error(result?.error||'Operasi banner gagal.');
+    return result;
+  }
+
+  // Fallback kompatibilitas bila helper utama belum siap.
   const response=await fetch(BANNER_API_URL,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
