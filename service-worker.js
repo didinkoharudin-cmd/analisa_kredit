@@ -1,6 +1,6 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.162-login-sync-priority';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.163-json-response-recovery';
 
-// V162: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
+// V163: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
 // download paralel.
 const SHELL = [
@@ -34,7 +34,7 @@ self.addEventListener('install', event => {
         const response = await fetch(request);
         if (response && response.ok) await cache.put(request, response.clone());
       } catch (err) {
-        console.warn('[SW V162] precache skip:', url, err && err.message ? err.message : err);
+        console.warn('[SW V163] precache skip:', url, err && err.message ? err.message : err);
       }
       // Yield singkat agar browser dapat memprioritaskan request aplikasi aktif.
       await sleep(35);

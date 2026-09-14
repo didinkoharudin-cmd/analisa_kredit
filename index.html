@@ -8824,6 +8824,57 @@ function updateWaPreview() {
     };
   }
 
+  const SCORE_TRANSIENT_HTTP_STATUS=new Set([408,425,429,500,502,503,504,520,521,522,523,524,525,526]);
+
+  function scoreMakeResponseError(message,opts={}){
+    const err=new Error(message);
+    err.code=opts.code||'SERVER_RESPONSE_ERROR';
+    err.httpStatus=Number(opts.httpStatus||0);
+    err.scoreTransientResponse=!!opts.transient;
+    err.scoreDoNotRetry=!!opts.doNotRetry;
+    return err;
+  }
+
+  function scoreParseServerJson(text,response,action){
+    let raw=String(text==null?'':text);
+    // Beberapa proxy/browser dapat menyisipkan UTF-8 BOM atau prefix anti-XSSI.
+    // Keduanya bukan kegagalan server dan aman dibersihkan sebelum JSON.parse().
+    raw=raw.replace(/^\uFEFF/,'').trim();
+    if(raw.startsWith(")]}'")) raw=raw.replace(/^\)\]\}',?\s*/, '');
+
+    const status=Number(response?.status||0);
+    const contentType=String(response?.headers?.get?.('content-type')||'').toLowerCase();
+
+    if(!raw){
+      throw scoreMakeResponseError(
+        'Server belum mengirim jawaban lengkap. Mencoba kembali otomatis...',
+        {code:'EMPTY_SERVER_RESPONSE',httpStatus:status,transient:true}
+      );
+    }
+
+    try{
+      return JSON.parse(raw);
+    }catch(parseErr){
+      // Jangan menampilkan isi HTML/server ke user. Cukup klasifikasikan apakah
+      // ini gangguan sementara (Cloudflare/Apps Script/gateway) agar dapat retry.
+      const preview=raw.replace(/\s+/g,' ').slice(0,220);
+      const looksHtml=/^\s*</.test(raw)||contentType.includes('text/html');
+      const looksGateway=/cloudflare|bad gateway|gateway time|service unavailable|temporarily unavailable|upstream|internal server error|error\s*5\d\d/i.test(preview);
+      const transient=SCORE_TRANSIENT_HTTP_STATUS.has(status)||status===0||looksHtml||looksGateway;
+      throw scoreMakeResponseError(
+        transient
+          ? 'Koneksi server sempat tidak stabil. Mencoba kembali otomatis...'
+          : 'Respons server tidak dapat dibaca. Silakan coba kembali.',
+        {code:'NON_JSON_RESPONSE',httpStatus:status,transient:transient}
+      );
+    }
+  }
+
+  function scoreIsNetworkFetchError(err){
+    const msg=String(err?.message||err||'');
+    return err?.name==='TypeError'||/failed to fetch|networkerror|network request failed|load failed|connection.*lost|internet connection/i.test(msg);
+  }
+
   async function callApi(action,credential,extraPayload={}){
     const coalesceKey=SCORE_COALESCE_ACTIONS.has(String(action||''))
       ? scoreCoalesceKey(action,extraPayload,credential)
@@ -8853,9 +8904,10 @@ function updateWaPreview() {
           ? Number(window.DATABASE_LOAD_TIMEOUT_MS || 300000)
           : ((action === 'uploadActivityPhoto' || action === 'sendChatMessage' || action === 'getChatAttachment' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || action === 'importBranchData') ? 120000 : 60000);
 
-        // Jangan mengulang getData yang besar karena retry dapat membuat
-        // request kedua berjalan bersamaan/menambah beban server.
-        const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'getData' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
+        // V163: getData tetap single-flight, tetapi boleh melakukan SATU retry
+        // berurutan hanya bila respons gateway bukan JSON / koneksi putus sebelum
+        // respons dapat dibaca. Retry tidak pernah berjalan paralel.
+        const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
 
         for(let attempt=1; attempt<=maxAttempts; attempt++){
           const controller = ('AbortController' in window) ? new AbortController() : null;
@@ -8871,19 +8923,35 @@ function updateWaPreview() {
             });
             if(timer) clearTimeout(timer);
             const text=await response.text();
-            let result;
-            try{ result=JSON.parse(text); }catch(e){ throw new Error('Respons server bukan JSON. Periksa deployment Apps Script dan akses Web App.'); }
+            const result=scoreParseServerJson(text,response,action);
             if(isSessionFailure(result,response.status)&&credential===googleCredential&&currentUser)showSessionExpiredPopup();
             return result;
           }catch(err){
             if(timer) clearTimeout(timer);
-            lastError = err && err.name === 'AbortError' ? new Error(
+            const wasAbort=err && err.name === 'AbortError';
+            lastError = wasAbort ? new Error(
                   action==='getData'
                     ? 'Proses database membutuhkan waktu lebih lama dari biasanya (batas 5 menit). Sesi tetap dipertahankan. Silakan tunggu atau coba Muat Database lagi.'
                     : 'Permintaan ke server membutuhkan waktu lebih lama dari biasanya. Sesi tetap dipertahankan.'
                 ) : err;
-            if(attempt<maxAttempts) await scoreSleep(1200);
+
+            // Retry hanya untuk gangguan transport / respons gateway sementara.
+            // Timeout panjang getData tidak diulang agar tidak menciptakan proses
+            // database kedua ketika proses pertama sebenarnya masih berjalan.
+            const retryable=!wasAbort && !err?.scoreDoNotRetry && (
+              err?.scoreTransientResponse || scoreIsNetworkFetchError(err)
+            );
+            if(attempt<maxAttempts && retryable){
+              const waitMs=attempt===1?700:1200;
+              console.warn('[API] Respons sementara bermasalah. Retry aman:',action,'attempt',attempt+1,'status',Number(err?.httpStatus||0));
+              await scoreSleep(waitMs);
+              continue;
+            }
+            break;
           }
+        }
+        if(lastError?.scoreTransientResponse){
+          throw new Error('Koneksi server sempat tidak stabil dan respons belum lengkap. Silakan tekan kembali; sesi login tetap aktif.');
         }
         throw lastError || new Error('Gagal menghubungi server API.');
       }finally{
@@ -11709,7 +11777,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=162',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=163',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
