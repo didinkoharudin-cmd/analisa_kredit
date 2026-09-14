@@ -8555,7 +8555,8 @@ function updateWaPreview() {
     quietUntil:0,
     syncActive:false,
     syncStartedAt:0,
-    parameterPromise:null
+    parameterPromise:null,
+    parameterTimer:null
   };
   let scoreBackgroundTail = Promise.resolve();
   const scoreRequestInFlight = new Map();
@@ -8563,18 +8564,26 @@ function updateWaPreview() {
 
   function scoreMarkAuthenticated(){
     scoreStartupNetwork.authAt=Date.now();
-    // Beri ruang sekitar 9 detik agar user dapat memilih Smart Sync tanpa
-    // didahului banner/klasemen/chat/traffic yang otomatis berjalan.
-    scoreStartupNetwork.quietUntil=Date.now()+9000;
+    // Beri ruang agar Smart Sync dapat dipilih tanpa didahului request otomatis.
+    // V162: parameter pusat juga tidak langsung ditembak pada momen login.
+    scoreStartupNetwork.quietUntil=Date.now()+6500;
     scoreStartupNetwork.syncActive=false;
     scoreStartupNetwork.syncStartedAt=0;
     scoreStartupNetwork.parameterPromise=null;
+    if(scoreStartupNetwork.parameterTimer){
+      clearTimeout(scoreStartupNetwork.parameterTimer);
+      scoreStartupNetwork.parameterTimer=null;
+    }
     scoreRequestInFlight.clear();
     scoreBackgroundTail=Promise.resolve();
   }
 
   function scoreStartParameterBootstrap(){
     if(scoreStartupNetwork.parameterPromise) return scoreStartupNetwork.parameterPromise;
+    if(scoreStartupNetwork.parameterTimer){
+      clearTimeout(scoreStartupNetwork.parameterTimer);
+      scoreStartupNetwork.parameterTimer=null;
+    }
     const promise=Promise.resolve()
       .then(()=>window.loadCentralParameters?.())
       .catch(err=>{
@@ -8585,9 +8594,29 @@ function updateWaPreview() {
     return promise;
   }
 
+  function scoreScheduleParameterBootstrap(delayMs=1600){
+    if(scoreStartupNetwork.parameterPromise || scoreStartupNetwork.parameterTimer) return;
+    scoreStartupNetwork.parameterTimer=setTimeout(async()=>{
+      scoreStartupNetwork.parameterTimer=null;
+      // Parameter bukan prasyarat untuk MEMBUKA Smart Sync. Jika pengguna mulai
+      // sinkronisasi, tunda request parameter sampai database selesai agar tidak
+      // berebut koneksi di jaringan seluler.
+      while(scoreStartupNetwork.syncActive){
+        await scoreSleep(250);
+      }
+      scoreStartParameterBootstrap();
+    },Math.max(0,Number(delayMs)||0));
+  }
+
   function scoreBeginCriticalSync(){
     scoreStartupNetwork.syncActive=true;
     scoreStartupNetwork.syncStartedAt=Date.now();
+    // Bila parameter belum mulai, batalkan timer-nya. Smart Sync harus langsung
+    // mengambil slot jaringan utama, bukan menunggu parameter.
+    if(scoreStartupNetwork.parameterTimer){
+      clearTimeout(scoreStartupNetwork.parameterTimer);
+      scoreStartupNetwork.parameterTimer=null;
+    }
     // Request background yang sudah menunggu tetap ditahan sampai Smart Sync selesai.
     scoreStartupNetwork.quietUntil=Math.max(scoreStartupNetwork.quietUntil,Date.now()+800);
   }
@@ -8596,7 +8625,9 @@ function updateWaPreview() {
     scoreStartupNetwork.syncActive=false;
     scoreStartupNetwork.syncStartedAt=0;
     // Setelah database selesai, beri jeda kecil lalu izinkan antrean background jalan.
-    scoreStartupNetwork.quietUntil=Date.now()+550;
+    scoreStartupNetwork.quietUntil=Date.now()+450;
+    // Parameter pusat tetap dipastikan berjalan, hanya saja setelah jalur kritis selesai.
+    scoreScheduleParameterBootstrap(350);
   }
 
   function scoreIsStartupWindow(){
@@ -8631,11 +8662,11 @@ function updateWaPreview() {
   }
 
   function runPostLoginBootstrap(completingReauth){
-    // V161: tandai login sukses terlebih dahulu. Hanya sinkronisasi parameter
-    // yang dimulai segera; request otomatis lain dikoordinasikan oleh callApi.
-    // Dengan demikian login tetap selesai cepat dan request tidak dibatalkan.
+    // V162: setelah autentikasi sukses, jangan langsung menembakkan parameter,
+    // banner, klasemen, traffic, dll. Beri prioritas pada interaksi user dan
+    // Smart Sync. Semua request tetap dijalankan setelah jalur kritis selesai.
     scoreMarkAuthenticated();
-    scoreStartParameterBootstrap();
+    scoreScheduleParameterBootstrap(1800);
 
     if(completingReauth){
       drainReauthTasks();
@@ -9427,8 +9458,9 @@ function updateWaPreview() {
   };
 
 
-  // V161: satu Smart Sync aktif pada satu waktu. Klik ganda / dua pemanggil
+  // V162: satu Smart Sync aktif pada satu waktu. Klik ganda / dua pemanggil
   // memakai Promise yang sama, bukan membuat getDataVersion/getData paralel.
+  // Penting: tidak ada lagi wait parameter 7,5 detik sebelum UI Smart Sync muncul.
   const scoreOriginalLoadProtectedData=window.loadProtectedData;
   let scoreProtectedLoadInFlight=null;
   window.loadProtectedData=function(){
@@ -9437,13 +9469,9 @@ function updateWaPreview() {
     scoreBeginCriticalSync();
     const task=(async()=>{
       try{
-        // Utamakan parameter pusat agar perhitungan database memakai konfigurasi
-        // terbaru. Batasi penantian 7,5 detik; jika server parameter lambat,
-        // Smart Sync tetap lanjut dan parameter lokal tetap menjadi fallback.
-        const parameterPromise=scoreStartupNetwork.parameterPromise || scoreStartParameterBootstrap();
-        if(parameterPromise){
-          await Promise.race([parameterPromise,scoreSleep(7500)]).catch(()=>{});
-        }
+        // Panggil fungsi asli SEGERA. Fungsi asli langsung menampilkan guard/progress
+        // sebelum request getDataVersion, sehingga tap user mendapat respons visual
+        // pada frame yang sama dan jaringan diprioritaskan untuk Smart Sync.
         return await scoreOriginalLoadProtectedData.apply(ctx,args);
       }finally{
         scoreEndCriticalSync();
@@ -11666,20 +11694,31 @@ if(document.readyState==='loading'){
 'use strict';
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
+    let swRegistered=false;
     const registerWhenStartupIdle=()=>{
+      if(swRegistered) return;
       const st=window.__scoreStartupNetwork||{};
-      if(st.syncActive || (st.authAt && Date.now()<Number(st.quietUntil||0))){
-        setTimeout(registerWhenStartupIdle,1200);
+      const appLocked=document.body.classList.contains('app-locked');
+
+      // V162: jangan pernah memulai update/precache service worker saat layar login,
+      // proses verifikasi akun, atau Smart Sync berlangsung. Di 4G, download cache
+      // beberapa MB dapat membuat request login terasa jauh lebih lambat.
+      if(appLocked || !st.authAt || st.syncActive || Date.now()<Number(st.quietUntil||0) || (Date.now()-Number(st.authAt||0))<10000){
+        setTimeout(registerWhenStartupIdle,1500);
         return;
       }
-      navigator.serviceWorker.register('./service-worker.js?v=161').catch(err=>console.warn('Service worker:',err));
+
+      swRegistered=true;
+      navigator.serviceWorker.register('./service-worker.js?v=162',{updateViaCache:'all'})
+        .catch(err=>{
+          swRegistered=false;
+          console.warn('Service worker:',err);
+          setTimeout(registerWhenStartupIdle,5000);
+        });
     };
-    // Jangan memulai download cache baru tepat saat login/Smart Sync.
-    if('requestIdleCallback' in window){
-      requestIdleCallback(()=>setTimeout(registerWhenStartupIdle,2200),{timeout:6500});
-    }else{
-      setTimeout(registerWhenStartupIdle,3500);
-    }
+    // Mulai pemeriksaan ringan; registrasi aktual baru terjadi setelah login sukses
+    // dan minimal 10 detik setelah autentikasi, serta tidak ketika Smart Sync aktif.
+    setTimeout(registerWhenStartupIdle,2500);
   },{once:true});
 }
 let deferredPrompt=null;

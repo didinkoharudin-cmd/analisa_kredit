@@ -1,8 +1,8 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.161-startup-performance-safe';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.162-login-sync-priority';
 
-// V161: cache shell tanpa duplikasi './' + index.html dan tanpa icon kembar.
-// File icon-* tetap ada untuk kompatibilitas notifikasi lama, tetapi tidak lagi
-// diprecache karena byte-nya sama dengan score-icon-*.
+// V162: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
+// dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
+// download paralel.
 const SHELL = [
   './index.html',
   './score-v158.css?v=158',
@@ -26,17 +26,19 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
 
-    // Jangan gagalkan seluruh instalasi hanya karena satu aset opsional gagal.
-    // Masing-masing aset dicoba mandiri dan aset yang berhasil tetap tersimpan.
-    await Promise.allSettled(SHELL.map(async url => {
+    // Sequential precache: lebih lambat di background tetapi jauh lebih aman
+    // untuk bandwidth. Gagal satu aset tidak menggagalkan instalasi seluruh SW.
+    for (const url of SHELL) {
       try {
         const request = new Request(new URL(url, self.location.href), { cache: 'reload' });
         const response = await fetch(request);
         if (response && response.ok) await cache.put(request, response.clone());
       } catch (err) {
-        console.warn('[SW V161] precache skip:', url, err && err.message ? err.message : err);
+        console.warn('[SW V162] precache skip:', url, err && err.message ? err.message : err);
       }
-    }));
+      // Yield singkat agar browser dapat memprioritaskan request aplikasi aktif.
+      await sleep(35);
+    }
 
     await self.skipWaiting();
   })());
@@ -54,9 +56,8 @@ async function navigationResponse(request) {
   const cache = await caches.open(CACHE);
   const cached = await cache.match('./index.html');
 
-  // Tetap cek versi online, tetapi jangan biarkan jaringan lambat menahan layar.
-  // Bila 700 ms belum ada jawaban dan cache tersedia, tampilkan cache dahulu;
-  // fetch tetap berjalan untuk memperbarui cache di belakang layar.
+  // Jika cache tersedia, jangan biarkan jaringan lambat menahan pembukaan PWA.
+  // Network tetap memperbarui index di belakang layar.
   const networkPromise = fetch(request, { cache: 'no-store' })
     .then(async response => {
       if (response && response.ok) {
@@ -74,7 +75,7 @@ async function navigationResponse(request) {
 
   const fastNetwork = await Promise.race([
     networkPromise,
-    sleep(700).then(() => null)
+    sleep(450).then(() => null)
   ]);
 
   return fastNetwork || cached;
@@ -97,15 +98,11 @@ self.addEventListener('fetch', event => {
       const cached = await cache.match(request);
       if (cached) return cached;
 
-      try {
-        const response = await fetch(request);
-        if (response && response.ok) {
-          try { await cache.put(request, response.clone()); } catch (_) {}
-        }
-        return response;
-      } catch (err) {
-        throw err;
+      const response = await fetch(request);
+      if (response && response.ok) {
+        try { await cache.put(request, response.clone()); } catch (_) {}
       }
+      return response;
     })());
   }
 });
