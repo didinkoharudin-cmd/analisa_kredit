@@ -3657,7 +3657,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
           <form id="v25RealizationForm" class="v25-card">
             <div class="v25-card-head"><div><h3 id="v25RealizationFormTitle">Input Realisasi Kredit Anda</h3><span id="v25RealizationEditBadge">Tersimpan atas akun AO yang sedang login</span></div><i class="fa-solid fa-money-bill-trend-up" style="color:#0757c7"></i></div>
             <div class="v25-grid three"><label class="v25-field">Tanggal<input id="v25RealizationDate" type="date" required></label><label class="v25-field">Divisi<select id="v25RealizationDivision"><option>Konsumer</option><option>Ritel</option></select></label><label class="v25-field">Unit Booking (dalam cabang aktif)<select id="v25RealizationOffice" required><option value="">Pilih unit booking...</option></select></label></div>
-            <p class="v25-note" id="v159AoBookingNote" style="margin:8px 0 0">Kantor penempatan AO hanya menjadi pilihan awal. Anda dapat memilih unit booking lain selama masih berada dalam cabang aktif.</p>
+            <p class="v25-note" id="v160AoBookingNote" style="margin:8px 0 0">Kantor penempatan AO hanya menjadi pilihan awal. Daftar Unit Booking diambil dari unit AO dalam cabang login yang sama, sehingga AO dapat memilih unit lain tanpa membuka unit cabang lain.</p>
             <div class="v25-grid" style="margin-top:9px"><label class="v25-field">NoA New<input id="v25NoaNew" type="number" min="0" value="0"></label><label class="v25-field">OS New (Rp)<input id="v25OsNew" type="text" inputmode="numeric" value="0"></label><label class="v25-field">NoA Mengulang<input id="v25NoaRepeat" type="number" min="0" value="0"></label><label class="v25-field">OS Mengulang (Rp)<input id="v25OsRepeat" type="text" inputmode="numeric" value="0"></label><label class="v25-field">RunOff (Rp)<input id="v25RunOff" type="text" inputmode="numeric" value="0"></label><label class="v25-field">Total NoA<input id="v25TotalNoa" type="text" value="0" readonly></label></div>
             <label class="v25-field" style="margin-top:9px">Total OS<input id="v25TotalOs" type="text" value="Rp 0" readonly></label>
             <div class="v25-actions"><button id="v25SaveRealization" type="submit" class="v25-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi</button><button id="v25CancelRealizationEdit" type="button" class="v25-secondary v25-hidden">Batal Edit</button></div>
@@ -11500,7 +11500,7 @@ if(document.readyState==='loading'){
 <script id="v17-v11-pwa-js">
 (function(){
 'use strict';
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=159').catch(console.warn));}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=160').catch(console.warn));}
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!matchMedia('(display-mode: standalone)').matches){const c=document.getElementById('pwaInstallCard');if(c)c.style.display='block';}});
 document.addEventListener('DOMContentLoaded',()=>{
@@ -15155,8 +15155,40 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 <script id="v1831125-ao-monitoring-controller">
 (function(){
   'use strict';
-  const state={profile:null,userData:null,adminData:null,editingRow:null,adminEditingRow:null,standingMode:'ACTIVE'};
-  function officeOptions(){const fromAdmin=Array.isArray(state.adminData?.officeOptions)?state.adminData.officeOptions:[];const fromUser=Array.isArray(state.userData?.officeOptions)?state.userData.officeOptions:[];const fallback=[state.userData?.user?.kantor,state.profile?.kantor,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];return [...new Set([...fromAdmin,...fromUser,...fallback].map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));}
+  const state={profile:null,userData:null,adminData:null,branchOfficeOptions:[],editingRow:null,adminEditingRow:null,standingMode:'ACTIVE'};
+  function normalizeOfficeLabel(value){return String(value||'').trim();}
+  function officesFromBranchMeta(meta){
+    const out=[];
+    if(!meta||typeof meta!=='object')return out;
+    ['officeOptions','offices','units','unitOptions','branchOffices','officeList','unitList'].forEach(key=>{
+      const arr=meta?.[key];
+      if(Array.isArray(arr))arr.forEach(item=>out.push(typeof item==='string'?item:(item?.name||item?.nama||item?.office||item?.kantor||item?.unit||'')));
+    });
+    return out.map(normalizeOfficeLabel).filter(Boolean);
+  }
+  function officesFromHomeStandings(data){
+    const out=[];
+    if(Array.isArray(data?.officeOptions))out.push(...data.officeOptions);
+    out.push(...officesFromBranchMeta(data?.branch));
+    const standings=data?.standings||{};
+    ['Konsumer','Ritel'].forEach(div=>{
+      const rows=Array.isArray(standings?.[div]?.rows)?standings[div].rows:[];
+      rows.forEach(row=>out.push(row?.kantor,row?.namaKantor,row?.office,row?.unitBooking));
+    });
+    return [...new Set(out.map(normalizeOfficeLabel).filter(Boolean))];
+  }
+  async function loadBranchOfficeOptionsForAo(){
+    // getAoHomeStandings memang sudah dipakai AO di Home dan hasilnya terikat cabang login.
+    // Kita pakai data yang sama untuk membentuk pilihan Unit Booking tanpa membuka akses lintas cabang.
+    try{
+      const r=await api('getAoHomeStandings',{});
+      if(r?.success)state.branchOfficeOptions=officesFromHomeStandings(r);
+    }catch(err){
+      console.warn('[V160 Unit Booking] Daftar unit cabang belum dapat dimuat dari klasemen:',err);
+      state.branchOfficeOptions=[];
+    }
+  }
+  function officeOptions(){const fromAdmin=Array.isArray(state.adminData?.officeOptions)?state.adminData.officeOptions:[];const fromUser=Array.isArray(state.userData?.officeOptions)?state.userData.officeOptions:[];const fromBranch=Array.isArray(state.branchOfficeOptions)?state.branchOfficeOptions:[];const fromUserBranch=officesFromBranchMeta(state.userData?.branch);const fromCurrentBranch=officesFromBranchMeta(window.currentUser?.branch);const fallback=[state.userData?.user?.kantor,state.profile?.kantor,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];return [...new Set([...fromAdmin,...fromUser,...fromBranch,...fromUserBranch,...fromCurrentBranch,...fallback].map(normalizeOfficeLabel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));}
   function branchName(){return String(state.adminData?.branch?.branchName||state.userData?.branch?.branchName||'Cabang').trim()||'Cabang';}
   function populateOfficeSelects(){const opts=officeOptions(), html='<option value="">Pilih unit booking...</option>'+opts.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');['v25RealizationOffice','v27AdminRealizationOffice'].forEach(id=>{const n=el(id);if(!n)return;const cur=n.value;n.innerHTML=html;if(opts.includes(cur))n.value=cur;});const dl=el('v28OfficeList');if(dl)dl.innerHTML=opts.map(x=>'<option value="'+esc(x)+'"></option>').join('');}
   function el(id){return document.getElementById(id);}
@@ -15225,8 +15257,16 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function syncDivisionEditor(){const ao=selectedAdminAo('v28DivisionAo');if(el('v28DivisionValue'))el('v28DivisionValue').value=ao?.divisi||'';if(el('v28OfficeValue'))el('v28OfficeValue').value=ao?.kantor||'';if(el('v28GradeValue'))el('v28GradeValue').value=num(ao?.grade);if(el('v28TargetValue'))el('v28TargetValue').value=num(ao?.target).toLocaleString('id-ID');}
 
   async function loadAo(){
-    setStatus('Memuat profil dan riwayat laporan AO...');
-    const r=await api('getAoMonitoringUserData',{});if(!r?.success)throw new Error(r?.error||'Data AO gagal dimuat.');state.profile=r.profile||{};state.userData=r;renderAo();setStatus('Laporan AO siap • '+new Date().toLocaleString('id-ID'));
+    setStatus('Memuat profil, unit cabang, dan riwayat laporan AO...');
+    const r=await api('getAoMonitoringUserData',{});
+    if(!r?.success)throw new Error(r?.error||'Data AO gagal dimuat.');
+    state.profile=r.profile||{};state.userData=r;
+    // V160: endpoint monitoring AO pada beberapa deployment hanya mengirim kantor AO sendiri.
+    // Ambil daftar kantor dari klasemen Home AO yang sudah branch-scoped, lalu gabungkan dengan officeOptions server.
+    await loadBranchOfficeOptionsForAo();
+    renderAo();
+    const unitCount=officeOptions().length;
+    setStatus('Laporan AO siap • '+unitCount+' unit booking cabang tersedia • '+new Date().toLocaleString('id-ID'));
   }
   function renderAo(){populateOfficeSelects();if(el('v25RealizationOffice')&&!el('v25RealizationOffice').value&&state.userData?.user?.kantor)el('v25RealizationOffice').value=state.userData.user.kantor;
     const p=state.profile||{};if(el('v25AoIdentity'))el('v25AoIdentity').textContent=(p.nama||'-')+' • '+(p.email||'-')+' • '+(p.divisi||'Divisi belum diatur');if(el('v25RealizationDivision')){if(p.divisi)el('v25RealizationDivision').value=p.divisi;el('v25RealizationDivision').disabled=Boolean(p.divisi);}
