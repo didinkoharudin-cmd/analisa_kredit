@@ -46,9 +46,21 @@ function customers(){
     seen.add(key);return true;
   });
 }
-function sortOffers(rows){
+function sortOffers(rows,mode){
+  const flaggedFirst=String(mode||'UNFLAGGED_FIRST').trim().toUpperCase()==='FLAGGED_FIRST';
   return rows.map((row,index)=>({row,index,flag:!!window.isMonthlyOffered?.(row),time:window.v109OfferTimestamp?.(row)||0}))
-    .sort((a,b)=>Number(a.flag)-Number(b.flag)||(a.flag&&b.flag?a.time-b.time:0)||a.index-b.index).map(x=>x.row);
+    .sort((a,b)=>{
+      if(a.flag!==b.flag){
+        return flaggedFirst ? (Number(b.flag)-Number(a.flag)) : (Number(a.flag)-Number(b.flag));
+      }
+      // Jika sama-sama sudah ter-flag, urutkan tanggal flag paling lama dahulu.
+      if(a.flag&&b.flag){
+        const at=Number(a.time||0), bt=Number(b.time||0);
+        if(at!==bt) return at-bt;
+      }
+      // Belum ter-flag mempertahankan urutan hasil filter/potensi yang sudah ada.
+      return a.index-b.index;
+    }).map(x=>x.row);
 }
 window.v109SortOffers=sortOffers;
 function template(d,kind){

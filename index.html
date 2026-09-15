@@ -2235,6 +2235,21 @@ button:active{transform:scale(.97)}
     padding:7px 10px;background:#fff;border:1px solid #e2e8f0;
     border-radius:10px;font-weight:800;color:#334155;
   }
+  .v166-flag-sort{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:0 7px 0 9px;background:#fff;border:1px solid #e2e8f0;
+    border-radius:10px;font-weight:800;color:#334155;min-height:34px;
+  }
+  .v166-flag-sort i{font-size:10px;color:#64748b;flex:0 0 auto}
+  .v166-flag-sort select{
+    min-width:0;max-width:210px;border:0;outline:0;background:transparent;color:#334155;
+    font:inherit;font-size:9px;font-weight:800;padding:7px 18px 7px 0;cursor:pointer;
+  }
+  @media (max-width:420px){
+    .v16-debtor-summary{align-items:flex-start}
+    .v166-flag-sort{max-width:68%}
+    .v166-flag-sort select{max-width:100%;font-size:8.5px}
+  }
 
   .v16-debtor-cards{display:grid;gap:10px}
 
@@ -10735,6 +10750,8 @@ function v875IsHalfTenorReached(o){
   return Number(o?.pctBerjalan || 0) >= 50;
 }
 let v9QuickIncomeSource = '';
+// V166: urutan kartu Debitur berdasarkan status flagging (bukan filter).
+let v166DebtorFlagSortMode = 'UNFLAGGED_FIRST';
 
 function v51NormalizeAO(v){
   const x=String(v??'').trim().toUpperCase();
@@ -11058,7 +11075,8 @@ function renderDebtors(){
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
 
-  const allRows=window.v109SortOffers ? window.v109SortOffers(getFilteredLoans()) : getFilteredLoans();
+  const filteredRows=getFilteredLoans();
+  const allRows=window.v109SortOffers ? window.v109SortOffers(filteredRows,v166DebtorFlagSortMode) : filteredRows;
   const pageSize=40;
   const offset=Number(window.v16DebtorOffset||0);
   const rows=allRows.slice(0,offset+pageSize);
@@ -11093,8 +11111,22 @@ function renderDebtors(){
   summary.className='v16-debtor-summary';
   summary.innerHTML=`
     <span>Total <b>${allRows.length.toLocaleString('id-ID')}</b> debitur</span>
-    <span class="v16-sort-pill"><i class="fa-solid fa-arrow-down-wide-short"></i> Belum ditawarkan dahulu</span>`;
+    <label class="v166-flag-sort" for="v166DebtorFlagSort">
+      <i class="fa-solid fa-arrow-down-wide-short"></i>
+      <select id="v166DebtorFlagSort" aria-label="Urutan kartu berdasarkan status flagging">
+        <option value="UNFLAGGED_FIRST" ${v166DebtorFlagSortMode==='UNFLAGGED_FIRST'?'selected':''}>Belum terflag → Sudah terflag</option>
+        <option value="FLAGGED_FIRST" ${v166DebtorFlagSortMode==='FLAGGED_FIRST'?'selected':''}>Sudah terflag → Belum terflag</option>
+      </select>
+    </label>`;
   list.appendChild(summary);
+  const flagSort=summary.querySelector('#v166DebtorFlagSort');
+  if(flagSort){
+    flagSort.addEventListener('change',()=>{
+      v166DebtorFlagSortMode=flagSort.value==='FLAGGED_FIRST'?'FLAGGED_FIRST':'UNFLAGGED_FIRST';
+      window.v16DebtorOffset=0;
+      renderDebtors();
+    });
+  }
 
   const cards=document.createElement('div');
   cards.className='v16-debtor-cards';
@@ -11796,7 +11828,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=165',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=166',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);

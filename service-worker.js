@@ -1,6 +1,6 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.165-insurance-age-centralized-6month';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.166-debtor-flag-sort';
 
-// V163: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
+// V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
 // download paralel.
 const SHELL = [
