@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.163-json-response-recovery';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.165-insurance-age-centralized-6month';
 
 // V163: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak

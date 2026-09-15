@@ -6016,22 +6016,39 @@ Terima kasih.`
             return fromRow > 0 ? fromRow : 60;
         }
 
-        // Usia asuransi: roundup ke tahun berikutnya bila ada sisa bulan/hari.
-        // Contoh: 39 tahun 1 bulan => 40 tahun; tepat ulang tahun ke-39 => 39 tahun.
+        // Normalisasi usia asuransi numerik: naik 1 tahun hanya jika pecahan usia >= 0,5 tahun.
+        // Nilai integer yang sudah dihasilkan fungsi tanggal akan tetap apa adanya.
+        function normalizeInsuranceAgeValue(ageValue) {
+            const raw = Math.max(0, Number(ageValue) || 0);
+            const whole = Math.floor(raw);
+            return whole + ((raw - whole) >= 0.5 ? 1 : 0);
+        }
+
+        // Usia asuransi: pembulatan ke tahun berikutnya hanya jika usia berjalan
+        // sudah mencapai >= 6 bulan setelah ulang tahun terakhir, dihitung sampai tanggal/hari.
+        // Contoh: 39 th 5 bln 30 hari => 39; tepat 39 th 6 bln => 40.
         function getInsuranceAgeRoundedUp(tglLahir, today = new Date()) {
             if (!(tglLahir instanceof Date) || isNaN(tglLahir.getTime())) return 0;
             const dob = new Date(tglLahir.getFullYear(), tglLahir.getMonth(), tglLahir.getDate());
             const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             if (now < dob) return 0;
+
             let completed = now.getFullYear() - dob.getFullYear();
-            const anniversary = new Date(dob);
+            let anniversary = new Date(dob);
             anniversary.setFullYear(dob.getFullYear() + completed);
             if (anniversary > now) {
                 completed -= 1;
+                anniversary = new Date(dob);
                 anniversary.setFullYear(dob.getFullYear() + completed);
             }
-            const hasPartialYear = now.getTime() > anniversary.getTime();
-            return Math.max(0, completed + (hasPartialYear ? 1 : 0));
+
+            let completedMonthsAfterBirthday =
+                (now.getFullYear() - anniversary.getFullYear()) * 12 +
+                (now.getMonth() - anniversary.getMonth());
+            if (now.getDate() < anniversary.getDate()) completedMonthsAfterBirthday -= 1;
+            completedMonthsAfterBirthday = Math.max(0, completedMonthsAfterBirthday);
+
+            return Math.max(0, completed + (completedMonthsAfterBirthday >= 6 ? 1 : 0));
         }
 
         // Batas tenor berdasarkan BUP atau akhir masa jabatan.
@@ -6188,7 +6205,9 @@ Terima kasih.`
             const bungaBulanPertama = (plafonGross * ratePerTahun) / 12;
             const jangkaWaktuTahun = Math.ceil(tenorBulan / 12);
 
-            const usiaAsuransi = Math.max(0, Math.ceil(Number(usiaTahun) || 0));
+            const usiaRaw = Math.max(0, Number(usiaTahun) || 0);
+            const usiaUtuh = Math.floor(usiaRaw);
+            const usiaAsuransi = normalizeInsuranceAgeValue(usiaRaw);
             let tarifAsuransiPct = Number(feeParams.asrUnder40) || 0.500;
             if (usiaAsuransi >= 66) {
                 tarifAsuransiPct = Number(feeParams.asr66Up) || 3.699;
@@ -11777,7 +11796,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=163',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=165',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -12590,7 +12609,7 @@ function simFeeCalc(gross,tenor,product,status,age,baki,installment,runningInter
 
   const bungaBulanPertama=(gross*annualRate)/12;
   const tahun=Math.ceil(tenor/12);
-  const insuranceAge=Math.max(0,Math.ceil(Number(age)||0));
+  const insuranceAge=normalizeInsuranceAgeValue(age);
   let asrPct=Number(feeParams.asrUnder40)||0.500;
   if(insuranceAge>=66) asrPct=Number(feeParams.asr66Up)||3.699;
   else if(insuranceAge>=61) asrPct=Number(feeParams.asr61To65)||2.573;
@@ -16496,7 +16515,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 function rp(n){return 'Rp '+Math.round(Number(n||0)).toLocaleString('id-ID');}
 function cred(){try{return window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'')||''}catch(e){return window.googleCredential||''}}
 function apiPublic(action,payload){return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:action,publicRequest:true},payload||{})),cache:'no-store'}).then(r=>r.text()).then(t=>{let j;try{j=JSON.parse(t)}catch(e){throw new Error('Respons server bukan JSON.')}if(j&&j.success===false&&!j.expired)throw new Error(j.error||'Permintaan gagal.');return j;});}
-function insurancePct(age){age=Math.ceil(Number(age||0));if(age>=66)return Number(feeParams?.asr66Up||3.699);if(age>=61)return Number(feeParams?.asr61To65||2.573);if(age>=56)return Number(feeParams?.asr56To60||2.033);if(age>=51)return Number(feeParams?.asr51To55||1.525);if(age>=40)return Number(feeParams?.asr40To50||0.700);return Number(feeParams?.asrUnder40||0.500)}
+function insurancePct(age){age=normalizeInsuranceAgeValue(age);if(age>=66)return Number(feeParams?.asr66Up||3.699);if(age>=61)return Number(feeParams?.asr61To65||2.573);if(age>=56)return Number(feeParams?.asr56To60||2.033);if(age>=51)return Number(feeParams?.asr51To55||1.525);if(age>=40)return Number(feeParams?.asr40To50||0.700);return Number(feeParams?.asrUnder40||0.500)}
 function feeSnapshot(item,offerType,deb){const code=String(item.tipe_pinjaman||'').trim().toUpperCase(),age=Number(deb.tenorRules?.usiaAsuransi||deb.tenorRules?.usiaTahun||0);let tab=Number(feeParams?.tabWajibOthers||3);if(isG2BPensiunanProduct(code,deb.status_pegawai))tab=1;else if(code==='G2C')tab=Number(feeParams?.tabWajibG2C??3);else if(['G6B','G6K','G6L'].includes(code))tab=Number(feeParams?.tabWajibGajiPns||1);return{provisionLow:Number(feeParams?.provisiLow||0.2),provisionHigh:Number(feeParams?.provisiHigh||1.5),adminTier1:Number(feeParams?.adminTier1||200000),adminTier2:Number(feeParams?.adminTier2||350000),adminTier3:Number(feeParams?.adminTier3||600000),insuranceRatePct:insurancePct(age),tabMultiplier:tab,isTHT:code.includes('THT'),isG2H:code==='G2H',isG2HTht:code.includes('THT')&&code.includes('G2H')};}
 function getPayload(){
  const item=window.v9Selected||(typeof loanDatabase!=='undefined'?loanDatabase.find(l=>String(l.loan_id)===String(window.selectedLoanId||'')):null);if(!item||!item.cifRef)throw new Error('Pilih debitur terlebih dahulu.');
