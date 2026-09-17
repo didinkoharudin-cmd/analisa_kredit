@@ -5619,6 +5619,83 @@ Terima kasih.`
             return null;
         }
 
+
+        // V169: normalisasi tanggal fasilitas kredit dan tenor berjalan.
+        // Excel dapat menerjemahkan tahun dua digit >=30 sebagai 19xx. Contoh
+        // 2035 dapat terbaca 1935 sehingga tenor menjadi negatif seperti -1080 bulan.
+        // Koreksi hanya dilakukan saat pasangan tanggal asli tidak masuk akal.
+        function loanMonthSpan(start, end) {
+            if (!(start instanceof Date) || !(end instanceof Date) || isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+            return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+        }
+
+        function addLoanCentury(date) {
+            if (!(date instanceof Date) || isNaN(date.getTime())) return null;
+            const out = new Date(date.getFullYear() + 100, date.getMonth(), date.getDate());
+            return isNaN(out.getTime()) ? null : out;
+        }
+
+        function normalizeLoanDatePair(startValue, endValue) {
+            let start = parseExcelDate(startValue);
+            let end = parseExcelDate(endValue);
+            if (!start || !end) return { start, end, corrected: false, valid: false };
+
+            const originalSpan = loanMonthSpan(start, end);
+            // Tenor fasilitas SCORE secara praktis jauh di bawah 50 tahun. Batas
+            // 600 bulan dipakai hanya sebagai guard untuk mendeteksi tahun 19xx
+            // yang sebenarnya dimaksud 20xx, bukan sebagai batas produk.
+            const plausible = months => Number.isFinite(months) && months > 0 && months <= 600;
+            if (plausible(originalSpan)) return { start, end, corrected: false, valid: true };
+
+            const candidates = [];
+            if (end.getFullYear() < 2000) candidates.push({ start, end: addLoanCentury(end), kind: 'END_PLUS_100' });
+            if (start.getFullYear() < 2000) candidates.push({ start: addLoanCentury(start), end, kind: 'START_PLUS_100' });
+            if (start.getFullYear() < 2000 && end.getFullYear() < 2000) {
+                candidates.push({ start: addLoanCentury(start), end: addLoanCentury(end), kind: 'BOTH_PLUS_100' });
+            }
+
+            const fixed = candidates.find(c => c.start && c.end && plausible(loanMonthSpan(c.start, c.end)));
+            if (fixed) return { start: fixed.start, end: fixed.end, corrected: true, correction: fixed.kind, valid: true };
+
+            // Jangan pernah menerjemahkan tenor negatif/absurd ke UI.
+            return { start, end, corrected: false, valid: false };
+        }
+
+        function calculateLoanTenorProgress(startValue, endValue, referenceDate = new Date()) {
+            const pair = normalizeLoanDatePair(startValue, endValue);
+            if (!pair.valid) {
+                return {
+                    start: pair.start, end: pair.end, totalTenor: null,
+                    sisaBulanFasilitas: null, tenorBerjalan: null,
+                    pctBerjalan: 0, isEligibleTenor: false,
+                    corrected: Boolean(pair.corrected)
+                };
+            }
+
+            const start = pair.start;
+            const end = pair.end;
+            const totalTenor = loanMonthSpan(start, end);
+            let tenorBerjalan = 0;
+
+            if (referenceDate >= end) {
+                tenorBerjalan = totalTenor;
+            } else if (referenceDate > start) {
+                tenorBerjalan = loanMonthSpan(start, referenceDate);
+                // Hitung hanya bulan yang benar-benar sudah dilewati. Hari tetap
+                // diperhitungkan agar belum genap bulan tidak dibulatkan maju.
+                if (referenceDate.getDate() < start.getDate()) tenorBerjalan -= 1;
+                tenorBerjalan = Math.max(0, Math.min(totalTenor, tenorBerjalan));
+            }
+
+            const sisaBulanFasilitas = Math.max(0, totalTenor - tenorBerjalan);
+            const pctBerjalan = totalTenor > 0 ? (tenorBerjalan / totalTenor) * 100 : 0;
+            return {
+                start, end, totalTenor, sisaBulanFasilitas, tenorBerjalan,
+                pctBerjalan, isEligibleTenor: pctBerjalan >= 50,
+                corrected: Boolean(pair.corrected), correction: pair.correction || ''
+            };
+        }
+
         function parseAppointmentTermMonths(value, normalizedHeader = '') {
             if (value === null || value === undefined || value === '') return 0;
             const raw = String(value).trim().replace(',', '.');
@@ -5937,12 +6014,13 @@ Terima kasih.`
 
         function renewalPromoFacilityProgress(facility) {
             const direct = Number(facility?.pctBerjalan ?? facility?.progressPercent);
-            if (Number.isFinite(direct)) return direct;
-            const start = parseExcelDate(facility?.tanggal_mulai || facility?.tgl_mulai);
-            const end = parseExcelDate(facility?.tanggal_berakhir || facility?.tgl_akhir);
-            if (!start || !end || end <= start) return 0;
-            const total = end.getTime() - start.getTime();
-            return Math.max(0, Math.min(100, ((Date.now() - start.getTime()) / total) * 100));
+            if (Number.isFinite(direct) && direct >= 0 && direct <= 100) return direct;
+            const progress = calculateLoanTenorProgress(
+                facility?.tanggal_mulai || facility?.tgl_mulai,
+                facility?.tanggal_berakhir || facility?.tgl_akhir || facility?.tgl_berakhir,
+                new Date()
+            );
+            return Number(progress.pctBerjalan || 0);
         }
 
         function isRenewalRatePromoEligible(tipePinjaman, jenisPenawaran, context) {
@@ -6396,25 +6474,14 @@ Terima kasih.`
                     cifDatabase[cifKey].status_pegawai = prodInfo.jenisPegawai || 'PNS';
                 }
 
-                let totalTenor = null;
-                let sisaBulanFasilitas = null;
-                let tenorBerjalan = null;
-                let pctBerjalan = 0;
-                let isEligibleTenor = false;
-
-                if (tMulai && tAkhir && !isNaN(tMulai.getTime()) && !isNaN(tAkhir.getTime())) {
-                    totalTenor = (tAkhir.getFullYear() - tMulai.getFullYear()) * 12 + (tAkhir.getMonth() - tMulai.getMonth());
-                    sisaBulanFasilitas = Math.max(0, (tAkhir.getFullYear() - today.getFullYear()) * 12 + (tAkhir.getMonth() - today.getMonth()));
-                    tenorBerjalan = Math.max(0, totalTenor - sisaBulanFasilitas);
-                    
-                    if (totalTenor > 0) {
-                        pctBerjalan = (tenorBerjalan / totalTenor) * 100;
-                        isEligibleTenor = pctBerjalan >= 50.0;
-                    }
-                } else if (tAkhir && !isNaN(tAkhir.getTime())) {
-                    sisaBulanFasilitas = Math.max(0, (tAkhir.getFullYear() - today.getFullYear()) * 12 + (tAkhir.getMonth() - today.getMonth()));
-                    isEligibleTenor = true; 
-                }
+                const tenorProgress = calculateLoanTenorProgress(tMulai, tAkhir, today);
+                const normalizedStart = tenorProgress.start || tMulai;
+                const normalizedEnd = tenorProgress.end || tAkhir;
+                const totalTenor = tenorProgress.totalTenor;
+                const sisaBulanFasilitas = tenorProgress.sisaBulanFasilitas;
+                const tenorBerjalan = tenorProgress.tenorBerjalan;
+                const pctBerjalan = tenorProgress.pctBerjalan;
+                const isEligibleTenor = tenorProgress.isEligibleTenor;
 
                 cifDatabase[cifKey].facilities.push({
                     no_pinjaman: (k.no_pinjaman || 'PK-' + Math.random().toString().substr(2, 6)).toString().trim(),
@@ -6424,8 +6491,9 @@ Terima kasih.`
                     bunga_berjalan: k.bunga_berjalan || 0,
                     musisi_asuransi: k.musisi_asuransi || 0,
                     angsuran_eksisting: k.angsuran_eksisting || 0,
-                    tgl_mulai: tMulai,
-                    tgl_berakhir: tAkhir,
+                    tgl_mulai: normalizedStart,
+                    tgl_berakhir: normalizedEnd,
+                    tenorDateCorrected: Boolean(tenorProgress.corrected),
                     totalTenor,
                     sisaBulanFasilitas,
                     tenorBerjalan,
@@ -11828,7 +11896,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=168',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=169',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);

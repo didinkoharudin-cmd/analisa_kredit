@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.168-g2h-tht-output-fix';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.169-active-tenor-date-fix';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
