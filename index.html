@@ -1464,7 +1464,7 @@ body.v15-mobile-admin-active #viewAdmin button{
 
 
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#238ebc">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2235,21 +2235,6 @@ button:active{transform:scale(.97)}
     padding:7px 10px;background:#fff;border:1px solid #e2e8f0;
     border-radius:10px;font-weight:800;color:#334155;
   }
-  .v166-flag-sort{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:0 7px 0 9px;background:#fff;border:1px solid #e2e8f0;
-    border-radius:10px;font-weight:800;color:#334155;min-height:34px;
-  }
-  .v166-flag-sort i{font-size:10px;color:#64748b;flex:0 0 auto}
-  .v166-flag-sort select{
-    min-width:0;max-width:210px;border:0;outline:0;background:transparent;color:#334155;
-    font:inherit;font-size:9px;font-weight:800;padding:7px 18px 7px 0;cursor:pointer;
-  }
-  @media (max-width:420px){
-    .v16-debtor-summary{align-items:flex-start}
-    .v166-flag-sort{max-width:68%}
-    .v166-flag-sort select{max-width:100%;font-size:8.5px}
-  }
 
   .v16-debtor-cards{display:grid;gap:10px}
 
@@ -2863,7 +2848,7 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
 .v62-bulk-history{background:#ecfdf5;color:#047857;border:1px solid #bbf7d0!important}.v62-history-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}.v62-history-list{display:grid;gap:9px;margin-top:10px}.v62-history-item{border:1px solid #e2e8f0;border-radius:14px;background:#fff;padding:10px}.v62-history-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.v62-history-top b{font-size:9.5px;color:#17324d}.v62-history-top small{display:block;margin-top:2px;font-size:7.5px;color:#94a3b8}.v62-history-status{padding:4px 7px;border-radius:999px;font-size:7px;font-weight:900;white-space:nowrap}.v62-history-status.complete{background:#dcfce7;color:#166534}.v62-history-status.stopped{background:#fee2e2;color:#991b1b}.v62-history-status.other{background:#e2e8f0;color:#475569}.v62-history-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}.v62-history-meta span{border-radius:9px;background:#f8fafc;padding:6px;text-align:center}.v62-history-meta small{display:block;font-size:6.5px;color:#94a3b8;font-weight:800}.v62-history-meta b{display:block;margin-top:2px;font-size:9px;color:#334155}.v62-history-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.v62-history-actions button{border:0;border-radius:9px;padding:7px 9px;font-size:7.5px;font-weight:900}.v62-history-retry{background:#dcfce7;color:#166534}.v62-history-detail{background:#eff6ff;color:#1d4ed8}.v62-history-detailbox{margin-top:8px;border-top:1px dashed #cbd5e1;padding-top:8px;font-size:7.5px;color:#64748b;line-height:1.5}.v62-history-detailbox summary{cursor:pointer;font-weight:900;color:#475569}.v62-cloud-ready{display:flex;gap:9px;align-items:flex-start;border:1px solid #bfdbfe;background:#eff6ff;border-radius:13px;padding:10px;margin-top:10px}.v62-cloud-ready i{font-size:17px;color:#2563eb;margin-top:1px}.v62-cloud-ready b{display:block;font-size:9px;color:#1e3a8a}.v62-cloud-ready span{display:block;margin-top:3px;font-size:7.5px;line-height:1.45;color:#475569}.v62-empty{text-align:center;padding:28px 10px;color:#94a3b8;font-size:9px}.v62-history-note{font-size:7.5px;color:#64748b;line-height:1.45;margin-top:7px}.v62-history-danger{background:#fee2e2!important;color:#991b1b!important}.v62-history-owner{font-size:7px;color:#64748b;margin-top:3px}
 @media(max-width:560px){.v62-history-kpis,.v62-history-meta{grid-template-columns:repeat(2,1fr)}.v62-history-actions button{flex:1}}
 </style>
-<meta name="app-build" content="V18.3.11.142-home-nav-lower">
+<meta name="app-build" content="V18.3.11.141-home-bottom-safe-area">
 <style id="v93-responsive-ao">
 /* Shared AO shell; the legacy AO DOM remains available to calculation code. */
 #mobileV9Home .v9-top{background:linear-gradient(120deg,#003a8c,#1768d7)!important;border-radius:16px;padding:10px!important;margin-bottom:12px!important}
@@ -3068,7 +3053,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   #v9DebtorList .v16-card-finance strong{font-size:clamp(9px,3.2vw,11px)!important}
 }
 </style>
-<link rel="stylesheet" href="./score-v158.css?v=158">
+<link rel="stylesheet" href="./score-v141.css?v=141">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -3180,7 +3165,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
-<section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v81OpenProductivityMenu" type="button" onclick="openAoProductivityDashboard()" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#0f766e);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:none;align-items:center;gap:10px"><i class="fa-solid fa-gauge-high" style="font-size:20px"></i><span><b style="display:block">Monitoring Produktivitas AO</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Dashboard analitik khusus Admin/Supervisor</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v25OpenAoMonitoring" type="button" style="width:100%;margin-bottom:12px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f4c81,#0d9488);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-ranking-star" style="font-size:20px"></i><span><b style="display:block">Laporan Harian &amp; Realisasi</b><small style="font-size:8px;font-weight:600;color:#d5f5f2">AO dapat input realisasi sendiri • Admin/SPV dapat input seluruh AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div class="v9-filters"><label>Produk<select id="v9FilterProduk"><option value="">Semua Produk</option></select></label><label>Jenis Pengajuan<select id="v9FilterJenis"><option value="">Semua Jenis</option></select></label><label>Status Pegawai<select id="v9FilterStatus"><option value="">Semua Status Pegawai</option></select></label><label>Nama Dinas<select id="v9FilterDinas"><option value="">Semua Dinas</option></select></label><label>Kode AO<select id="v9FilterAO"><option value="">Semua AO</option></select></label><input id="v9FilterSearch" type="hidden"></div></div></section>
+<section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v81OpenProductivityMenu" type="button" onclick="openAoProductivityDashboard()" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#0f766e);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:none;align-items:center;gap:10px"><i class="fa-solid fa-gauge-high" style="font-size:20px"></i><span><b style="display:block">Monitoring Produktivitas AO</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Dashboard analitik khusus Admin/Supervisor</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v25OpenAoMonitoring" type="button" style="width:100%;margin-bottom:12px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f4c81,#0d9488);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-ranking-star" style="font-size:20px"></i><span><b style="display:block">Laporan Harian &amp; Realisasi</b><small style="font-size:8px;font-weight:600;color:#d5f5f2">Input aktivitas, realisasi, dan lihat riwayat AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div class="v9-filters"><label>Produk<select id="v9FilterProduk"><option value="">Semua Produk</option></select></label><label>Jenis Pengajuan<select id="v9FilterJenis"><option value="">Semua Jenis</option></select></label><label>Status Pegawai<select id="v9FilterStatus"><option value="">Semua Status Pegawai</option></select></label><label>Nama Dinas<select id="v9FilterDinas"><option value="">Semua Dinas</option></select></label><label>Kode AO<select id="v9FilterAO"><option value="">Semua AO</option></select></label><input id="v9FilterSearch" type="hidden"></div></div></section>
 <section class="v9-page" id="v9PageActivity">
   <div class="v9-title">My Activity</div>
   <button id="v46OpenPipeline" type="button" style="width:100%;margin:0 0 10px;border:0;border-radius:13px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;padding:12px;font-size:11px;font-weight:900;display:flex;align-items:center;gap:9px">
@@ -3670,9 +3655,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <div class="v25-card"><div class="v25-card-head"><div><h3>Identitas Account Officer</h3><span>Diambil otomatis dari Google login dan sheet users</span></div><b id="v25AoIdentity" style="font-size:10px;color:#0757c7">-</b></div></div>
         <div>
           <form id="v25RealizationForm" class="v25-card">
-            <div class="v25-card-head"><div><h3 id="v25RealizationFormTitle">Input Realisasi Kredit Anda</h3><span id="v25RealizationEditBadge">Tersimpan atas akun AO yang sedang login</span></div><i class="fa-solid fa-money-bill-trend-up" style="color:#0757c7"></i></div>
-            <div class="v25-grid three"><label class="v25-field">Tanggal<input id="v25RealizationDate" type="date" required></label><label class="v25-field">Divisi<select id="v25RealizationDivision"><option>Konsumer</option><option>Ritel</option></select></label><label class="v25-field">Unit Booking (dalam cabang aktif)<select id="v25RealizationOffice" required><option value="">Pilih unit booking...</option></select></label></div>
-            <p class="v25-note" id="v160AoBookingNote" style="margin:8px 0 0">Kantor penempatan AO hanya menjadi pilihan awal. Daftar Unit Booking diambil dari unit AO dalam cabang login yang sama, sehingga AO dapat memilih unit lain tanpa membuka unit cabang lain.</p>
+            <div class="v25-card-head"><div><h3 id="v25RealizationFormTitle">Input Realisasi Kredit</h3><span id="v25RealizationEditBadge">NoA dan OS harian</span></div><i class="fa-solid fa-money-bill-trend-up" style="color:#0757c7"></i></div>
+            <div class="v25-grid three"><label class="v25-field">Tanggal<input id="v25RealizationDate" type="date" required></label><label class="v25-field">Divisi<select id="v25RealizationDivision"><option>Konsumer</option><option>Ritel</option></select></label><label class="v25-field">Unit Booking (dalam cabang aktif)<select id="v25RealizationOffice"><option value="">Pilih unit booking...</option></select></label></div>
             <div class="v25-grid" style="margin-top:9px"><label class="v25-field">NoA New<input id="v25NoaNew" type="number" min="0" value="0"></label><label class="v25-field">OS New (Rp)<input id="v25OsNew" type="text" inputmode="numeric" value="0"></label><label class="v25-field">NoA Mengulang<input id="v25NoaRepeat" type="number" min="0" value="0"></label><label class="v25-field">OS Mengulang (Rp)<input id="v25OsRepeat" type="text" inputmode="numeric" value="0"></label><label class="v25-field">RunOff (Rp)<input id="v25RunOff" type="text" inputmode="numeric" value="0"></label><label class="v25-field">Total NoA<input id="v25TotalNoa" type="text" value="0" readonly></label></div>
             <label class="v25-field" style="margin-top:9px">Total OS<input id="v25TotalOs" type="text" value="Rp 0" readonly></label>
             <div class="v25-actions"><button id="v25SaveRealization" type="submit" class="v25-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi</button><button id="v25CancelRealizationEdit" type="button" class="v25-secondary v25-hidden">Batal Edit</button></div>
@@ -6031,39 +6015,22 @@ Terima kasih.`
             return fromRow > 0 ? fromRow : 60;
         }
 
-        // Normalisasi usia asuransi numerik: naik 1 tahun hanya jika pecahan usia >= 0,5 tahun.
-        // Nilai integer yang sudah dihasilkan fungsi tanggal akan tetap apa adanya.
-        function normalizeInsuranceAgeValue(ageValue) {
-            const raw = Math.max(0, Number(ageValue) || 0);
-            const whole = Math.floor(raw);
-            return whole + ((raw - whole) >= 0.5 ? 1 : 0);
-        }
-
-        // Usia asuransi: pembulatan ke tahun berikutnya hanya jika usia berjalan
-        // sudah mencapai >= 6 bulan setelah ulang tahun terakhir, dihitung sampai tanggal/hari.
-        // Contoh: 39 th 5 bln 30 hari => 39; tepat 39 th 6 bln => 40.
+        // Usia asuransi: roundup ke tahun berikutnya bila ada sisa bulan/hari.
+        // Contoh: 39 tahun 1 bulan => 40 tahun; tepat ulang tahun ke-39 => 39 tahun.
         function getInsuranceAgeRoundedUp(tglLahir, today = new Date()) {
             if (!(tglLahir instanceof Date) || isNaN(tglLahir.getTime())) return 0;
             const dob = new Date(tglLahir.getFullYear(), tglLahir.getMonth(), tglLahir.getDate());
             const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             if (now < dob) return 0;
-
             let completed = now.getFullYear() - dob.getFullYear();
-            let anniversary = new Date(dob);
+            const anniversary = new Date(dob);
             anniversary.setFullYear(dob.getFullYear() + completed);
             if (anniversary > now) {
                 completed -= 1;
-                anniversary = new Date(dob);
                 anniversary.setFullYear(dob.getFullYear() + completed);
             }
-
-            let completedMonthsAfterBirthday =
-                (now.getFullYear() - anniversary.getFullYear()) * 12 +
-                (now.getMonth() - anniversary.getMonth());
-            if (now.getDate() < anniversary.getDate()) completedMonthsAfterBirthday -= 1;
-            completedMonthsAfterBirthday = Math.max(0, completedMonthsAfterBirthday);
-
-            return Math.max(0, completed + (completedMonthsAfterBirthday >= 6 ? 1 : 0));
+            const hasPartialYear = now.getTime() > anniversary.getTime();
+            return Math.max(0, completed + (hasPartialYear ? 1 : 0));
         }
 
         // Batas tenor berdasarkan BUP atau akhir masa jabatan.
@@ -6220,9 +6187,7 @@ Terima kasih.`
             const bungaBulanPertama = (plafonGross * ratePerTahun) / 12;
             const jangkaWaktuTahun = Math.ceil(tenorBulan / 12);
 
-            const usiaRaw = Math.max(0, Number(usiaTahun) || 0);
-            const usiaUtuh = Math.floor(usiaRaw);
-            const usiaAsuransi = normalizeInsuranceAgeValue(usiaRaw);
+            const usiaAsuransi = Math.max(0, Math.ceil(Number(usiaTahun) || 0));
             let tarifAsuransiPct = Number(feeParams.asrUnder40) || 0.500;
             if (usiaAsuransi >= 66) {
                 tarifAsuransiPct = Number(feeParams.asr66Up) || 3.699;
@@ -8550,158 +8515,13 @@ function updateWaPreview() {
     }
   }
 
-  // =========================================================
-  // V161 — STARTUP NETWORK COORDINATOR
-  // Tujuan: setelah login sukses, request latar belakang tidak berebut koneksi
-  // dengan sinkronisasi parameter + Smart Sync database. Request tidak dibuang;
-  // request GET latar belakang ditunda, diserialkan sementara, dan request sama
-  // yang datang berulang digabung menjadi satu Promise.
-  // =========================================================
-  const SCORE_STARTUP_BACKGROUND_ACTIONS = new Set([
-    'trackUsage',
-    'getBanners',
-    'getAoHomeStandings',
-    'getMonthlyOfferFlags',
-    'getMonthlyOfferFlagSummary',
-    'getChatUnread',
-    'getChatContacts',
-    'getWebPushConfig',
-    'getSharedFormDocuments',
-    'getVerifiedOfferSummary',
-    'getProspectPipeline',
-    'getBranchAdminStage2',
-    'getBranchAdminData',
-    'getSuperAdminDashboard',
-    'getUsageTraffic',
-    'getActivityLogs',
-    'getAoMonitoringStatus',
-    'getAoMonitoringUserData',
-    'getAoMonitoringAdminData'
-  ]);
-  const SCORE_COALESCE_ACTIONS = new Set([
-    ...SCORE_STARTUP_BACKGROUND_ACTIONS,
-    'getParameters',
-    'getDataVersion',
-    'getData'
-  ]);
-  const scoreStartupNetwork = window.__scoreStartupNetwork = window.__scoreStartupNetwork || {
-    authAt:0,
-    quietUntil:0,
-    syncActive:false,
-    syncStartedAt:0,
-    parameterPromise:null,
-    parameterTimer:null
-  };
-  let scoreBackgroundTail = Promise.resolve();
-  const scoreRequestInFlight = new Map();
-  const scoreSleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
-
-  function scoreMarkAuthenticated(){
-    scoreStartupNetwork.authAt=Date.now();
-    // Beri ruang agar Smart Sync dapat dipilih tanpa didahului request otomatis.
-    // V162: parameter pusat juga tidak langsung ditembak pada momen login.
-    scoreStartupNetwork.quietUntil=Date.now()+6500;
-    scoreStartupNetwork.syncActive=false;
-    scoreStartupNetwork.syncStartedAt=0;
-    scoreStartupNetwork.parameterPromise=null;
-    if(scoreStartupNetwork.parameterTimer){
-      clearTimeout(scoreStartupNetwork.parameterTimer);
-      scoreStartupNetwork.parameterTimer=null;
-    }
-    scoreRequestInFlight.clear();
-    scoreBackgroundTail=Promise.resolve();
-  }
-
-  function scoreStartParameterBootstrap(){
-    if(scoreStartupNetwork.parameterPromise) return scoreStartupNetwork.parameterPromise;
-    if(scoreStartupNetwork.parameterTimer){
-      clearTimeout(scoreStartupNetwork.parameterTimer);
-      scoreStartupNetwork.parameterTimer=null;
-    }
-    const promise=Promise.resolve()
-      .then(()=>window.loadCentralParameters?.())
-      .catch(err=>{
-        console.warn('Parameter awal gagal dimuat; cache lokal tetap digunakan:',err);
-        return {success:false,error:String(err?.message||err||'')};
-      });
-    scoreStartupNetwork.parameterPromise=promise;
-    return promise;
-  }
-
-  function scoreScheduleParameterBootstrap(delayMs=1600){
-    if(scoreStartupNetwork.parameterPromise || scoreStartupNetwork.parameterTimer) return;
-    scoreStartupNetwork.parameterTimer=setTimeout(async()=>{
-      scoreStartupNetwork.parameterTimer=null;
-      // Parameter bukan prasyarat untuk MEMBUKA Smart Sync. Jika pengguna mulai
-      // sinkronisasi, tunda request parameter sampai database selesai agar tidak
-      // berebut koneksi di jaringan seluler.
-      while(scoreStartupNetwork.syncActive){
-        await scoreSleep(250);
-      }
-      scoreStartParameterBootstrap();
-    },Math.max(0,Number(delayMs)||0));
-  }
-
-  function scoreBeginCriticalSync(){
-    scoreStartupNetwork.syncActive=true;
-    scoreStartupNetwork.syncStartedAt=Date.now();
-    // Bila parameter belum mulai, batalkan timer-nya. Smart Sync harus langsung
-    // mengambil slot jaringan utama, bukan menunggu parameter.
-    if(scoreStartupNetwork.parameterTimer){
-      clearTimeout(scoreStartupNetwork.parameterTimer);
-      scoreStartupNetwork.parameterTimer=null;
-    }
-    // Request background yang sudah menunggu tetap ditahan sampai Smart Sync selesai.
-    scoreStartupNetwork.quietUntil=Math.max(scoreStartupNetwork.quietUntil,Date.now()+800);
-  }
-
-  function scoreEndCriticalSync(){
-    scoreStartupNetwork.syncActive=false;
-    scoreStartupNetwork.syncStartedAt=0;
-    // Setelah database selesai, beri jeda kecil lalu izinkan antrean background jalan.
-    scoreStartupNetwork.quietUntil=Date.now()+450;
-    // Parameter pusat tetap dipastikan berjalan, hanya saja setelah jalur kritis selesai.
-    scoreScheduleParameterBootstrap(350);
-  }
-
-  function scoreIsStartupWindow(){
-    return !!scoreStartupNetwork.authAt && (Date.now()-scoreStartupNetwork.authAt)<25000;
-  }
-
-  async function scoreAcquireBackgroundSlot(action){
-    if(!SCORE_STARTUP_BACKGROUND_ACTIONS.has(String(action||''))) return null;
-    const shouldCoordinate = scoreStartupNetwork.syncActive ||
-      Date.now()<Number(scoreStartupNetwork.quietUntil||0) || scoreIsStartupWindow();
-    if(!shouldCoordinate) return null;
-
-    let release;
-    const gate=new Promise(resolve=>{ release=resolve; });
-    const previous=scoreBackgroundTail;
-    scoreBackgroundTail=previous.catch(()=>{}).then(()=>gate);
-    await previous.catch(()=>{});
-
-    // Jangan memulai request latar belakang saat Smart Sync aktif atau selama
-    // quiet window pasca-login. Menunggu di sini tidak memakai timeout fetch.
-    while(scoreStartupNetwork.syncActive || Date.now()<Number(scoreStartupNetwork.quietUntil||0)){
-      await scoreSleep(220);
-    }
-    return release;
-  }
-
-  function scoreCoalesceKey(action,payload,credential){
-    // Sertakan potongan signature credential agar request dua user/sesi tidak
-    // pernah berbagi Promise hasil yang sama. Token penuh tidak disimpan.
-    const sessionKey=String(credential||'').slice(-32);
-    try{return String(action||'')+'|'+sessionKey+'|'+JSON.stringify(payload||{});}catch(e){return String(action||'')+'|'+sessionKey;}
-  }
-
   function runPostLoginBootstrap(completingReauth){
-    // V162: setelah autentikasi sukses, jangan langsung menembakkan parameter,
-    // banner, klasemen, traffic, dll. Beri prioritas pada interaksi user dan
-    // Smart Sync. Semua request tetap dijalankan setelah jalur kritis selesai.
-    scoreMarkAuthenticated();
-    scoreScheduleParameterBootstrap(1800);
-
+    // Semua proses setelah autentikasi dibuat non-blocking. Kegagalan banner,
+    // parameter, klasemen, heartbeat, dsb. tidak boleh mengembalikan pengguna
+    // ke layar login setelah backend sudah menyatakan akun valid.
+    setTimeout(()=>{
+      Promise.resolve(window.loadCentralParameters?.()).catch(err=>console.warn('Parameter awal gagal dimuat:',err));
+    },0);
     if(completingReauth){
       drainReauthTasks();
       return;
@@ -8712,11 +8532,10 @@ function updateWaPreview() {
       console.error('Routing setelah login gagal:',err);
       // Fallback: aplikasi tetap dibuka. Jangan batalkan sesi yang sudah valid.
     }
-
-    // Flag bulanan tidak mempunyai retry cepat sendiri bila timer awal terjadi
-    // sebelum credential siap. Jalankan satu fail-safe saja; banner, klasemen,
-    // chat, traffic, dokumen, dan funnel sudah mempunyai bootstrap masing-masing.
-    setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),9500);
+    setTimeout(()=>window.sendUsageHeartbeat?.(true),300);
+    [150,900,2200].forEach(ms=>setTimeout(()=>window.refreshAoBanners?.(),ms));
+    [700,1800,4200].forEach(ms=>setTimeout(()=>window.refreshHomeAoStandings?.(true),ms));
+    setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),700);
   }
 
   async function loginBackendWithRetry(credential){
@@ -8858,149 +8677,53 @@ function updateWaPreview() {
     };
   }
 
-  const SCORE_TRANSIENT_HTTP_STATUS=new Set([408,425,429,500,502,503,504,520,521,522,523,524,525,526]);
-
-  function scoreMakeResponseError(message,opts={}){
-    const err=new Error(message);
-    err.code=opts.code||'SERVER_RESPONSE_ERROR';
-    err.httpStatus=Number(opts.httpStatus||0);
-    err.scoreTransientResponse=!!opts.transient;
-    err.scoreDoNotRetry=!!opts.doNotRetry;
-    return err;
-  }
-
-  function scoreParseServerJson(text,response,action){
-    let raw=String(text==null?'':text);
-    // Beberapa proxy/browser dapat menyisipkan UTF-8 BOM atau prefix anti-XSSI.
-    // Keduanya bukan kegagalan server dan aman dibersihkan sebelum JSON.parse().
-    raw=raw.replace(/^\uFEFF/,'').trim();
-    if(raw.startsWith(")]}'")) raw=raw.replace(/^\)\]\}',?\s*/, '');
-
-    const status=Number(response?.status||0);
-    const contentType=String(response?.headers?.get?.('content-type')||'').toLowerCase();
-
-    if(!raw){
-      throw scoreMakeResponseError(
-        'Server belum mengirim jawaban lengkap. Mencoba kembali otomatis...',
-        {code:'EMPTY_SERVER_RESPONSE',httpStatus:status,transient:true}
-      );
-    }
-
-    try{
-      return JSON.parse(raw);
-    }catch(parseErr){
-      // Jangan menampilkan isi HTML/server ke user. Cukup klasifikasikan apakah
-      // ini gangguan sementara (Cloudflare/Apps Script/gateway) agar dapat retry.
-      const preview=raw.replace(/\s+/g,' ').slice(0,220);
-      const looksHtml=/^\s*</.test(raw)||contentType.includes('text/html');
-      const looksGateway=/cloudflare|bad gateway|gateway time|service unavailable|temporarily unavailable|upstream|internal server error|error\s*5\d\d/i.test(preview);
-      const transient=SCORE_TRANSIENT_HTTP_STATUS.has(status)||status===0||looksHtml||looksGateway;
-      throw scoreMakeResponseError(
-        transient
-          ? 'Koneksi server sempat tidak stabil. Mencoba kembali otomatis...'
-          : 'Respons server tidak dapat dibaca. Silakan coba kembali.',
-        {code:'NON_JSON_RESPONSE',httpStatus:status,transient:transient}
-      );
-    }
-  }
-
-  function scoreIsNetworkFetchError(err){
-    const msg=String(err?.message||err||'');
-    return err?.name==='TypeError'||/failed to fetch|networkerror|network request failed|load failed|connection.*lost|internet connection/i.test(msg);
-  }
-
   async function callApi(action,credential,extraPayload={}){
-    const coalesceKey=SCORE_COALESCE_ACTIONS.has(String(action||''))
-      ? scoreCoalesceKey(action,extraPayload,credential)
-      : '';
-    if(coalesceKey && scoreRequestInFlight.has(coalesceKey)){
-      return scoreRequestInFlight.get(coalesceKey);
+    const expiresAt=credentialExpiryMs(credential);
+    if(expiresAt && expiresAt<=Date.now()){
+      if(credential===googleCredential&&currentUser)showSessionExpiredPopup();
+      return {success:false,code:'SESSION_EXPIRED',error:'Sesi habis, silakan login kembali.'};
     }
+    let lastError=null;
+    const isBackgroundActivity = action === 'logActivity' || action === 'trackUsage' || action === 'sendWebPushChatFast';
 
-    const task=(async()=>{
-      const expiresAt=credentialExpiryMs(credential);
-      if(expiresAt && expiresAt<=Date.now()){
-        if(credential===googleCredential&&currentUser)showSessionExpiredPopup();
-        return {success:false,code:'SESSION_EXPIRED',error:'Sesi habis, silakan login kembali.'};
-      }
+    // getData memproses Kredit + Penghasilan + konversi/normalisasi server,
+    // sehingga jangan dibatasi 60 detik. Login tetap cepat.
+    const timeoutMs = action === 'getData'
+      ? Number(window.DATABASE_LOAD_TIMEOUT_MS || 300000)
+      : ((action === 'uploadActivityPhoto' || action === 'sendChatMessage' || action === 'getChatAttachment' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || action === 'importBranchData') ? 120000 : 60000);
 
-      // Selama fase startup, GET otomatis menunggu giliran. Timer HTTP baru
-      // dibuat SETELAH giliran diperoleh, sehingga request tidak timeout hanya
-      // karena menunggu Smart Sync selesai.
-      const backgroundRelease=await scoreAcquireBackgroundSlot(action);
+    // Jangan mengulang getData yang besar karena retry dapat membuat
+    // request kedua berjalan bersamaan/menambah beban server.
+    const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'getData' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
+
+    for(let attempt=1; attempt<=maxAttempts; attempt++){
+      const controller = ('AbortController' in window) ? new AbortController() : null;
+      const timer = controller ? setTimeout(()=>controller.abort(), timeoutMs) : null;
       try{
-        let lastError=null;
-        const isBackgroundActivity = action === 'logActivity' || action === 'trackUsage' || action === 'sendWebPushChatFast';
-
-        // getData memproses Kredit + Penghasilan + konversi/normalisasi server,
-        // sehingga jangan dibatasi 60 detik. Login tetap cepat.
-        const timeoutMs = action === 'getData'
-          ? Number(window.DATABASE_LOAD_TIMEOUT_MS || 300000)
-          : ((action === 'uploadActivityPhoto' || action === 'sendChatMessage' || action === 'getChatAttachment' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || action === 'importBranchData') ? 120000 : 60000);
-
-        // V163: getData tetap single-flight, tetapi boleh melakukan SATU retry
-        // berurutan hanya bila respons gateway bukan JSON / koneksi putus sebelum
-        // respons dapat dibaca. Retry tidak pernah berjalan paralel.
-        const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
-
-        for(let attempt=1; attempt<=maxAttempts; attempt++){
-          const controller = ('AbortController' in window) ? new AbortController() : null;
-          const timer = controller ? setTimeout(()=>controller.abort(), timeoutMs) : null;
-          try{
-            const response=await fetch(AUTH_CONFIG.API_URL,{
-              method:'POST',
-              headers:{'Content-Type':'text/plain;charset=utf-8'},
-              body:JSON.stringify(Object.assign({action,credential}, extraPayload || {})),
-              cache:'no-store',
-              keepalive:isBackgroundActivity,
-              signal:controller ? controller.signal : undefined
-            });
-            if(timer) clearTimeout(timer);
-            const text=await response.text();
-            const result=scoreParseServerJson(text,response,action);
-            if(isSessionFailure(result,response.status)&&credential===googleCredential&&currentUser)showSessionExpiredPopup();
-            return result;
-          }catch(err){
-            if(timer) clearTimeout(timer);
-            const wasAbort=err && err.name === 'AbortError';
-            lastError = wasAbort ? new Error(
-                  action==='getData'
-                    ? 'Proses database membutuhkan waktu lebih lama dari biasanya (batas 5 menit). Sesi tetap dipertahankan. Silakan tunggu atau coba Muat Database lagi.'
-                    : 'Permintaan ke server membutuhkan waktu lebih lama dari biasanya. Sesi tetap dipertahankan.'
-                ) : err;
-
-            // Retry hanya untuk gangguan transport / respons gateway sementara.
-            // Timeout panjang getData tidak diulang agar tidak menciptakan proses
-            // database kedua ketika proses pertama sebenarnya masih berjalan.
-            const retryable=!wasAbort && !err?.scoreDoNotRetry && (
-              err?.scoreTransientResponse || scoreIsNetworkFetchError(err)
-            );
-            if(attempt<maxAttempts && retryable){
-              const waitMs=attempt===1?700:1200;
-              console.warn('[API] Respons sementara bermasalah. Retry aman:',action,'attempt',attempt+1,'status',Number(err?.httpStatus||0));
-              await scoreSleep(waitMs);
-              continue;
-            }
-            break;
-          }
-        }
-        if(lastError?.scoreTransientResponse){
-          throw new Error('Koneksi server sempat tidak stabil dan respons belum lengkap. Silakan tekan kembali; sesi login tetap aktif.');
-        }
-        throw lastError || new Error('Gagal menghubungi server API.');
-      }finally{
-        if(typeof backgroundRelease==='function') backgroundRelease();
-      }
-    })();
-
-    if(coalesceKey) scoreRequestInFlight.set(coalesceKey,task);
-    try{
-      return await task;
-    }finally{
-      if(coalesceKey && scoreRequestInFlight.get(coalesceKey)===task){
-        scoreRequestInFlight.delete(coalesceKey);
+        const response=await fetch(AUTH_CONFIG.API_URL,{
+          method:'POST',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body:JSON.stringify(Object.assign({action,credential}, extraPayload || {})),
+          cache:'no-store',
+          keepalive:isBackgroundActivity,
+          signal:controller ? controller.signal : undefined
+        });
+        if(timer) clearTimeout(timer);
+        const text=await response.text();
+        let result;
+        try{ result=JSON.parse(text); }catch(e){ throw new Error('Respons server bukan JSON. Periksa deployment Apps Script dan akses Web App.'); }
+        if(isSessionFailure(result,response.status)&&credential===googleCredential&&currentUser)showSessionExpiredPopup();
+        return result;
+      }catch(err){
+        if(timer) clearTimeout(timer);
+        lastError = err && err.name === 'AbortError' ? new Error(
+              'Proses database membutuhkan waktu lebih lama dari biasanya (batas 5 menit). ' +
+              'Sesi tetap dipertahankan. Silakan tunggu atau coba Muat Database lagi.'
+            ) : err;
+        if(attempt<2) await new Promise(r=>setTimeout(r,1200));
       }
     }
+    throw lastError || new Error('Gagal menghubungi server API.');
   }
 
 
@@ -9024,9 +8747,15 @@ function updateWaPreview() {
       window.googleCredential=googleCredential;
       persistActiveSession();
       showApp(currentUser);
-      // V161: gunakan bootstrap yang sama dengan login baru supaya pemulihan sesi
-      // juga tidak menembakkan banyak request secara bersamaan.
-      runPostLoginBootstrap(false);
+      // Restore dianggap berhasil segera setelah login backend valid. Bootstrap
+      // lain tidak boleh membatalkan sesi jika salah satu modul gagal.
+      setTimeout(()=>Promise.resolve(window.loadCentralParameters?.()).catch(err=>console.warn('Parameter restore gagal:',err)),0);
+      try{ if(typeof window.v12RouteAfterLogin==='function') window.v12RouteAfterLogin(currentUser); }catch(err){ console.error('Routing restore gagal:',err); }
+      [300,1200].forEach(ms=>setTimeout(()=>window.sendUsageHeartbeat?.(true),ms));
+      [400,1500].forEach(ms=>setTimeout(()=>window.refreshAoBanners?.(),ms));
+      // V84: klasemen Home juga harus dimuat ulang saat sesi dipulihkan (PWA resume/refresh).
+      [700,1800,4200].forEach(ms=>setTimeout(()=>window.refreshHomeAoStandings?.(true),ms));
+      setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),700);
     }catch(err){
       console.warn('Pemulihan sesi aktif gagal:',err);
       googleCredential=null;
@@ -9557,30 +9286,6 @@ function updateWaPreview() {
       showAuthError(err.message||'Data gagal dimuat.');
       window.lastProtectedLoadOk=false;
     }
-  };
-
-
-  // V162: satu Smart Sync aktif pada satu waktu. Klik ganda / dua pemanggil
-  // memakai Promise yang sama, bukan membuat getDataVersion/getData paralel.
-  // Penting: tidak ada lagi wait parameter 7,5 detik sebelum UI Smart Sync muncul.
-  const scoreOriginalLoadProtectedData=window.loadProtectedData;
-  let scoreProtectedLoadInFlight=null;
-  window.loadProtectedData=function(){
-    if(scoreProtectedLoadInFlight) return scoreProtectedLoadInFlight;
-    const ctx=this, args=arguments;
-    scoreBeginCriticalSync();
-    const task=(async()=>{
-      try{
-        // Panggil fungsi asli SEGERA. Fungsi asli langsung menampilkan guard/progress
-        // sebelum request getDataVersion, sehingga tap user mendapat respons visual
-        // pada frame yang sama dan jaringan diprioritaskan untuk Smart Sync.
-        return await scoreOriginalLoadProtectedData.apply(ctx,args);
-      }finally{
-        scoreEndCriticalSync();
-      }
-    })();
-    scoreProtectedLoadInFlight=task.finally(()=>{ scoreProtectedLoadInFlight=null; });
-    return scoreProtectedLoadInFlight;
   };
 
 
@@ -10750,8 +10455,6 @@ function v875IsHalfTenorReached(o){
   return Number(o?.pctBerjalan || 0) >= 50;
 }
 let v9QuickIncomeSource = '';
-// V166: urutan kartu Debitur berdasarkan status flagging (bukan filter).
-let v166DebtorFlagSortMode = 'UNFLAGGED_FIRST';
 
 function v51NormalizeAO(v){
   const x=String(v??'').trim().toUpperCase();
@@ -11075,8 +10778,7 @@ function renderDebtors(){
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
 
-  const filteredRows=getFilteredLoans();
-  const allRows=window.v109SortOffers ? window.v109SortOffers(filteredRows,v166DebtorFlagSortMode) : filteredRows;
+  const allRows=window.v109SortOffers ? window.v109SortOffers(getFilteredLoans()) : getFilteredLoans();
   const pageSize=40;
   const offset=Number(window.v16DebtorOffset||0);
   const rows=allRows.slice(0,offset+pageSize);
@@ -11111,22 +10813,8 @@ function renderDebtors(){
   summary.className='v16-debtor-summary';
   summary.innerHTML=`
     <span>Total <b>${allRows.length.toLocaleString('id-ID')}</b> debitur</span>
-    <label class="v166-flag-sort" for="v166DebtorFlagSort">
-      <i class="fa-solid fa-arrow-down-wide-short"></i>
-      <select id="v166DebtorFlagSort" aria-label="Urutan kartu berdasarkan status flagging">
-        <option value="UNFLAGGED_FIRST" ${v166DebtorFlagSortMode==='UNFLAGGED_FIRST'?'selected':''}>Belum terflag → Sudah terflag</option>
-        <option value="FLAGGED_FIRST" ${v166DebtorFlagSortMode==='FLAGGED_FIRST'?'selected':''}>Sudah terflag → Belum terflag</option>
-      </select>
-    </label>`;
+    <span class="v16-sort-pill"><i class="fa-solid fa-arrow-down-wide-short"></i> Belum ditawarkan dahulu</span>`;
   list.appendChild(summary);
-  const flagSort=summary.querySelector('#v166DebtorFlagSort');
-  if(flagSort){
-    flagSort.addEventListener('change',()=>{
-      v166DebtorFlagSortMode=flagSort.value==='FLAGGED_FIRST'?'FLAGGED_FIRST':'UNFLAGGED_FIRST';
-      window.v16DebtorOffset=0;
-      renderDebtors();
-    });
-  }
 
   const cards=document.createElement('div');
   cards.className='v16-debtor-cards';
@@ -11811,35 +11499,7 @@ if(document.readyState==='loading'){
 <script id="v17-v11-pwa-js">
 (function(){
 'use strict';
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    let swRegistered=false;
-    const registerWhenStartupIdle=()=>{
-      if(swRegistered) return;
-      const st=window.__scoreStartupNetwork||{};
-      const appLocked=document.body.classList.contains('app-locked');
-
-      // V162: jangan pernah memulai update/precache service worker saat layar login,
-      // proses verifikasi akun, atau Smart Sync berlangsung. Di 4G, download cache
-      // beberapa MB dapat membuat request login terasa jauh lebih lambat.
-      if(appLocked || !st.authAt || st.syncActive || Date.now()<Number(st.quietUntil||0) || (Date.now()-Number(st.authAt||0))<10000){
-        setTimeout(registerWhenStartupIdle,1500);
-        return;
-      }
-
-      swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=167',{updateViaCache:'all'})
-        .catch(err=>{
-          swRegistered=false;
-          console.warn('Service worker:',err);
-          setTimeout(registerWhenStartupIdle,5000);
-        });
-    };
-    // Mulai pemeriksaan ringan; registrasi aktual baru terjadi setelah login sukses
-    // dan minimal 10 detik setelah autentikasi, serta tidak ketika Smart Sync aktif.
-    setTimeout(registerWhenStartupIdle,2500);
-  },{once:true});
-}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=141').catch(console.warn));}
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!matchMedia('(display-mode: standalone)').matches){const c=document.getElementById('pwaInstallCard');if(c)c.style.display='block';}});
 document.addEventListener('DOMContentLoaded',()=>{
@@ -12023,15 +11683,6 @@ async function bannerApi(action,payload={}){
   const credential=bannerCredential();
   if(!credential) throw new Error('Sesi login Google tidak tersedia.');
 
-  // V161: gunakan jalur API utama agar request banner ikut antrean startup,
-  // coalescing, timeout, dan proteksi sesi yang sama dengan modul lain.
-  if(typeof window.callApi==='function'){
-    const result=await window.callApi(action,credential,payload||{});
-    if(!result?.success) throw new Error(result?.error||'Operasi banner gagal.');
-    return result;
-  }
-
-  // Fallback kompatibilitas bila helper utama belum siap.
   const response=await fetch(BANNER_API_URL,{
     method:'POST',
     headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -12641,7 +12292,7 @@ function simFeeCalc(gross,tenor,product,status,age,baki,installment,runningInter
 
   const bungaBulanPertama=(gross*annualRate)/12;
   const tahun=Math.ceil(tenor/12);
-  const insuranceAge=normalizeInsuranceAgeValue(age);
+  const insuranceAge=Math.max(0,Math.ceil(Number(age)||0));
   let asrPct=Number(feeParams.asrUnder40)||0.500;
   if(insuranceAge>=66) asrPct=Number(feeParams.asr66Up)||3.699;
   else if(insuranceAge>=61) asrPct=Number(feeParams.asr61To65)||2.573;
@@ -15503,40 +15154,8 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 <script id="v1831125-ao-monitoring-controller">
 (function(){
   'use strict';
-  const state={profile:null,userData:null,adminData:null,branchOfficeOptions:[],editingRow:null,adminEditingRow:null,standingMode:'ACTIVE'};
-  function normalizeOfficeLabel(value){return String(value||'').trim();}
-  function officesFromBranchMeta(meta){
-    const out=[];
-    if(!meta||typeof meta!=='object')return out;
-    ['officeOptions','offices','units','unitOptions','branchOffices','officeList','unitList'].forEach(key=>{
-      const arr=meta?.[key];
-      if(Array.isArray(arr))arr.forEach(item=>out.push(typeof item==='string'?item:(item?.name||item?.nama||item?.office||item?.kantor||item?.unit||'')));
-    });
-    return out.map(normalizeOfficeLabel).filter(Boolean);
-  }
-  function officesFromHomeStandings(data){
-    const out=[];
-    if(Array.isArray(data?.officeOptions))out.push(...data.officeOptions);
-    out.push(...officesFromBranchMeta(data?.branch));
-    const standings=data?.standings||{};
-    ['Konsumer','Ritel'].forEach(div=>{
-      const rows=Array.isArray(standings?.[div]?.rows)?standings[div].rows:[];
-      rows.forEach(row=>out.push(row?.kantor,row?.namaKantor,row?.office,row?.unitBooking));
-    });
-    return [...new Set(out.map(normalizeOfficeLabel).filter(Boolean))];
-  }
-  async function loadBranchOfficeOptionsForAo(){
-    // getAoHomeStandings memang sudah dipakai AO di Home dan hasilnya terikat cabang login.
-    // Kita pakai data yang sama untuk membentuk pilihan Unit Booking tanpa membuka akses lintas cabang.
-    try{
-      const r=await api('getAoHomeStandings',{});
-      if(r?.success)state.branchOfficeOptions=officesFromHomeStandings(r);
-    }catch(err){
-      console.warn('[V160 Unit Booking] Daftar unit cabang belum dapat dimuat dari klasemen:',err);
-      state.branchOfficeOptions=[];
-    }
-  }
-  function officeOptions(){const fromAdmin=Array.isArray(state.adminData?.officeOptions)?state.adminData.officeOptions:[];const fromUser=Array.isArray(state.userData?.officeOptions)?state.userData.officeOptions:[];const fromBranch=Array.isArray(state.branchOfficeOptions)?state.branchOfficeOptions:[];const fromUserBranch=officesFromBranchMeta(state.userData?.branch);const fromCurrentBranch=officesFromBranchMeta(window.currentUser?.branch);const fallback=[state.userData?.user?.kantor,state.profile?.kantor,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];return [...new Set([...fromAdmin,...fromUser,...fromBranch,...fromUserBranch,...fromCurrentBranch,...fallback].map(normalizeOfficeLabel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));}
+  const state={profile:null,userData:null,adminData:null,editingRow:null,adminEditingRow:null,standingMode:'ACTIVE'};
+  function officeOptions(){const fromAdmin=Array.isArray(state.adminData?.officeOptions)?state.adminData.officeOptions:[];const fromUser=Array.isArray(state.userData?.officeOptions)?state.userData.officeOptions:[];return [...new Set([...fromAdmin,...fromUser].map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));}
   function branchName(){return String(state.adminData?.branch?.branchName||state.userData?.branch?.branchName||'Cabang').trim()||'Cabang';}
   function populateOfficeSelects(){const opts=officeOptions(), html='<option value="">Pilih unit booking...</option>'+opts.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');['v25RealizationOffice','v27AdminRealizationOffice'].forEach(id=>{const n=el(id);if(!n)return;const cur=n.value;n.innerHTML=html;if(opts.includes(cur))n.value=cur;});const dl=el('v28OfficeList');if(dl)dl.innerHTML=opts.map(x=>'<option value="'+esc(x)+'"></option>').join('');}
   function el(id){return document.getElementById(id);}
@@ -15588,7 +15207,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function formatMoneyInput(input){if(!input)return;const n=parseMoney(input.value);input.value=n.toLocaleString('id-ID');}
   function recalc(){const noa=num(el('v25NoaNew')?.value)+num(el('v25NoaRepeat')?.value),os=parseMoney(el('v25OsNew')?.value)+parseMoney(el('v25OsRepeat')?.value)-parseMoney(el('v25RunOff')?.value);if(el('v25TotalNoa'))el('v25TotalNoa').value=noa.toLocaleString('id-ID');if(el('v25TotalOs'))el('v25TotalOs').value=rp(os);}
   function realizationPayload(){return {row:state.editingRow,tanggal:el('v25RealizationDate')?.value||'',divisi:el('v25RealizationDivision')?.value||'',namaKantor:el('v25RealizationOffice')?.value||'',noaNew:num(el('v25NoaNew')?.value),osNew:parseMoney(el('v25OsNew')?.value),noaMengulang:num(el('v25NoaRepeat')?.value),osMengulang:parseMoney(el('v25OsRepeat')?.value),runOff:parseMoney(el('v25RunOff')?.value)};}
-  function resetRealizationForm(){state.editingRow=null;el('v25RealizationForm')?.reset();if(el('v25RealizationDate'))el('v25RealizationDate').value=today();if(el('v25RealizationDivision')){if(state.profile?.divisi)el('v25RealizationDivision').value=state.profile.divisi;el('v25RealizationDivision').disabled=Boolean(state.profile?.divisi);}populateOfficeSelects();const defaultOffice=String(state.userData?.user?.kantor||state.profile?.kantor||'').trim();if(el('v25RealizationOffice')&&defaultOffice&&officeOptions().includes(defaultOffice))el('v25RealizationOffice').value=defaultOffice;['v25OsNew','v25OsRepeat','v25RunOff'].forEach(id=>{if(el(id))el(id).value='0';});['v25NoaNew','v25NoaRepeat'].forEach(id=>{if(el(id))el(id).value='0';});if(el('v25RealizationFormTitle'))el('v25RealizationFormTitle').textContent='Input Realisasi Kredit Anda';if(el('v25RealizationEditBadge'))el('v25RealizationEditBadge').textContent='Tersimpan atas akun AO yang sedang login';el('v25CancelRealizationEdit')?.classList.add('v25-hidden');if(el('v25SaveRealization'))el('v25SaveRealization').innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi';recalc();}
+  function resetRealizationForm(){state.editingRow=null;el('v25RealizationForm')?.reset();if(el('v25RealizationDate'))el('v25RealizationDate').value=today();if(el('v25RealizationDivision')){if(state.profile?.divisi)el('v25RealizationDivision').value=state.profile.divisi;el('v25RealizationDivision').disabled=Boolean(state.profile?.divisi);}['v25OsNew','v25OsRepeat','v25RunOff'].forEach(id=>{if(el(id))el(id).value='0';});['v25NoaNew','v25NoaRepeat'].forEach(id=>{if(el(id))el(id).value='0';});if(el('v25RealizationFormTitle'))el('v25RealizationFormTitle').textContent='Input Realisasi Kredit';if(el('v25RealizationEditBadge'))el('v25RealizationEditBadge').textContent='NoA dan OS harian';el('v25CancelRealizationEdit')?.classList.add('v25-hidden');if(el('v25SaveRealization'))el('v25SaveRealization').innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi';recalc();}
   function recalcAdminRealization(){const noa=num(el('v27AdminNoaNew')?.value)+num(el('v27AdminNoaRepeat')?.value),os=parseMoney(el('v27AdminOsNew')?.value)+parseMoney(el('v27AdminOsRepeat')?.value)-parseMoney(el('v27AdminRunOff')?.value);if(el('v27AdminTotalNoa'))el('v27AdminTotalNoa').value=noa.toLocaleString('id-ID');if(el('v27AdminTotalOs'))el('v27AdminTotalOs').value=rp(os);}
   function adminRealizationPayload(){return {row:state.adminEditingRow,aoEmail:el('v27AdminRealizationAo')?.value||'',tanggal:el('v27AdminRealizationDate')?.value||'',divisi:el('v27AdminRealizationDivision')?.value||'',namaKantor:el('v27AdminRealizationOffice')?.value||'',noaNew:num(el('v27AdminNoaNew')?.value),osNew:parseMoney(el('v27AdminOsNew')?.value),noaMengulang:num(el('v27AdminNoaRepeat')?.value),osMengulang:parseMoney(el('v27AdminOsRepeat')?.value),runOff:parseMoney(el('v27AdminRunOff')?.value)};}
   function clearAdminRealizationAmounts(){['v27AdminOsNew','v27AdminOsRepeat','v27AdminRunOff','v27AdminNoaNew','v27AdminNoaRepeat'].forEach(id=>{if(el(id))el(id).value='0';});recalcAdminRealization();}
@@ -15605,16 +15224,8 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function syncDivisionEditor(){const ao=selectedAdminAo('v28DivisionAo');if(el('v28DivisionValue'))el('v28DivisionValue').value=ao?.divisi||'';if(el('v28OfficeValue'))el('v28OfficeValue').value=ao?.kantor||'';if(el('v28GradeValue'))el('v28GradeValue').value=num(ao?.grade);if(el('v28TargetValue'))el('v28TargetValue').value=num(ao?.target).toLocaleString('id-ID');}
 
   async function loadAo(){
-    setStatus('Memuat profil, unit cabang, dan riwayat laporan AO...');
-    const r=await api('getAoMonitoringUserData',{});
-    if(!r?.success)throw new Error(r?.error||'Data AO gagal dimuat.');
-    state.profile=r.profile||{};state.userData=r;
-    // V160: endpoint monitoring AO pada beberapa deployment hanya mengirim kantor AO sendiri.
-    // Ambil daftar kantor dari klasemen Home AO yang sudah branch-scoped, lalu gabungkan dengan officeOptions server.
-    await loadBranchOfficeOptionsForAo();
-    renderAo();
-    const unitCount=officeOptions().length;
-    setStatus('Laporan AO siap • '+unitCount+' unit booking cabang tersedia • '+new Date().toLocaleString('id-ID'));
+    setStatus('Memuat profil dan riwayat laporan AO...');
+    const r=await api('getAoMonitoringUserData',{});if(!r?.success)throw new Error(r?.error||'Data AO gagal dimuat.');state.profile=r.profile||{};state.userData=r;renderAo();setStatus('Laporan AO siap • '+new Date().toLocaleString('id-ID'));
   }
   function renderAo(){populateOfficeSelects();if(el('v25RealizationOffice')&&!el('v25RealizationOffice').value&&state.userData?.user?.kantor)el('v25RealizationOffice').value=state.userData.user.kantor;
     const p=state.profile||{};if(el('v25AoIdentity'))el('v25AoIdentity').textContent=(p.nama||'-')+' • '+(p.email||'-')+' • '+(p.divisi||'Divisi belum diatur');if(el('v25RealizationDivision')){if(p.divisi)el('v25RealizationDivision').value=p.divisi;el('v25RealizationDivision').disabled=Boolean(p.divisi);}
@@ -15623,10 +15234,10 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     const body=el('v25AoHistoryBody');if(body)body.innerHTML=rows.length?rows.map(x=>'<tr><td>'+esc(x.tanggal)+'</td><td>'+esc(x.divisi)+'</td><td>'+esc(x.namaKantor)+'</td><td class="center">'+num(x.noaNew).toLocaleString('id-ID')+'</td><td class="num">'+esc(rp(x.osNew))+'</td><td class="center">'+num(x.noaMengulang).toLocaleString('id-ID')+'</td><td class="num">'+esc(rp(x.osMengulang))+'</td><td class="num">'+esc(rp(x.runOff))+'</td><td class="num"><b>'+esc(rp(x.totalOs))+'</b></td><td class="center"><button type="button" class="v25-secondary v25-edit-realization" data-row="'+Number(x.row)+'" style="min-height:30px;padding:5px 8px"><i class="fa-solid fa-pen"></i></button> <button type="button" class="v25-danger v25-delete-realization" data-row="'+Number(x.row)+'" style="min-height:30px;padding:5px 8px"><i class="fa-solid fa-trash"></i></button></td></tr>').join(''):'<tr><td colspan="10" class="center" style="padding:22px;color:#94a3b8">Belum ada realisasi.</td></tr>';
     const ab=el('v25AoActivityHistoryBody');if(ab)ab.innerHTML=acts.length?acts.slice(0,100).map(x=>'<tr><td>'+esc(x.tanggal)+'</td><td>'+esc(x.kegiatan)+'</td><td>'+esc(x.hasil)+'</td><td>'+esc(x.keterangan||'-')+'</td></tr>').join(''):'<tr><td colspan="4" class="center" style="padding:22px;color:#94a3b8">Belum ada aktivitas harian.</td></tr>';
   }
-  function editRealization(row){const item=(state.userData?.realizations||[]).find(x=>Number(x.row)===Number(row));if(!item)return;state.editingRow=Number(item.row);el('v25RealizationDate').value=item.tanggal||today();el('v25RealizationDivision').value=item.divisi||'Konsumer';populateOfficeSelects();el('v25RealizationOffice').value=item.namaKantor||'';el('v25NoaNew').value=num(item.noaNew);el('v25OsNew').value=num(item.osNew).toLocaleString('id-ID');el('v25NoaRepeat').value=num(item.noaMengulang);el('v25OsRepeat').value=num(item.osMengulang).toLocaleString('id-ID');el('v25RunOff').value=num(item.runOff).toLocaleString('id-ID');el('v25RealizationFormTitle').textContent='Edit Realisasi Kredit';el('v25RealizationEditBadge').textContent='Realisasi Anda • Baris '+item.row;el('v25CancelRealizationEdit').classList.remove('v25-hidden');el('v25SaveRealization').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Update Realisasi';recalc();el('v25RealizationForm')?.scrollIntoView({behavior:'smooth',block:'start'});}
+  function editRealization(row){const item=(state.userData?.realizations||[]).find(x=>Number(x.row)===Number(row));if(!item)return;state.editingRow=Number(item.row);el('v25RealizationDate').value=item.tanggal||today();el('v25RealizationDivision').value=item.divisi||'Konsumer';populateOfficeSelects();el('v25RealizationOffice').value=item.namaKantor||'';el('v25NoaNew').value=num(item.noaNew);el('v25OsNew').value=num(item.osNew).toLocaleString('id-ID');el('v25NoaRepeat').value=num(item.noaMengulang);el('v25OsRepeat').value=num(item.osMengulang).toLocaleString('id-ID');el('v25RunOff').value=num(item.runOff).toLocaleString('id-ID');el('v25RealizationFormTitle').textContent='Edit Realisasi Kredit';el('v25RealizationEditBadge').textContent='Baris '+item.row;el('v25CancelRealizationEdit').classList.remove('v25-hidden');el('v25SaveRealization').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Update Realisasi';recalc();el('v25RealizationForm')?.scrollIntoView({behavior:'smooth',block:'start'});}
   async function deleteRealization(row){const item=(state.userData?.realizations||[]).find(x=>Number(x.row)===Number(row));if(!item||!confirm('Hapus realisasi '+item.tanggal+' • '+item.divisi+' • '+item.namaKantor+'?'))return;setStatus('Menghapus realisasi...');try{const r=await api('deleteAoMonitoringRealization',{row:Number(row)});if(!r?.success)throw new Error(r?.error||'Penghapusan ditolak.');await loadAo();}catch(err){setStatus(String(err?.message||err),true);alert('Gagal menghapus: '+String(err?.message||err));}}
 
-  async function submitRealization(event){event.preventDefault();const btn=el('v25SaveRealization'),payload=realizationPayload(),action=state.editingRow?'updateAoMonitoringRealization':'saveAoMonitoringRealization',opts=officeOptions();if(!payload.namaKantor){alert('Pilih Unit Booking terlebih dahulu.');el('v25RealizationOffice')?.focus();return;}if(opts.length&&!opts.includes(payload.namaKantor)){alert('Unit Booking tidak termasuk unit pada cabang aktif. Silakan pilih kembali dari daftar.');populateOfficeSelects();el('v25RealizationOffice')?.focus();return;}setButtonLoading(btn,true,state.editingRow?'Memperbarui...':'Menyimpan...');setStatus((state.editingRow?'Memperbarui':'Menyimpan')+' realisasi '+(state.profile?.nama||'AO')+' pada unit '+payload.namaKantor+'...');try{const r=await api(action,{realization:payload});if(!r?.success)throw new Error(r?.error||'Realisasi ditolak.');resetRealizationForm();await loadAo();alert(r.message||'Realisasi berhasil disimpan.');}catch(err){setStatus(String(err?.message||err),true);alert('Gagal menyimpan realisasi: '+String(err?.message||err));}finally{setButtonLoading(btn,false);}}
+  async function submitRealization(event){event.preventDefault();const btn=el('v25SaveRealization'),action=state.editingRow?'updateAoMonitoringRealization':'saveAoMonitoringRealization';setButtonLoading(btn,true,state.editingRow?'Memperbarui...':'Menyimpan...');try{const r=await api(action,{realization:realizationPayload()});if(!r?.success)throw new Error(r?.error||'Realisasi ditolak.');resetRealizationForm();await loadAo();alert(r.message||'Realisasi berhasil disimpan.');}catch(err){setStatus(String(err?.message||err),true);alert('Gagal menyimpan realisasi: '+String(err?.message||err));}finally{setButtonLoading(btn,false);}}
   async function submitAdminRealization(event){event.preventDefault();const btn=el('v27AdminSaveRealization'),payload=adminRealizationPayload(),ao=selectedAdminAo('v27AdminRealizationAo'),isEdit=Boolean(state.adminEditingRow);if(!payload.aoEmail){alert('Pilih AO tujuan terlebih dahulu.');return;}if(!ao?.divisi){alert('Divisi AO belum diatur. Tetapkan Divisi AO terlebih dahulu.');el('v28DivisionAo').value=payload.aoEmail;syncDivisionEditor();el('v28DivisionAo')?.scrollIntoView({behavior:'smooth',block:'center'});return;}payload.divisi=ao.divisi;setButtonLoading(btn,true,isEdit?'Memperbarui...':'Menyimpan...');setStatus((isEdit?'Memperbarui':'Menyimpan')+' realisasi AO terpilih...');try{const action=isEdit?'updateAoMonitoringRealization':'saveAoMonitoringRealization',r=await api(action,{realization:payload});if(!r?.success)throw new Error(r?.error||'Realisasi ditolak.');if(el('v25AdminDate'))el('v25AdminDate').value=payload.tanggal;resetAdminRealizationForm();await loadAdmin();alert(r.message||(isEdit?'Realisasi AO berhasil diperbarui.':'Realisasi AO berhasil disimpan.'));}catch(err){setStatus(String(err?.message||err),true);alert('Gagal '+(isEdit?'memperbarui':'menyimpan')+' realisasi AO: '+String(err?.message||err));}finally{setButtonLoading(btn,false);}}
   function editAdminRealization(row){const item=(state.adminData?.realizations||[]).find(x=>Number(x.row)===Number(row));if(!item){alert('Data realisasi tidak ditemukan. Silakan Refresh.');return;}state.adminEditingRow=Number(item.row);if(el('v27AdminRealizationAo')){el('v27AdminRealizationAo').value=item.email||'';el('v27AdminRealizationAo').disabled=true;}if(el('v27AdminRealizationDate'))el('v27AdminRealizationDate').value=item.tanggal||today();if(el('v27AdminRealizationDivision')){el('v27AdminRealizationDivision').value=item.divisi||'Konsumer';el('v27AdminRealizationDivision').disabled=true;}if(el('v27AdminRealizationOffice')){populateOfficeSelects();el('v27AdminRealizationOffice').value=item.namaKantor||'';}if(el('v27AdminNoaNew'))el('v27AdminNoaNew').value=num(item.noaNew);if(el('v27AdminOsNew'))el('v27AdminOsNew').value=num(item.osNew).toLocaleString('id-ID');if(el('v27AdminNoaRepeat'))el('v27AdminNoaRepeat').value=num(item.noaMengulang);if(el('v27AdminOsRepeat'))el('v27AdminOsRepeat').value=num(item.osMengulang).toLocaleString('id-ID');if(el('v27AdminRunOff'))el('v27AdminRunOff').value=num(item.runOff).toLocaleString('id-ID');if(el('v30AdminRealizationFormTitle'))el('v30AdminRealizationFormTitle').textContent='Edit Realisasi Kredit AO';if(el('v30AdminRealizationEditBadge'))el('v30AdminRealizationEditBadge').textContent=(item.nama||'-')+' • '+(item.tanggal||'-')+' • Baris '+item.row;if(el('v27AdminSaveRealization'))el('v27AdminSaveRealization').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Update Realisasi AO';el('v30CancelAdminRealizationEdit')?.classList.remove('v25-hidden');recalcAdminRealization();el('v27AdminRealizationForm')?.scrollIntoView({behavior:'smooth',block:'start'});}
   async function deleteAdminRealization(row){const item=(state.adminData?.realizations||[]).find(x=>Number(x.row)===Number(row));if(!item){alert('Data realisasi tidak ditemukan. Silakan Refresh.');return;}if(!confirm('Hapus realisasi '+item.nama+' • '+item.divisi+' • '+item.tanggal+' • '+rp(item.totalOs)+'?'))return;setStatus('Menghapus realisasi '+item.nama+'...');try{const r=await api('deleteAoMonitoringRealization',{row:Number(row)});if(!r?.success)throw new Error(r?.error||'Penghapusan ditolak.');if(Number(state.adminEditingRow)===Number(row))resetAdminRealizationForm();await loadAdmin();alert(r.message||'Realisasi berhasil dihapus.');}catch(err){setStatus(String(err?.message||err),true);alert('Gagal menghapus realisasi: '+String(err?.message||err));}}
@@ -16547,7 +16158,7 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 function rp(n){return 'Rp '+Math.round(Number(n||0)).toLocaleString('id-ID');}
 function cred(){try{return window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'')||''}catch(e){return window.googleCredential||''}}
 function apiPublic(action,payload){return fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:action,publicRequest:true},payload||{})),cache:'no-store'}).then(r=>r.text()).then(t=>{let j;try{j=JSON.parse(t)}catch(e){throw new Error('Respons server bukan JSON.')}if(j&&j.success===false&&!j.expired)throw new Error(j.error||'Permintaan gagal.');return j;});}
-function insurancePct(age){age=normalizeInsuranceAgeValue(age);if(age>=66)return Number(feeParams?.asr66Up||3.699);if(age>=61)return Number(feeParams?.asr61To65||2.573);if(age>=56)return Number(feeParams?.asr56To60||2.033);if(age>=51)return Number(feeParams?.asr51To55||1.525);if(age>=40)return Number(feeParams?.asr40To50||0.700);return Number(feeParams?.asrUnder40||0.500)}
+function insurancePct(age){age=Math.ceil(Number(age||0));if(age>=66)return Number(feeParams?.asr66Up||3.699);if(age>=61)return Number(feeParams?.asr61To65||2.573);if(age>=56)return Number(feeParams?.asr56To60||2.033);if(age>=51)return Number(feeParams?.asr51To55||1.525);if(age>=40)return Number(feeParams?.asr40To50||0.700);return Number(feeParams?.asrUnder40||0.500)}
 function feeSnapshot(item,offerType,deb){const code=String(item.tipe_pinjaman||'').trim().toUpperCase(),age=Number(deb.tenorRules?.usiaAsuransi||deb.tenorRules?.usiaTahun||0);let tab=Number(feeParams?.tabWajibOthers||3);if(isG2BPensiunanProduct(code,deb.status_pegawai))tab=1;else if(code==='G2C')tab=Number(feeParams?.tabWajibG2C??3);else if(['G6B','G6K','G6L'].includes(code))tab=Number(feeParams?.tabWajibGajiPns||1);return{provisionLow:Number(feeParams?.provisiLow||0.2),provisionHigh:Number(feeParams?.provisiHigh||1.5),adminTier1:Number(feeParams?.adminTier1||200000),adminTier2:Number(feeParams?.adminTier2||350000),adminTier3:Number(feeParams?.adminTier3||600000),insuranceRatePct:insurancePct(age),tabMultiplier:tab,isTHT:code.includes('THT'),isG2H:code==='G2H',isG2HTht:code.includes('THT')&&code.includes('G2H')};}
 function getPayload(){
  const item=window.v9Selected||(typeof loanDatabase!=='undefined'?loanDatabase.find(l=>String(l.loan_id)===String(window.selectedLoanId||'')):null);if(!item||!item.cifRef)throw new Error('Pilih debitur terlebih dahulu.');

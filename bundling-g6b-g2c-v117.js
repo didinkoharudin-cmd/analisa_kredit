@@ -108,7 +108,7 @@ function applyInsurancePromo(fee,gross,pct,insuranceBaseOverride){
 function insuranceBase(deb,gross,tenor,annualRate,product){
  try{
   const rules=getDebtorTenorRules(deb.status_pegawai,deb.tgl_lahir,deb.bup,product==='G6B'?300:180,deb.tgl_pelantikan,deb.masa_jabatan_bulan);
-  const age=(typeof normalizeInsuranceAgeValue==='function'?normalizeInsuranceAgeValue(rules.usiaAsuransi||rules.usiaTahun):Math.max(0,Math.floor(Number(rules.usiaAsuransi||rules.usiaTahun)||0)+(((Number(rules.usiaAsuransi||rules.usiaTahun)||0)%1)>=0.5?1:0)));
+  const age=Math.max(0,Math.ceil(Number(rules.usiaAsuransi||rules.usiaTahun)||0));
   let pct=Number(feeParams?.asrUnder40)||.500;
   if(age>=66)pct=Number(feeParams?.asr66Up)||3.699;else if(age>=61)pct=Number(feeParams?.asr61To65)||2.573;else if(age>=56)pct=Number(feeParams?.asr56To60)||2.033;else if(age>=51)pct=Number(feeParams?.asr51To55)||1.525;else if(age>=40)pct=Number(feeParams?.asr40To50)||.700;
   return Math.ceil((gross+(gross*annualRate)/12)*Math.ceil(tenor/12)*(pct/100));
