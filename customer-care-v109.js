@@ -4,6 +4,7 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=v=>String(v??'').trim().toUpperCase();
 const user=()=>window.currentUser||{};
+const managerRole=()=>['ADMIN','SPV','SUPERVISOR','SUPER_ADMIN'].includes(norm(user().role||user().ROLE));
 function today(){
   const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
   const n=t=>Number(p.find(x=>x.type===t).value);
@@ -46,9 +47,21 @@ function customers(){
     seen.add(key);return true;
   });
 }
-function sortOffers(rows){
+function sortOffers(rows,mode){
+  const flaggedFirst=String(mode||'UNFLAGGED_FIRST').trim().toUpperCase()==='FLAGGED_FIRST';
   return rows.map((row,index)=>({row,index,flag:!!window.isMonthlyOffered?.(row),time:window.v109OfferTimestamp?.(row)||0}))
-    .sort((a,b)=>Number(a.flag)-Number(b.flag)||(a.flag&&b.flag?a.time-b.time:0)||a.index-b.index).map(x=>x.row);
+    .sort((a,b)=>{
+      if(a.flag!==b.flag){
+        return flaggedFirst ? (Number(b.flag)-Number(a.flag)) : (Number(a.flag)-Number(b.flag));
+      }
+      // Jika sama-sama sudah ter-flag, urutkan tanggal flag paling lama dahulu.
+      if(a.flag&&b.flag){
+        const at=Number(a.time||0), bt=Number(b.time||0);
+        if(at!==bt) return at-bt;
+      }
+      // Belum ter-flag mempertahankan urutan hasil filter/potensi yang sudah ada.
+      return a.index-b.index;
+    }).map(x=>x.row);
 }
 window.v109SortOffers=sortOffers;
 function template(d,kind){
@@ -57,25 +70,49 @@ function template(d,kind){
   return `Halo bapak/ibu ${name}, perkenalkan saya ${ao}. 3 bulan lagi bapak/ibu akan memasuki masa pensiun, kami bisa membantu pengurusan pensiun bapak/ibu dengan melengkapi persyaratan sebagai berikut :\n- copy ktp\n- copy KK\n- copy buku nikah\n- copy npwp\n- copy SK pensiun\n- pas photo ukuran 3x4\n- copy buku tabungan\n- SKPP\n- Surat keterangan Kuliah (jika masih memiliki anak yg masih kuliah)\n\nUntuk informasi lebih lanjut silahkan balas pesan ini atau datang langsung ke kantor terdekat.\nTerima kasih`;
 }
 const fmt=d=>d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-let modal,kind='birthday',limit=40,selection=null,previousOverflow='',opener=null;
-function close(){modal.close();document.body.style.overflow=previousOverflow;selection=null;modal.querySelector('[data-body]').innerHTML='';opener?.focus();}
+let modal,kind='birthday',limit=40,selection=null,selectionCif='',previousOverflow='',opener=null;
+function close(){modal.close();document.body.style.overflow=previousOverflow;selection=null;selectionCif='';modal.querySelector('[data-body]').innerHTML='';opener?.focus();}
 function showPreview(d){
+  // Kartu bisa tetap terbuka saat database direfresh di background. Resolve ulang via CIF stabil.
+  const key=norm(d?.cif);
+  const fresh=customers().find(x=>norm(x.cif)===key);
+  if(!fresh){render();return;}
+  d=fresh;
   if(!allowed(d))return;
   selection=d;
+  selectionCif=key;
   const body=modal.querySelector('[data-body]');
   body.innerHTML='<button type="button" data-back>← Kembali ke daftar</button><h2>'+esc(d.nama)+'</h2><label for="v109Message">Pesan WhatsApp — dapat diedit</label><textarea id="v109Message" rows="17"></textarea><p>Nomor tujuan: '+esc(d.no_hp||'Belum tersedia')+'</p><button type="button" class="care-wa" data-send><i class="fa-brands fa-whatsapp"></i> Buka WhatsApp</button>';
   body.querySelector('textarea').value=template(d,kind);
   body.querySelector('[data-send]').disabled=!d.no_hp;
 }
+function syncAoFilter(baseRows){
+  const wrap=modal.querySelector('[data-ao-wrap]'),select=modal.querySelector('[data-ao-filter]');
+  if(!wrap||!select)return;
+  if(!managerRole()){
+    wrap.hidden=true;
+    select.value='';
+    return;
+  }
+  wrap.hidden=false;
+  const previous=norm(select.value);
+  const codes=[...new Set(baseRows.map(d=>norm(d.kode_ao)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'id'));
+  select.innerHTML='<option value="">Semua AO</option>'+codes.map(code=>'<option value="'+esc(code)+'">'+esc(code)+'</option>').join('');
+  if(previous&&codes.includes(previous))select.value=previous;
+}
 function render(){
-  selection=null;
-  const q=modal.querySelector('input').value.trim().toLowerCase(),now=today();
-  const rows=customers().filter(d=>matches(d,kind,now)&&(!q||[d.nama,d.cif,d.kode_ao,d.dinas].join(' ').toLowerCase().includes(q)));
+  selection=null;selectionCif='';
+  const search=modal.querySelector('[data-search]');
+  const q=String(search?.value||'').trim().toLowerCase(),now=today();
+  const baseRows=customers().filter(d=>matches(d,kind,now));
+  syncAoFilter(baseRows);
+  const aoFilter=managerRole()?norm(modal.querySelector('[data-ao-filter]')?.value):'';
+  const rows=baseRows.filter(d=>(!aoFilter||norm(d.kode_ao)===aoFilter)&&(!q||[d.nama,d.cif,d.kode_ao,d.dinas].join(' ').toLowerCase().includes(q)));
   rows.sort((a,b)=>kind==='birthday'?String(a.nama).localeCompare(String(b.nama),'id'):retirement(a).date-retirement(b).date);
   const target=new Date(now.getFullYear(),now.getMonth()+3,1);
   const note=kind==='birthday'?'Ulang tahun '+fmt(now)+' (WIB)': 'Mencapai BUP pada '+target.toLocaleDateString('id-ID',{month:'long',year:'numeric'})+' • Estimasi tanggal lahir + BUP; khusus PNS.';
   const body=modal.querySelector('[data-body]');
-  body.innerHTML='<div class="care-summary"><p>'+esc(note)+'</p><span>'+rows.length.toLocaleString('id-ID')+' debitur • satu kartu per CIF</span></div><div class="care-grid v16-debtor-cards"></div>';
+  body.innerHTML='<div class="care-summary"><p>'+esc(note)+'</p><span>'+rows.length.toLocaleString('id-ID')+' debitur • satu kartu per CIF'+(aoFilter?' • AO '+esc(aoFilter):'')+'</span></div><div class="care-grid v16-debtor-cards"></div>';
   const grid=body.querySelector('.care-grid');
   rows.slice(0,limit).forEach(d=>{
     const card=document.createElement('article'),r=kind==='retirement'?retirement(d):null;
@@ -85,11 +122,13 @@ function render(){
     card.innerHTML='<div class="v16-card-main"><div class="v16-avatar '+tone+'" aria-hidden="true">'+esc(initials)+'</div><div class="v16-card-identity"><div class="v16-name-row"><h3 title="'+esc(d.nama)+'">'+esc(d.nama)+'</h3></div><div class="v16-employee">'+esc(d.status_pegawai||'Debitur')+'</div><div class="v16-ao">AO '+esc(d.kode_ao||'-')+' • CIF '+esc(d.cif)+'</div><div class="care-agency">'+esc(d.dinas||'-')+'</div></div></div><div class="care-dates"><div><small>Tanggal lahir</small><strong>'+esc(fmt(dob(d)))+'</strong></div><div><small>'+(r?'Estimasi pensiun':'Ulang tahun')+'</small><strong class="'+(r?'care-green':'')+'">'+(r?esc(fmt(r.date)):'Hari ini')+'</strong></div></div><div class="care-footer"><span class="v16-offer-tag '+tone+'"><i class="fa-solid '+(r?'fa-person-cane':'fa-cake-candles')+'"></i> '+(r?'BUP '+esc(r.age)+' tahun':'Selamat ulang tahun')+'</span><button type="button" class="care-wa"><i class="fa-brands fa-whatsapp"></i> '+(d.no_hp?'Siapkan pesan WA':'Nomor WA belum tersedia')+'</button></div>';
     const button=card.querySelector('button');button.disabled=!d.no_hp;button.onclick=()=>showPreview(d);grid.appendChild(card);
   });
-  if(!rows.length)grid.textContent='Tidak ada debitur yang sesuai. Pastikan database cabang sudah dimuat dan tanggal lahir tersedia.';
+  if(!rows.length)grid.textContent='Tidak ada debitur yang sesuai. Pastikan database cabang sudah dimuat, tanggal lahir tersedia, dan pilihan AO sesuai.';
   if(rows.length>limit){const more=document.createElement('button');more.textContent='Tampilkan 40 berikutnya';more.onclick=()=>{limit+=40;render();};body.appendChild(more);}
 }
 function open(mode,button){
-  kind=mode;limit=40;opener=button;modal.querySelector('input').value='';
+  kind=mode;limit=40;opener=button;selection=null;selectionCif='';
+  const search=modal.querySelector('[data-search]');if(search)search.value='';
+  const ao=modal.querySelector('[data-ao-filter]');if(ao)ao.value='';
   modal.querySelector('h1').textContent=mode==='birthday'?'Debitur berulang tahun hari ini':'Debitur 3 bulan menuju pensiun';
   modal.style.fontFamily=getComputedStyle(document.getElementById('mobileV9Home')||document.body).fontFamily;
   previousOverflow=document.body.style.overflow;modal.showModal();document.body.style.overflow='hidden';render();
@@ -102,7 +141,8 @@ function boot(){
   #v109Care h1{font-size:20px;margin:0}#v109Care h2{font-size:17px;font-weight:800;margin:0 0 12px}#v109Care p{margin:10px 0;line-height:1.6}#v109Care main{max-width:1280px;margin:auto;padding:20px 20px max(30px,env(safe-area-inset-bottom))}
   #v109Care button,.v109-menu{border:1px solid #dbe4f0;border-radius:12px;padding:12px 16px;background:white;font:inherit;cursor:pointer;min-height:44px}#v109Care button:disabled{opacity:.5;cursor:default}
   #v109Care .care-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}#v109Care article{padding:22px;border:1px solid #dbe4f0;border-radius:18px;background:white;overflow-wrap:anywhere}
-  #v109Care .care-wa{background:#07865e;color:white;border:0}#v109Care input,#v109Care textarea{box-sizing:border-box;width:100%;font:inherit;border:1px solid #cbd5e1;border-radius:12px;padding:14px;background:white;color:#172554}#v109Care textarea{margin:12px 0;line-height:1.6}
+  #v109Care .care-wa{background:#07865e;color:white;border:0}#v109Care input,#v109Care select,#v109Care textarea{box-sizing:border-box;width:100%;font:inherit;border:1px solid #cbd5e1;border-radius:12px;padding:14px;background:white;color:#172554}#v109Care textarea{margin:12px 0;line-height:1.6}
+  #v109Care .care-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:end}#v109Care .care-ao-filter{margin:0}#v109Care .care-ao-filter label{display:block;font-size:9px;font-weight:900;color:#50627e;margin:0 0 5px 3px}#v109Care .care-ao-filter select{font-size:11px;font-weight:800;padding:12px 14px}
   #v9PageMenu .v109-menu{display:flex;width:100%;align-items:center;gap:10px;text-align:left;margin-bottom:10px;color:#fff;font-size:11px;font-weight:900;background:linear-gradient(135deg,#0757c7,#2563eb);border:0;border-radius:14px;padding:13px;box-shadow:0 5px 16px rgba(30,49,80,.055)}
   #v9PageMenu .v109-menu[data-care-kind="retirement"]{background:linear-gradient(135deg,#0f766e,#0891b2)}
   #v9PageMenu .v109-menu i{font-size:20px}#v9PageMenu .v109-menu .care-chevron{font-size:11px;margin-left:auto}
@@ -119,23 +159,27 @@ function boot(){
   #v109Care .care-footer{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #edf1f6;padding-top:8px}
   #v109Care .care-wa{display:inline-flex;align-items:center;justify-content:center;gap:6px;max-width:100%;background:linear-gradient(145deg,#25d366,#11a84e);border:0;border-radius:10px;color:#fff;font-size:9.5px;font-weight:900;padding:10px 12px;box-shadow:0 5px 10px rgba(22,163,74,.20)}
   #v109Care button:focus-visible,#v9PageMenu .v109-menu:focus-visible{outline:3px solid #93c5fd;outline-offset:3px}
-  @media(min-width:769px){#v109Care .care-grid{gap:16px}#v109Care article.care-card{padding:18px}#v109Care .v16-name-row h3{font-size:15px!important}#v109Care .v16-employee,#v109Care .v16-ao,#v109Care .care-agency{font-size:11px}#v109Care .care-dates small{font-size:11px}#v109Care .care-dates strong{font-size:17px}#v109Care .care-wa{font-size:11px}}
+  @media(min-width:769px){#v109Care .care-tools{grid-template-columns:minmax(0,1fr) 230px}#v109Care .care-grid{gap:16px}#v109Care article.care-card{padding:18px}#v109Care .v16-name-row h3{font-size:15px!important}#v109Care .v16-employee,#v109Care .v16-ao,#v109Care .care-agency{font-size:11px}#v109Care .care-dates small{font-size:11px}#v109Care .care-dates strong{font-size:17px}#v109Care .care-wa{font-size:11px}}
   @media(min-width:1101px){#v109Care .care-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media(min-width:1600px){#v109Care main{max-width:1600px}#v109Care .care-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
   @media(max-width:360px){#v109Care main{padding:12px}#v109Care .care-dates{padding-left:0}#v109Care header h1{font-size:15px}}
   `;document.head.appendChild(style);
   modal=document.createElement('dialog');modal.id='v109Care';modal.setAttribute('aria-labelledby','v109Title');
-  modal.innerHTML='<header><button type="button" data-close aria-label="Kembali ke menu">← Menu</button><h1 id="v109Title"></h1></header><main><input type="search" aria-label="Cari debitur" placeholder="Cari nama, CIF, AO atau instansi…"><div data-body></div></main>';
+  modal.innerHTML='<header><button type="button" data-close aria-label="Kembali ke menu">← Menu</button><h1 id="v109Title"></h1></header><main><div class="care-tools"><input data-search type="search" aria-label="Cari debitur" placeholder="Cari nama, CIF, AO atau instansi…"><div class="care-ao-filter" data-ao-wrap hidden><label for="v109AoFilter">Filter AO</label><select id="v109AoFilter" data-ao-filter aria-label="Filter AO"><option value="">Semua AO</option></select></div></div><div data-body></div></main>';
   document.body.appendChild(modal);modal.querySelector('[data-close]').onclick=close;
   const back=()=>{if(selection)render();else close();};
   modal.addEventListener('cancel',e=>{e.preventDefault();if(window.v111AndroidBack)back();else close();});
   window.v111AndroidBack?.register('v109Care',back);
-  modal.querySelector('input').oninput=()=>{limit=40;render();};
+  modal.querySelector('[data-search]').oninput=()=>{limit=40;render();};
+  modal.querySelector('[data-ao-filter]').onchange=()=>{limit=40;render();};
   modal.addEventListener('click',e=>{
     if(e.target.closest('[data-back]'))render();
     if(e.target.closest('[data-send]')&&selection){
       // Re-resolve in the currently active branch/account before opening the link.
-      const d=customers().find(x=>x===selection);if(!d){alert('Data/sesi berubah. Silakan buka kembali daftar debitur.');return;}
+      const key=selectionCif||norm(selection?.cif);
+      const d=customers().find(x=>norm(x.cif)===key);if(!d){alert('Data/sesi berubah. Silakan buka kembali daftar debitur.');return;}
+      // Refresh referensi agar perubahan data latar belakang tidak membuat pilihan kartu menjadi stale.
+      selection=d;selectionCif=norm(d.cif);
       let phone=String(d.no_hp||'').replace(/\D/g,'');if(phone.startsWith('0'))phone='62'+phone.slice(1);else if(phone.startsWith('8'))phone='62'+phone;
       if(!/^\d{8,15}$/.test(phone)){alert('Nomor WhatsApp tidak valid. Perbarui nomor debitur.');return;}
       const message=modal.querySelector('textarea')?.value.trim();if(!message){alert('Isi pesan terlebih dahulu.');return;}
