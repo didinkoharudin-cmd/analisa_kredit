@@ -11270,7 +11270,9 @@ function v172OpenSpecialPotentialManual(mode,cif){
   const product=v172SpecialPotentialProduct(mode),g2c=v172G2cFacilities(deb);
   const offer=String(mode||'').toUpperCase()==='G7G'&&g2c.length?'TOPUP':'NEW';
   try{
-    simOpen();
+    const openSimulation=window.v17OpenSimulation||window.simOpen;
+    if(typeof openSimulation!=='function') throw new Error('fungsi Simulasi Manual belum tersedia');
+    openSimulation();
     const mainProduct=document.getElementById('v17SimProduct');
     if(mainProduct){mainProduct.value=product;mainProduct.dispatchEvent(new Event('change',{bubbles:true}));}
     const mainOffer=document.getElementById('v17SimOffer');
@@ -13086,6 +13088,22 @@ function simG7gTopupFacilities(deb){
   return (deb?.facilities||[]).filter(Boolean).filter(f=>simProductCodeFromFacility(f)==='G2C');
 }
 
+// Fasilitas yang tetap menjadi kewajiban ketika debitur memasuki masa pensiun.
+// G2C diperlukan sebagai dasar TOP-UP, sedangkan G7G lain tetap mengurangi sisa gaji pensiun.
+function simG7gPensionExistingDetails(deb){
+  const facilities=(deb?.facilities||[]).filter(Boolean).filter(f=>{
+    const code=simProductCodeFromFacility(f);
+    return code==='G2C'||String(code||'').startsWith('G7G');
+  });
+  const g2cInstallment=facilities
+    .filter(f=>simProductCodeFromFacility(f)==='G2C')
+    .reduce((sum,f)=>sum+Number(f?.angsuran_eksisting||0),0);
+  const g7gInstallment=facilities
+    .filter(f=>String(simProductCodeFromFacility(f)||'').startsWith('G7G'))
+    .reduce((sum,f)=>sum+Number(f?.angsuran_eksisting||0),0);
+  return {facilities,g2cInstallment,g7gInstallment,totalInstallment:g2cInstallment+g7gInstallment};
+}
+
 function simSelectableFacilities(deb,rule){
   if(simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP') return simG7gTopupFacilities(deb);
   return simFacilityList(deb,rule?.sumber);
@@ -13628,10 +13646,11 @@ function v18SpecialRecalc(resetGross){
  document.getElementById('v17SimTopupInfo').style.display=isG7gTopup?'grid':'none';
  if(isG7gTopup){
    const g2cFacilities=simG7gTopupFacilities(d),selectedG2c=simState.facility||g2cFacilities[0]||{};
+   const pensionExisting=simG7gPensionExistingDetails(d);
    document.getElementById('v17SimExistingInst').textContent=simMoney(selectedG2c.angsuran_eksisting||0);
-   document.getElementById('v17SimTotalExisting').textContent=simMoney(g2cFacilities.reduce((sum,f)=>sum+Number(f?.angsuran_eksisting||0),0));
+   document.getElementById('v17SimTotalExisting').textContent=simMoney(pensionExisting.totalInstallment);
    const info=document.getElementById('v17SimTopupInfo');const labels=info?info.querySelectorAll('small'):[];
-   if(labels[0])labels[0].textContent='Angsuran Eksisting G2C';if(labels[1])labels[1].textContent='Total Angsuran Eksisting G2C';
+   if(labels[0])labels[0].textContent='Angsuran Eksisting G2C Terpilih';if(labels[1])labels[1].textContent='Total Angsuran Eksisting G2C + G7G';
  }
  document.getElementById('v17SimRenewInfo').style.display=isG2cRenew?'grid':'none';
  const musisiWrap=document.getElementById('v17SimMusisiRefundWrap');if(musisiWrap)musisiWrap.style.display=isG2cRenew?'block':'none';
@@ -13745,12 +13764,15 @@ function v18SpecialRecalc(resetGross){
  const dr=document.getElementById('v17CostDiscountRow');if(dr)dr.style.display=Number(fees.diskonAsuransi||0)>0?'flex':'none';
  document.getElementById('v17CostInsuranceDiscount').textContent='- '+simMoney(fees.diskonAsuransi||0);
  const g2cCapacity=g2cCapacityDetails(d,income,tenor,releasedG6bInstallment);
+ const g7gPensionExisting=isG7gTopup?simG7gPensionExistingDetails(d):null;
  const g2cActiveIncome=g2cCapacity.activeIncome,g2cExisting=g2cCapacity.activeExisting;
  const g2cActiveCapacity=g2cCapacity.activeCapacity,g2cPensionCapacity=g2cCapacity.pensionCapacity;
  document.getElementById('v17RemainingIncomeLabel').textContent=simState.product==='G2H-THT-PNS'?'Sisa Uang THT':(simState.product==='G2C'?'Sisa Gaji Aktif / Pensiun':'Sisa Gaji Pensiun');
  document.getElementById('v17RemainingIncome').textContent=simState.product==='G2C'
    ? `${simMoney(Math.max(0,g2cActiveIncome-g2cCapacity.effectiveActiveExisting-inst))} / ${simMoney(Math.max(0,income-inst))}`
-   : simMoney(simState.product==='G2H-THT-PNS'?Math.max(0,income-gross):Math.max(0,income-inst));
+   : simMoney(simState.product==='G2H-THT-PNS'
+      ? Math.max(0,income-gross)
+      : Math.max(0,income-inst-Number(g7gPensionExisting?.totalInstallment||0)));
  const g2cInfo=document.getElementById('v35G2cRpcInfo');
  if(g2cInfo)g2cInfo.style.display=simState.product==='G2C'?'grid':'none';
  if(simState.product==='G2C'){
@@ -13927,14 +13949,17 @@ function simCurrentSnapshot(){
     const specialIncome=v18Num(document.getElementById('v18SpecialIncome')?.value||0);
     const pensionIncome=simState.product==='G2C'?specialIncome:0;
     const remainingTht=simState.product==='G2H-THT-PNS'?Math.max(0,specialIncome-gross):null;
+    const g7gExisting=simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP'
+      ? simG7gPensionExistingDetails(deb)
+      : null;
     const g2c=simState.product==='G2C'?g2cCapacityDetails(deb,pensionIncome,tenor,releasedG6bInstallment):null;
     if(simState.product==='G2C'&&(!g2c.activeIncome||!g2c.pensionIncome||g2c.maxInstallment<=0||gross<=0||tenor<=0)) return null;
     if(simState.product==='G2C'&&simState.offer==='MENGULANG'&&!settlement.facilities.length) return null;
     return {
       deb,rule,gross,tenor,baseRate:baseSpecialRate,spread:specialSpread,effectiveRate:specialRate,
       promoUsed:simPromoPct()>0,promoPct:simPromoPct(),installment:simState.v18Installment||0,
-      fees,facility:settlement.facilities[0]||{},facilities:settlement.facilities,
-      settlement,special:true,specialIncome,remainingTht,g2c
+      fees,facility:simState.facility||settlement.facilities[0]||{},facilities:settlement.facilities,
+      settlement,special:true,specialIncome,remainingTht,g2c,g7gExisting
     };
   }
   const gross=v18Num(document.getElementById('v17SimGross')?.value||0);
@@ -13991,7 +14016,13 @@ function simWaMessage(){
           `\n• Fase Gaji Pensiun: *${s.g2c.pensionMonths} bulan*`;
   }
   if(simState.offer==='TOPUP'){
-    extra=`\n• Angsuran Eksisting: *${simMoney(s.facility.angsuran_eksisting||0)}*`;
+    if(s.g7gExisting){
+      extra=`\n• Angsuran Eksisting G2C: *${simMoney(s.g7gExisting.g2cInstallment)}*`+
+            `\n• Angsuran Eksisting G7G: *${simMoney(s.g7gExisting.g7gInstallment)}*`+
+            `\n• Sisa Gaji Pensiun: *${simMoney(Math.max(0,s.specialIncome-s.installment-s.g7gExisting.totalInstallment))}*`;
+    }else{
+      extra=`\n• Angsuran Eksisting: *${simMoney(s.facility.angsuran_eksisting||0)}*`;
+    }
   }
   if(simState.offer==='MENGULANG'){
     const facilities=Array.isArray(s.facilities)&&s.facilities.length?s.facilities:[s.facility].filter(Boolean);
@@ -14183,7 +14214,9 @@ function simBuildCaptureBlob(){
       const selectedExisting=simState.offer==='MENGULANG'?simSelectedInstallmentForSource(s.rule.sumber):0;
       const remain=simState.product==='G2H-THT-PNS'
         ? Math.max(0,Number(s.remainingTht||0))
-        : Math.max(0,income-Math.max(0,totalExisting-selectedExisting)-s.installment);
+        : (s.g7gExisting
+          ? Math.max(0,income-s.installment-s.g7gExisting.totalInstallment)
+          : Math.max(0,income-Math.max(0,totalExisting-selectedExisting)-s.installment));
       if(simState.product==='G2C'&&s.g2c){
         txt('Gaji Aktif',simMoney(s.g2c.activeIncome),cy);cy+=50;
         txt('Estimasi Gaji Pensiun',simMoney(s.g2c.pensionIncome),cy);cy+=50;
@@ -14193,6 +14226,10 @@ function simBuildCaptureBlob(){
       }else if(simState.product==='G2H-THT-PNS'){
         txt('Sisa THT',simMoney(remain),cy);cy+=50;
       }else{
+        if(s.g7gExisting){
+          txt('Angsuran Eksisting G2C',simMoney(s.g7gExisting.g2cInstallment),cy);cy+=50;
+          txt('Angsuran Eksisting G7G',simMoney(s.g7gExisting.g7gInstallment),cy);cy+=50;
+        }
         txt('Sisa '+String(s.rule.sumber||'Gaji'),simMoney(remain),cy);cy+=50;
       }
 
