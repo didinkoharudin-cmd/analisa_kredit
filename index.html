@@ -11270,30 +11270,9 @@ function v172OpenSpecialPotentialManual(mode,cif){
   const product=v172SpecialPotentialProduct(mode),g2c=v172G2cFacilities(deb);
   const offer=String(mode||'').toUpperCase()==='G7G'&&g2c.length?'TOPUP':'NEW';
   try{
-    const openSimulation=window.v17OpenSimulation||window.simOpen;
-    if(typeof openSimulation!=='function') throw new Error('fungsi Simulasi Manual belum tersedia');
-    openSimulation();
-    const mainProduct=document.getElementById('v17SimProduct');
-    if(mainProduct){mainProduct.value=product;mainProduct.dispatchEvent(new Event('change',{bubbles:true}));}
-    const mainOffer=document.getElementById('v17SimOffer');
-    if(mainOffer){mainOffer.value=offer;mainOffer.dispatchEvent(new Event('change',{bubbles:true}));}
-    v116OpenManualDebtor();
-    const manualProduct=document.getElementById('v117ManualProduct'),manualOffer=document.getElementById('v117ManualOffer');
-    if(manualProduct)manualProduct.value=product;if(manualOffer)manualOffer.value=offer;v117SyncManualScenario();
-    const put=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??'';};
-    put('v116ManualName',deb.nama||'');put('v116ManualBirth',v172DateInput(deb.tgl_lahir));put('v116ManualPhone',deb.no_hp||'');put('v116ManualDinas',deb.dinas||'');
-    // THT / estimasi pensiun sengaja tidak diisi karena belum tersedia pada database.
-    put('v117ManualIncome','');
-    if(offer==='TOPUP'&&g2c.length){
-      const sum=field=>g2c.reduce((a,f)=>a+Number(f?.[field]||0),0);
-      put('v117ManualLoanNo',g2c.length===1?(g2c[0].no_pinjaman||'G2C'):`${g2c.length} FASILITAS G2C`);
-      put('v117ManualExistingInst',String(sum('angsuran_eksisting')));
-      put('v117ManualBaki',v119FormatMoney(String(sum('baki_debet'))));
-      put('v117ManualRunningInterest',v119FormatMoney(String(sum('bunga_berjalan'))));
-      put('v117ManualMusisi',String(sum('musisi_asuransi')));
-    }
-    requestAnimationFrame(()=>document.getElementById('v117ManualIncome')?.focus());
-  }catch(err){console.error('[V172] open manual:',err);alert('Simulasi manual tidak dapat dibuka: '+(err?.message||err));}
+    if(typeof window.v174OpenSelectedDebtor!=='function') throw new Error('penghubung Simulasi Interaktif belum tersedia');
+    window.v174OpenSelectedDebtor({debtor:deb,product,offer});
+  }catch(err){console.error('[V174] open selected debtor:',err);alert('Simulasi interaktif tidak dapat dibuka: '+(err?.message||err));}
 }
 
 function renderV172SpecialPotentialDebtors(){
@@ -12112,7 +12091,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=172',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=174',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -14473,6 +14452,41 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 window.v17OpenSimulation=simOpen;
+// V18.3.11.174 — API publik untuk membuka simulator dari kartu potensi
+// sambil mempertahankan debitur terpilih. Pengisian data tetap memakai
+// simSelectDebtor agar identik dengan alur pencarian debitur di simulator.
+window.v174OpenSelectedDebtor=function(config){
+  const data=config||{},deb=data.debtor;
+  if(!deb) throw new Error('data debitur tidak ditemukan');
+  simOpen();
+
+  const product=String(data.product||'').trim();
+  const offer=simNormOffer(data.offer||'NEW');
+  const productEl=document.getElementById('v17SimProduct');
+  if(productEl&&product&&[...productEl.options].some(o=>o.value===product)){
+    productEl.value=product;
+    simState.product=product;
+  }else if(product){
+    throw new Error('produk '+product+' tidak tersedia');
+  }
+
+  const offerEl=document.getElementById('v17SimOffer');
+  if(offerEl){offerEl.value=offer;simState.offer=simNormOffer(offerEl.value);}
+  simState.mandatorySavingMultiplierEdited=false;
+  g2cApplyOfferRule();
+  v18SpecialUI();
+  simRenderProductInfo();
+  simSelectDebtor(deb);
+
+  const search=document.getElementById('v17SimSearch');
+  if(search)search.value=String(deb.nama||deb.cif||'');
+  requestAnimationFrame(()=>{
+    const specialIncome=document.getElementById('v18SpecialIncome');
+    if(specialIncome&&v18IsSpecial())specialIncome.focus();
+    else document.getElementById('v17SimContinue')?.focus();
+  });
+  return true;
+};
 })();
 </script>
 

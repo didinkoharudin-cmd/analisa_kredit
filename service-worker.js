@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.173-g7g-topup-remaining-pension-fix';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.174-special-potential-autofill-fix';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
