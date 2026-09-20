@@ -11896,7 +11896,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=169',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=170',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -13436,7 +13436,14 @@ function v18SpecialRecalc(resetGross){
    // bunga grace period dibayar di muka, biaya asuransi, dan nett pencairan.
    const graceRatePct=Math.max(0,Number(document.getElementById('v18GraceRate')?.value||c.graceRate||8));
    const pensionRatePct=Math.max(0,Number(document.getElementById('v18PensionRate')?.value||c.rate||12));
-   const grace=Math.min(tenor,v18RemainingWorkMonths(d)||0),pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12,rpc=income*.90;
+   // V18.3.11.170 — G7G parity dengan simulasi referensi bank:
+   // 1) bulan GP dihitung inklusif (sisa masa kerja + 1 bulan),
+   // 2) bunga GP bukan bunga majemuk. Angsuran GP per bulan = plafond x rate / 12,
+   // 3) bunga GP dibayar di muka = angsuran GP yang sudah dibulatkan x jumlah bulan GP,
+   // 4) angsuran masa pensiun tetap anuitas atas sisa tenor setelah GP.
+   const remainingWorkMonths=Math.max(0,v18RemainingWorkMonths(d)||0);
+   const grace=Math.min(tenor,remainingWorkMonths>0?remainingWorkMonths+1:0);
+   const pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12,rpc=income*.90;
    if(r===0){
      maxGross=rpc*pmonths;
      if(resetGross)gross=maxGross;
@@ -13448,8 +13455,8 @@ function v18SpecialRecalc(resetGross){
      if(gross>maxGross&&maxGross>0)gross=maxGross;
      inst=gross*r/(1-Math.pow(1+r,-pmonths));
    }
-   const rg=(graceRatePct/100)/12;
-   upfront=rg===0?0:gross*(Math.pow(1+rg,grace)-1);
+   const monthlyGraceInterest=Math.round(gross*(graceRatePct/100)/12);
+   upfront=monthlyGraceInterest*grace;
  }
  document.getElementById('v17SimGross').value=v18Fmt(gross);simState.maxGross=maxGross;
  const promo=simPromoPct();
