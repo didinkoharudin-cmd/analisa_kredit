@@ -3460,8 +3460,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <div class="v17-sim-grid two">
           <label>Nomor Fasilitas<input id="v117ManualLoanNo" type="text" placeholder="Opsional"></label>
           <label>Angsuran Eksisting<input id="v117ManualExistingInst" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
-          <label>Baki Debet<input id="v117ManualBaki" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
-          <label>Bunga Berjalan<input id="v117ManualRunningInterest" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
+          <label>Baki Debet<input id="v117ManualBaki" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money value="0"></label>
+          <label>Bunga Berjalan<input id="v117ManualRunningInterest" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money value="0"></label>
           <label>Musisi Asuransi<input id="v117ManualMusisi" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
         </div>
       </div>
@@ -11896,7 +11896,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=170',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=171',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -13147,7 +13147,7 @@ function v116SubmitManualDebtor(event){
   const facilities=[];
   if(simState.offer!=='NEW'){
     const renewalG2c=simState.product==='G2C'&&simState.offer==='MENGULANG';
-    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':simState.product,sumber_penghasilan:renewalG2c?'GAJI':source,angsuran_eksisting:num('v117ManualExistingInst'),baki_debet:num('v117ManualBaki'),bunga_berjalan:num('v117ManualRunningInterest'),musisi_asuransi:num('v117ManualMusisi')});
+    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':simState.product,sumber_penghasilan:renewalG2c?'GAJI':source,angsuran_eksisting:num('v117ManualExistingInst'),baki_debet:money('v117ManualBaki'),bunga_berjalan:money('v117ManualRunningInterest'),musisi_asuransi:num('v117ManualMusisi')});
   }
   const deb={__manual:true,cif:'MANUAL-'+Date.now(),nama:name,no_hp:val('v116ManualPhone'),tgl_lahir:dob,bup,status_pegawai:status,dinas:val('v116ManualDinas')||'Input Manual',kode_ao:login.kodeAO||login.kode_ao||'',income:incomes,facilities};
   document.getElementById('v116SimManualCard').style.display='none';
@@ -13444,17 +13444,15 @@ function v18SpecialRecalc(resetGross){
    const remainingWorkMonths=Math.max(0,v18RemainingWorkMonths(d)||0);
    const grace=Math.min(tenor,remainingWorkMonths>0?remainingWorkMonths+1:0);
    const pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12,rpc=income*.90;
-   if(r===0){
-     maxGross=rpc*pmonths;
-     if(resetGross)gross=maxGross;
-     if(gross>maxGross&&maxGross>0)gross=maxGross;
-     inst=pmonths>0?gross/pmonths:0;
-   }else{
-     maxGross=rpc*(1-Math.pow(1+r,-pmonths))/r;
-     if(resetGross)gross=maxGross;
-     if(gross>maxGross&&maxGross>0)gross=maxGross;
-     inst=gross*r/(1-Math.pow(1+r,-pmonths));
-   }
+   // V18.3.11.171 — plafond maksimum G7G selalu dibulatkan ke bawah per Rp1 juta.
+   // Contoh hasil formula Rp77.614.765 menjadi maksimum Rp77.000.000.
+   const rawMaxGross=r===0?rpc*pmonths:rpc*(1-Math.pow(1+r,-pmonths))/r;
+   maxGross=Math.floor(Math.max(0,rawMaxGross)/1000000)*1000000;
+   if(resetGross)gross=maxGross;
+   if(maxGross<=0)gross=0;
+   else if(gross>maxGross)gross=maxGross;
+   if(r===0)inst=pmonths>0?gross/pmonths:0;
+   else inst=gross*r/(1-Math.pow(1+r,-pmonths));
    const monthlyGraceInterest=Math.round(gross*(graceRatePct/100)/12);
    upfront=monthlyGraceInterest*grace;
  }
