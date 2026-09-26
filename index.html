@@ -8362,7 +8362,7 @@ function updateWaPreview() {
 
             const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-            // V170: pastikan Activity Log selesai diterima Worker sebelum
+            // V171: pastikan Activity Log selesai diterima Worker sebelum
             // halaman dinavigasikan ke WhatsApp. Ini mencegah request async
             // terputus pada iPhone/PWA saat location.href dijalankan terlalu cepat.
             if (savedActivity && window.waitForCentralActivity) {
@@ -11905,7 +11905,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=170',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=171',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -13877,7 +13877,7 @@ async function simSendWa(){
   const msg=String(document.getElementById('v17SimWaPreview')?.value||'').trim();
   if(!msg){ alert('Pesan WhatsApp belum tersedia.'); return; }
 
-  // V170: tunggu sinkronisasi Activity Log sebelum keluar ke WhatsApp.
+  // V171: tunggu sinkronisasi Activity Log sebelum keluar ke WhatsApp.
   try{
     const savePromise=simSaveAndLogActivities(s,phone,'SIMULASI_WA');
     await Promise.race([savePromise,new Promise(resolve=>setTimeout(resolve,5000))]);
@@ -13888,12 +13888,11 @@ async function simSendWa(){
   window.location.href='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
 }
 
-function simBuildCaptureBlob(){
+function simBuildCaptureCanvas(){
   const s=simCurrentSnapshot();
-  if(!s) return Promise.reject(new Error(simState.product==='G2C'?'Lengkapi estimasi gaji pensiun, tenor, dan pengajuan G2C terlebih dahulu.':'Simulasi belum tersedia.'));
+  if(!s) throw new Error(simState.product==='G2C'?'Lengkapi estimasi gaji pensiun, tenor, dan pengajuan G2C terlebih dahulu.':'Simulasi belum tersedia.');
 
-  return new Promise((resolve,reject)=>{
-    try{
+  try{
       const W=1080,H=1640,dpr=1;
       const c=document.createElement('canvas');
       c.width=W*dpr;c.height=H*dpr;
@@ -13992,14 +13991,37 @@ function simBuildCaptureBlob(){
       x.fillText('Simulasi bersifat estimasi dan mengikuti parameter kredit yang berlaku.',55,1525);
       x.fillText('Tanggal: '+new Date().toLocaleString('id-ID'),55,1565);
 
-      c.toBlob(blob=>{
+      return {canvas:c,s};
+    }catch(err){
+      throw err;
+    }
+}
+
+function simBuildCaptureBlob(){
+  try{
+    const {canvas,s}=simBuildCaptureCanvas();
+    return new Promise((resolve,reject)=>{
+      canvas.toBlob(blob=>{
         if(blob) resolve({blob,s});
         else reject(new Error('Gagal membuat gambar simulasi.'));
       },'image/png',0.95);
-    }catch(err){
-      reject(err);
-    }
-  });
+    });
+  }catch(err){
+    return Promise.reject(err);
+  }
+}
+
+function simBuildCaptureFileSync(){
+  const {canvas,s}=simBuildCaptureCanvas();
+  const dataUrl=canvas.toDataURL('image/png',0.95);
+  const comma=dataUrl.indexOf(',');
+  if(comma<0) throw new Error('Format gambar simulasi tidak valid.');
+  const binary=atob(dataUrl.slice(comma+1));
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  const safe=String(s.deb.nama||'Debitur').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'');
+  const filename='Simulasi_Kredit_'+safe+'_'+new Date().toISOString().slice(0,10)+'.png';
+  return {file:new File([new Blob([bytes],{type:'image/png'})],filename,{type:'image/png'}),s};
 }
 
 async function simDownloadCapture(){
@@ -14021,7 +14043,7 @@ async function simDownloadCapture(){
   }
 }
 
-async function simShareCaptureToWhatsApp(){
+function simShareCaptureToWhatsApp(){
   const s=simCurrentSnapshot();
   if(!s){ alert('Simulasi belum tersedia.'); return; }
 
@@ -14032,53 +14054,61 @@ async function simShareCaptureToWhatsApp(){
     btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i><span>Menyiapkan Gambar...</span>';
   }
 
+  let shareStarted=false;
   try{
-    const {blob}=await simBuildCaptureBlob();
-    const safe=String(s.deb.nama||'Debitur').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'');
-    const filename='Simulasi_Kredit_'+safe+'_'+new Date().toISOString().slice(0,10)+'.png';
-    const file=new File([blob],filename,{type:'image/png'});
+    const {file}=simBuildCaptureFileSync();
+    const phone=String(s.deb.no_hp||'').replace(/\D/g,'');
 
-    // V170: selesaikan pencatatan Activity Log sebelum membuka native
-    // share sheet/fallback WhatsApp, agar request tidak terputus saat keluar halaman.
+    // V171: jangan menunggu Promise/await sebelum navigator.share().
+    // iPhone Safari/PWA mensyaratkan transient user activation untuk native share.
+    // Pencatatan activity tetap dimulai sekarang, tetapi tidak memblokir share sheet.
     try{
-      const savePromise=simSaveAndLogActivities(s,String(s.deb.no_hp||''),'DOWNLOAD_SIMULASI');
-      await Promise.race([savePromise,new Promise(resolve=>setTimeout(resolve,5000))]);
+      Promise.resolve(simSaveAndLogActivities(s,phone,'DOWNLOAD_SIMULASI'))
+        .catch(err=>console.warn('Activity share simulasi:',err));
     }catch(err){
       console.warn('Activity share simulasi:',err);
     }
 
-    // Web Share API adalah satu-satunya cara browser/PWA mengirim file gambar
-    // langsung ke share sheet tanpa server upload. Tidak menyertakan text otomatis.
     if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-      await navigator.share({files:[file]});
+      // PENTING: panggil navigator.share() masih dalam click event, tanpa await sebelumnya.
+      const sharePromise=navigator.share({files:[file]});
+      shareStarted=true;
+      Promise.resolve(sharePromise).then(()=>{
+        console.log('Gambar simulasi berhasil dibuka pada share sheet.');
+      }).catch(err=>{
+        if(err?.name!=='AbortError'){
+          console.warn('Native share simulasi gagal:',err);
+          alert('Gagal membagikan gambar simulasi: '+(err?.message||String(err)));
+        }
+      });
       return;
     }
 
-    // Fallback: download gambar, lalu buka WhatsApp tanpa pesan otomatis.
-    const url=URL.createObjectURL(blob);
+    // Fallback browser tanpa Web Share file support.
+    const url=URL.createObjectURL(file);
     const a=document.createElement('a');
-    a.download=filename;
+    a.download=file.name;
     a.href=url;
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
 
-    let phone=String(s.deb.no_hp||'').replace(/\D/g,'');
-    if(phone.startsWith('0')) phone='62'+phone.slice(1);
-
-    if(phone){
-      window.location.href='https://wa.me/'+phone;
+    let waPhone=phone;
+    if(waPhone.startsWith('0')) waPhone='62'+waPhone.slice(1);
+    if(waPhone){
+      window.location.href='https://wa.me/'+waPhone;
     }else{
       alert('Gambar hasil simulasi sudah di-download. Nomor WhatsApp debitur belum tersedia.');
     }
   }catch(err){
-    // AbortError means user closed the native share sheet; no error popup needed.
-    if(err && err.name==='AbortError') return;
     console.error('Share simulation image:',err);
     alert('Gagal menyiapkan gambar untuk dibagikan: '+(err?.message||String(err)));
   }finally{
-    if(btn){
+    if(btn && !shareStarted){
       btn.disabled=false;
       btn.innerHTML=oldHtml;
+    }else if(btn && shareStarted){
+      // Native sheet sudah mengambil alih UI; kembalikan state saat sheet ditutup/selesai.
+      setTimeout(()=>{btn.disabled=false;btn.innerHTML=oldHtml;},800);
     }
   }
 }
@@ -14553,7 +14583,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     }catch(e){ console.warn('Activity Log:',e); return Promise.resolve({success:false}); }
   };
 
-  // V170: helper terpusat untuk sinkronisasi Activity Log sebelum navigasi.
+  // V171: helper terpusat untuk sinkronisasi Activity Log sebelum navigasi.
   // Timeout hanya fail-safe agar UI tetap bisa melanjutkan jika backend sedang down.
   window.waitForCentralActivity=async function(record,activityType,timeoutMs){
     const ms=Math.max(1000,Number(timeoutMs||5000));

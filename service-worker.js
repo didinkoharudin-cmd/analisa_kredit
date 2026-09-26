@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.170-activity-write-navigation-fix';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.171-activity-share-user-activation-fix';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
