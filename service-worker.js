@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.172-o1-frontend-routing';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.171-activity-share-user-activation-fix';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
@@ -34,7 +34,7 @@ self.addEventListener('install', event => {
         const response = await fetch(request);
         if (response && response.ok) await cache.put(request, response.clone());
       } catch (err) {
-        console.warn('[SW V172] precache skip:', url, err && err.message ? err.message : err);
+        console.warn('[SW V163] precache skip:', url, err && err.message ? err.message : err);
       }
       // Yield singkat agar browser dapat memprioritaskan request aplikasi aktif.
       await sleep(35);

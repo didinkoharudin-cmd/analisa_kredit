@@ -8500,18 +8500,6 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V172 O1 direct routing: operational Pipeline + Activity endpoints
-  // use the dedicated O1 Worker. Authentication remains through the same
-  // Google credential; all other legacy actions stay on the main API.
-  const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
-  const O1_FRONTEND_ACTIONS = new Set([
-    'getProspectPipeline',
-    'saveProspectPipeline',
-    'logActivity',
-    'getActivityLogs',
-    'getExecutiveActivityLogs'
-  ]);
-
   window.googleCredential = null;
   window.currentUser = null;
   window.lastProtectedLoadOk = false;
@@ -9036,10 +9024,7 @@ function updateWaPreview() {
           const controller = ('AbortController' in window) ? new AbortController() : null;
           const timer = controller ? setTimeout(()=>controller.abort(), timeoutMs) : null;
           try{
-            const apiUrl = O1_FRONTEND_ACTIONS.has(String(action||''))
-              ? O1_API_URL
-              : AUTH_CONFIG.API_URL;
-            const response=await fetch(apiUrl,{
+            const response=await fetch(AUTH_CONFIG.API_URL,{
               method:'POST',
               headers:{'Content-Type':'text/plain;charset=utf-8'},
               body:JSON.stringify(Object.assign({action,credential}, extraPayload || {})),
@@ -11920,7 +11905,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=172',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=171',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
