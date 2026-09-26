@@ -3069,30 +3069,6 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 }
 </style>
 <link rel="stylesheet" href="./score-v158.css?v=158">
-<style id="v172-special-potential-css">
-/* V18.3.11.172 — Potensi G2H/G7G + G7G TOP-UP dari fasilitas G2C */
-.v172-special-potential-title{display:flex;align-items:center;gap:6px;margin:8px 1px 6px;color:#172554;font-size:9px;font-weight:950}
-.v172-special-potential-title i{color:#0757c7}
-.v172-special-potential-access{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 10px}
-.v172-special-potential-access button{min-width:0;border:1px solid #dbeafe;border-radius:15px;background:#fff;box-shadow:0 5px 14px rgba(15,23,42,.07);padding:10px 8px;display:flex;align-items:center;gap:8px;text-align:left;color:#172554;touch-action:manipulation}
-.v172-special-potential-access button>i{width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;background:#eff6ff;color:#0757c7;font-size:15px}
-.v172-special-potential-access button[data-v172-special-potential="G7G"]>i{background:#fff7ed;color:#c2410c}
-.v172-special-potential-access button b{display:block;font-size:9.5px;font-weight:950;line-height:1.1}
-.v172-special-potential-access button small{display:block;margin-top:2px;font-size:7px;color:#64748b;font-weight:750;line-height:1.2}
-.v172-special-potential-access button:active{transform:scale(.98)}
-.v172-special-note{margin:0 0 9px;padding:9px 10px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-size:8.5px;line-height:1.5;font-weight:750}
-.v172-special-card-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding:0 10px 8px}
-.v172-special-card-meta>div{min-width:0;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:7px 8px}
-.v172-special-card-meta small{display:block;font-size:7px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
-.v172-special-card-meta strong{display:block;margin-top:2px;color:#172554;font-size:9.5px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v172-special-card-meta .v172-g2c{border-color:#fed7aa;background:#fff7ed}
-.v172-special-card-meta .v172-g2c strong{color:#9a3412}
-.v172-special-badge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:3px 6px;border-radius:999px;background:#e0f2fe;color:#075985;font-size:7px;font-weight:900}
-.v172-special-badge.g7g{background:#ffedd5;color:#9a3412}
-.v172-special-clear{border:0;border-radius:999px;background:#dbeafe;color:#1d4ed8;padding:5px 9px;font-size:8px;font-weight:900}
-.v172-special-wa{border:0;border-radius:10px;background:#eaf3ff;color:#0757c7;min-width:38px;height:34px;display:grid;place-items:center}
-@media(min-width:769px){.v172-special-potential-access{max-width:520px}.v172-special-potential-access button{min-height:72px}.v172-special-potential-access button b{font-size:11px}.v172-special-potential-access button small{font-size:8.5px}}
-</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -3158,11 +3134,6 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" data-v18-special="G7G-GRACE PERIOD-PNS"><i class="fa-solid fa-hourglass-start"></i><span><b>G7G</b><small>Grace Period • PNS</small></span></button>
 <button type="button" data-v18-special="G2C"><i class="fa-solid fa-user-clock"></i><span><b>G2C</b><small>PraPensiun • PNS</small></span></button>
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
-</div>
-<div class="v172-special-potential-title"><i class="fa-solid fa-bullseye"></i><span>Potensi Kredit Persiapan Pensiun</span></div>
-<div class="v172-special-potential-access">
-  <button type="button" data-v172-special-potential="G2H" title="Potensi Kredit THT"><i class="fa-solid fa-sack-dollar"></i><span><b>Potensi G2H</b><small>Debitur eligible Kredit THT</small></span></button>
-  <button type="button" data-v172-special-potential="G7G" title="Potensi Grace Period"><i class="fa-solid fa-hourglass-half"></i><span><b>Potensi G7G</b><small>Debitur eligible Grace Period</small></span></button>
 </div>
 <section class="v9-page active" id="v9PageHome"><div class="v9-title">Home</div>
 <div id="aoBannerWrap" class="ao-banner-wrap" style="display:none">
@@ -3488,9 +3459,9 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <div class="v17-sim-section-title"><span><i class="fa-solid fa-file-invoice-dollar"></i></span> Data Fasilitas <em>Opsional untuk akurasi</em></div>
         <div class="v17-sim-grid two">
           <label>Nomor Fasilitas<input id="v117ManualLoanNo" type="text" placeholder="Opsional"></label>
-          <label><span id="v172ManualExistingInstLabel">Angsuran Eksisting</span><input id="v117ManualExistingInst" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
-          <label>Baki Debet<input id="v117ManualBaki" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money value="0"></label>
-          <label>Bunga Berjalan<input id="v117ManualRunningInterest" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money value="0"></label>
+          <label>Angsuran Eksisting<input id="v117ManualExistingInst" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
+          <label>Baki Debet<input id="v117ManualBaki" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
+          <label>Bunga Berjalan<input id="v117ManualRunningInterest" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
           <label>Musisi Asuransi<input id="v117ManualMusisi" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
         </div>
       </div>
@@ -3844,7 +3815,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Simulasi Kredit Konsumer
+                Analisis Kredit Presisi
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
@@ -3889,7 +3860,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     Sistem Analisis Kredit & Penawaran Debitur
                 </h1>
                 <p class="text-indigo-200 text-xs mt-0.5">
-                    Simulation, credit offer, result and evaluation
+                    Presisi Per No Pinjaman, RPC, Tenor Pegawai & Configurator WA
                 </p>
             </div>
             
@@ -8369,7 +8340,7 @@ function updateWaPreview() {
             return record;
         }
 
-        function sendWaDirect() {
+        async function sendWaDirect() {
             const targetItem = window.v9Selected ||
                 loanDatabase.find(l => String(l.loan_id) === String(selectedLoanId));
 
@@ -8385,19 +8356,28 @@ function updateWaPreview() {
             }
 
             const savedActivity = saveOfferActivity(targetItem, message);
-            // Log server berjalan di belakang layar dengan fetch keepalive.
-            // WhatsApp dibuka tanpa menunggu respons Apps Script.
-            if(savedActivity && window.pushCentralActivity){
-                Promise.resolve(window.pushCentralActivity(savedActivity,'PENAWARAN_WA'))
-                    .catch(err=>console.warn('Activity WA background:',err));
-            }
 
             let phone = String(targetItem.cifRef.no_hp || '').replace(/\D/g, '');
             if (phone.startsWith('0')) phone = '62' + phone.slice(1);
 
             const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-            // Tetap memakai navigasi tab yang sama, tetapi tanpa jeda server.
+            // V170: pastikan Activity Log selesai diterima Worker sebelum
+            // halaman dinavigasikan ke WhatsApp. Ini mencegah request async
+            // terputus pada iPhone/PWA saat location.href dijalankan terlalu cepat.
+            if (savedActivity && window.waitForCentralActivity) {
+                await window.waitForCentralActivity(savedActivity, 'PENAWARAN_WA', 5000);
+            } else if (savedActivity && window.pushCentralActivity) {
+                try {
+                    await Promise.race([
+                        Promise.resolve(window.pushCentralActivity(savedActivity, 'PENAWARAN_WA')),
+                        new Promise(resolve => setTimeout(resolve, 5000))
+                    ]);
+                } catch (err) {
+                    console.warn('Activity WA:', err);
+                }
+            }
+
             window.location.href = waUrl;
         }
 
@@ -10847,8 +10827,6 @@ function v875IsHalfTenorReached(o){
   return Number(o?.pctBerjalan || 0) >= 50;
 }
 let v9QuickIncomeSource = '';
-// V172: mode kartu potensi khusus G2H / G7G dari cifDatabase (unik per CIF).
-let v172SpecialPotentialMode = '';
 // V166: urutan kartu Debitur berdasarkan status flagging (bukan filter).
 let v166DebtorFlagSortMode = 'UNFLAGGED_FIRST';
 
@@ -11162,143 +11140,6 @@ function getFilteredLoans(){
   return expanded;
 }
 
-function v172NormalizeCif(value){
-  const raw=String(value??'').trim();
-  if(!raw) return '';
-  try{if(typeof normalizeCif==='function') return String(normalizeCif(raw)||raw).trim();}catch(e){}
-  return raw.replace(/\.0+$/,'').trim();
-}
-
-function v172FindDebtor(cif){
-  const raw=String(cif??'').trim();
-  const key=v172NormalizeCif(raw);
-  return cifDatabase?.[key] || cifDatabase?.[raw] || Object.values(cifDatabase||{}).find(d=>String(d?.cif??'').trim()===raw || v172NormalizeCif(d?.cif)===key) || null;
-}
-
-function v172RemainingWorkMonths(deb){
-  try{if(typeof v18RemainingWorkMonths==='function') return v18RemainingWorkMonths(deb);}catch(e){}
-  const dob=deb?.tgl_lahir instanceof Date?deb.tgl_lahir:new Date(deb?.tgl_lahir||'');
-  if(!dob || isNaN(dob.getTime())) return null;
-  const bup=Math.max(1,Number(deb?.bup||60));
-  const retire=new Date(dob);retire.setFullYear(retire.getFullYear()+bup);
-  const now=new Date();let months=(retire.getFullYear()-now.getFullYear())*12+(retire.getMonth()-now.getMonth());
-  const probe=new Date(now);probe.setMonth(probe.getMonth()+months);if(retire>probe)months++;
-  return Math.max(0,months);
-}
-
-function v172FacilityCode(f){
-  try{if(typeof simProductCodeFromFacility==='function') return String(simProductCodeFromFacility(f)||'').trim().toUpperCase();}catch(e){}
-  return String(f?.tipe_pinjaman||f?.produk||'').trim().toUpperCase();
-}
-
-function v172G2cFacilities(deb){
-  return (deb?.facilities||[]).filter(f=>v172FacilityCode(f)==='G2C');
-}
-
-function v172SpecialPotentialRows(mode){
-  mode=String(mode||'').toUpperCase();
-  const maxMonths=mode==='G2H'?36:60;
-  const u=getUser(),role=String(u?.role||'').trim().toUpperCase();
-  const ownAO=v51NormalizeAO(u?.kodeAO||u?.kode_ao||'');
-  const q=String(document.getElementById('v98DebtorSearchInput')?.value||document.getElementById('v9FilterSearch')?.value||'').trim().toLowerCase();
-  const rows=Object.values(cifDatabase||{}).filter(deb=>{
-    if(normalizeEmployeeStatus(deb?.status_pegawai)!=='PNS') return false;
-    const remaining=v172RemainingWorkMonths(deb);
-    if(remaining===null || remaining<=0 || remaining>maxMonths) return false;
-    if(role==='AO' && (!ownAO || v51NormalizeAO(deb?.kode_ao||deb?.kodeAO)!==ownAO)) return false;
-    if(q){
-      const facilityText=(deb?.facilities||[]).map(f=>`${f?.no_pinjaman||''} ${f?.tipe_pinjaman||''}`).join(' ');
-      const hay=`${deb?.nama||''} ${deb?.cif||''} ${deb?.kode_ao||''} ${deb?.dinas||''} ${facilityText}`.toLowerCase();
-      if(!hay.includes(q)) return false;
-    }
-    return true;
-  });
-  return rows.sort((a,b)=>(v172RemainingWorkMonths(a)??9999)-(v172RemainingWorkMonths(b)??9999)||String(a?.nama||'').localeCompare(String(b?.nama||''),'id'));
-}
-
-function v172SpecialPotentialProduct(mode){
-  return String(mode||'').toUpperCase()==='G2H'?'G2H-THT-PNS':'G7G-GRACE PERIOD-PNS';
-}
-
-function v172SpecialPotentialMessage(mode,deb){
-  const isG2h=String(mode||'').toUpperCase()==='G2H';
-  const ao=String(getUser()?.name||getUser()?.nama||getUser()?.namaAO||'Account Officer').trim();
-  const product=isG2h?'Kredit THT (G2H)':'Kredit Grace Period (G7G)';
-  return `Assalamualaikum, Yth. Bapak/Ibu *${String(deb?.nama||'').trim()||'Nasabah'}*.\n\nPerkenalkan saya *${ao}* dari *Bank bjb*.\n\nKami informasikan bahwa Bapak/Ibu saat ini sudah dapat mengajukan *${product}* di bank bjb.\n\nApabila berkenan, saya siap membantu proses pengajuan dan memberikan informasi persyaratannya.\n\nTerima kasih.`;
-}
-
-function v172SaveSpecialPotentialActivity(mode,deb){
-  if(!deb) return null;
-  const now=new Date(),product=v172SpecialPotentialProduct(mode),cif=String(deb.cif||'').trim();
-  const key=`V172-${String(mode||'').toUpperCase()}-${cif}`;
-  const record={
-    key,waktu:now.toISOString(),waktuDisplay:now.toLocaleString('id-ID'),loan_id:key,no_pinjaman:'POTENSI '+String(mode||'').toUpperCase(),
-    cif,nama:deb.nama||'',kode_ao:deb.kode_ao||deb.kodeAO||'',no_hp:deb.no_hp||'',tipe_pinjaman:product,
-    sumber_pembayaran:String(mode||'').toUpperCase()==='G2H'?'THT':'PENSIUN',jenis_penawaran:'POTENSI',nominal_type:'',tenor:'',
-    plafond_gross:0,estimasi_angsuran:0,potensi_nett:0,outstanding:(deb.facilities||[]).reduce((sum,f)=>sum+Number(f?.baki_debet||0),0),source:'SPECIAL_POTENTIAL_V172'
-  };
-  try{
-    const raw=localStorage.getItem(ACTIVITY_KEY),activity=raw?JSON.parse(raw):[];
-    const rows=Array.isArray(activity)?activity:[],idx=rows.findIndex(x=>String(x.key)===key);
-    if(idx>=0)rows[idx]=record;else rows.unshift(record);
-    localStorage.setItem(ACTIVITY_KEY,JSON.stringify(rows.slice(0,500)));
-    renderV9Activity();
-  }catch(e){console.warn('[V172] local activity:',e);}
-  try{if(window.pushCentralActivity)Promise.resolve(window.pushCentralActivity(record,'PENAWARAN_WA')).catch(e=>console.warn('[V172] central activity:',e));}catch(e){}
-  return record;
-}
-
-function v172OpenSpecialPotentialWa(mode,cif){
-  const deb=v172FindDebtor(cif);if(!deb)return;
-  let phone=String(deb.no_hp||'').replace(/\D/g,'');
-  if(!phone){alert('Nomor WhatsApp debitur tidak tersedia.');return;}
-  if(phone.startsWith('0'))phone='62'+phone.slice(1);
-  const message=v172SpecialPotentialMessage(mode,deb);
-  v172SaveSpecialPotentialActivity(mode,deb);
-  window.location.href='https://wa.me/'+phone+'?text='+encodeURIComponent(message);
-}
-
-function v172DateInput(value){
-  const d=value instanceof Date?value:new Date(value||'');
-  if(!d||isNaN(d.getTime())) return '';
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${day}`;
-}
-
-function v172OpenSpecialPotentialManual(mode,cif){
-  const deb=v172FindDebtor(cif);if(!deb)return;
-  const product=v172SpecialPotentialProduct(mode),g2c=v172G2cFacilities(deb);
-  const offer=String(mode||'').toUpperCase()==='G7G'&&g2c.length?'TOPUP':'NEW';
-  try{
-    if(typeof window.v174OpenSelectedDebtor!=='function') throw new Error('penghubung Simulasi Interaktif belum tersedia');
-    window.v174OpenSelectedDebtor({debtor:deb,product,offer});
-  }catch(err){console.error('[V174] open selected debtor:',err);alert('Simulasi interaktif tidak dapat dibuka: '+(err?.message||err));}
-}
-
-function renderV172SpecialPotentialDebtors(){
-  const list=document.getElementById('v9DebtorList');if(!list)return;
-  const mode=String(v172SpecialPotentialMode||'').toUpperCase(),rows=v172SpecialPotentialRows(mode),isG2h=mode==='G2H';
-  const bulk=document.getElementById('v58BulkWaToolbar');if(bulk)bulk.style.display='none';
-  list.innerHTML='';
-  const head=document.createElement('div');head.className='v16-filter-chipbar offer';
-  head.innerHTML=`<span><i class="fa-solid ${isG2h?'fa-sack-dollar':'fa-hourglass-half'}"></i> Potensi ${mode}</span><button type="button" id="v172ClearSpecialPotential" class="v172-special-clear">Semua Debitur</button>`;list.appendChild(head);
-  const note=document.createElement('div');note.className='v172-special-note';
-  note.innerHTML=`<i class="fa-solid fa-circle-info"></i> ${isG2h?'G2H: PNS maksimal 36 bulan menuju BUP.':'G7G: PNS maksimal 60 bulan menuju BUP.'} Plafond tidak ditampilkan karena ${isG2h?'estimasi nilai THT':'estimasi gaji pensiun'} belum tersedia dan diinput pada Simulasi Manual.`;list.appendChild(note);
-  const summary=document.createElement('div');summary.className='v16-debtor-summary';summary.innerHTML=`<span>Total <b>${rows.length.toLocaleString('id-ID')}</b> debitur eligible</span>`;list.appendChild(summary);
-  if(!rows.length){const empty=document.createElement('div');empty.className='v9-empty';empty.textContent='Tidak ada debitur yang memenuhi kriteria produk ini.';list.appendChild(empty);return;}
-  const cards=document.createElement('div');cards.className='v16-debtor-cards';
-  rows.forEach(deb=>{
-    const cif=String(deb.cif||''),nama=String(deb.nama||'Debitur'),remaining=v172RemainingWorkMonths(deb),facilities=(deb.facilities||[]),g2c=v172G2cFacilities(deb);
-    const products=[...new Set(facilities.map(f=>v172FacilityCode(f)).filter(Boolean))];
-    const card=document.createElement('article');card.className='v16-debtor-card';card.dataset.v172Cif=cif;card.dataset.v172Mode=mode;
-    card.innerHTML=`<div class="v16-card-main"><div class="v16-avatar ${isG2h?'new':'mengulang'}">${escapeHtml((nama.trim().charAt(0)||'D').toUpperCase())}</div><div class="v16-card-identity"><div class="v16-name-row"><h3>${escapeHtml(nama)}</h3><span class="v16-offer-tag ${isG2h?'new':'mengulang'}">${isG2h?'G2H • THT':'G7G • GRACE'}</span></div><div class="v16-employee"><b>PNS</b><span>|</span><b>CIF ${escapeHtml(cif||'-')}</b></div><div class="v16-ao">${escapeHtml(deb.kode_ao||deb.kodeAO||'-')} • ${escapeHtml(deb.dinas||'-')}</div><span class="v172-special-badge ${isG2h?'':'g7g'}"><i class="fa-regular fa-clock"></i> ${remaining} bulan menuju BUP</span></div></div>
-    <div class="v172-special-card-meta"><div><small>Fasilitas Eksisting</small><strong>${facilities.length?facilities.length+' fasilitas':'Tidak ada'}</strong></div><div><small>Produk Eksisting</small><strong>${escapeHtml(products.join(', ')||'-')}</strong></div>${!isG2h?`<div class="v172-g2c"><small>Fasilitas G2C</small><strong>${g2c.length?g2c.length+' fasilitas • dasar TOP-UP':'Tidak ada • pengajuan baru'}</strong></div><div><small>BUP</small><strong>${Number(deb.bup||60)} tahun</strong></div>`:`<div><small>BUP</small><strong>${Number(deb.bup||60)} tahun</strong></div><div><small>Nomor WA</small><strong>${escapeHtml(deb.no_hp||'-')}</strong></div>`}</div>
-    <div class="v16-card-footer"><button type="button" class="v16-detail-btn" data-v172-special-detail="${mode}" data-v172-special-cif="${escapeHtml(cif)}"><i class="fa-solid fa-calculator"></i><span>Rincian</span></button><button type="button" class="v172-special-wa" data-v172-special-wa="${mode}" data-v172-special-cif="${escapeHtml(cif)}" title="Kirim penawaran WhatsApp"><i class="fa-brands fa-whatsapp"></i></button></div>`;
-    cards.appendChild(card);
-  });
-  list.appendChild(cards);
-}
-
 function renderDashboard(){
   const rows=getLoans();
   const total=document.getElementById('v9TotalDebitur');
@@ -11310,9 +11151,6 @@ function renderDashboard(){
 function renderDebtors(){
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
-
-  if(v172SpecialPotentialMode){ renderV172SpecialPotentialDebtors(); return; }
-  const bulk=document.getElementById('v58BulkWaToolbar');if(bulk)bulk.style.display='';
 
   const filteredRows=getFilteredLoans();
   const allRows=window.v109SortOffers ? window.v109SortOffers(filteredRows,v166DebtorFlagSortMode) : filteredRows;
@@ -11830,15 +11668,7 @@ function accessButton(type){
   }
 }
 
-function quickSpecialPotential(type){
-  type=String(type||'').trim().toUpperCase();
-  if(!['G2H','G7G'].includes(type)) return;
-  v172SpecialPotentialMode=type;v9QuickOfferType='';v9QuickIncomeSource='';window.v16DebtorOffset=0;
-  go('debitur');renderDebtors();
-}
-
 function quickOffer(type){
-  v172SpecialPotentialMode='';
   const allowed=['NEW','TOP-UP','MENGULANG'];
   type=String(type||'').toUpperCase();
   if(!allowed.includes(type)) return;
@@ -11851,12 +11681,6 @@ function quickOffer(type){
   renderDebtors();
 }
 
-function clearSpecialPotential(){
-  v172SpecialPotentialMode='';window.v16DebtorOffset=0;
-  const bulk=document.getElementById('v58BulkWaToolbar');if(bulk)bulk.style.display='';
-  renderDebtors();
-}
-
 function clearQuickOffer(){
   v9QuickOfferType='';
   v875MengulangHalfTenorOnly=false;
@@ -11865,7 +11689,6 @@ function clearQuickOffer(){
 }
 
 function quickIncomeSource(source){
-  v172SpecialPotentialMode='';
   source=String(source||'').trim().toUpperCase();
   v9QuickIncomeSource=(source==='SEMUA') ? '' : source;
   window.v16DebtorOffset=0;
@@ -11920,10 +11743,6 @@ function bind(){
     btn.addEventListener('click',()=>quickIncomeSource(btn.dataset.v9Income));
   });
 
-  document.querySelectorAll('[data-v172-special-potential]').forEach(btn=>{
-    btn.addEventListener('click',()=>quickSpecialPotential(btn.dataset.v172SpecialPotential));
-  });
-
   document.getElementById('v9WaNav')?.addEventListener('click',openWhatsapp);
   document.getElementById('v9ExportActivity')?.addEventListener('click',exportActivityExcel);
   document.getElementById('v50ActivityDate')?.addEventListener('change',()=>{renderV9Activity();window.loadMyActivityFromServer?.();});
@@ -11931,11 +11750,6 @@ function bind(){
   document.getElementById('v50ActivityAll')?.addEventListener('click',()=>{const input=document.getElementById('v50ActivityDate');if(input)input.value='';renderV9Activity();window.loadMyActivityFromServer?.();});
 
   document.getElementById('v9DebtorList')?.addEventListener('click',e=>{
-    if(e.target.closest('#v172ClearSpecialPotential')){clearSpecialPotential();return;}
-    const specialDetail=e.target.closest('[data-v172-special-detail]');
-    if(specialDetail){v172OpenSpecialPotentialManual(specialDetail.dataset.v172SpecialDetail,specialDetail.dataset.v172SpecialCif);return;}
-    const specialWa=e.target.closest('[data-v172-special-wa]');
-    if(specialWa){v172OpenSpecialPotentialWa(specialWa.dataset.v172SpecialWa,specialWa.dataset.v172SpecialCif);return;}
     if(e.target.closest('#v17ClearIncomeSource')){
       clearQuickIncomeSource();
       return;
@@ -12091,7 +11905,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=175',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=170',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -13063,31 +12877,6 @@ function simFacilityList(deb,source){
   return matching.length ? matching : all;
 }
 
-function simG7gTopupFacilities(deb){
-  return (deb?.facilities||[]).filter(Boolean).filter(f=>simProductCodeFromFacility(f)==='G2C');
-}
-
-// Fasilitas yang tetap menjadi kewajiban ketika debitur memasuki masa pensiun.
-// G2C diperlukan sebagai dasar TOP-UP, sedangkan G7G lain tetap mengurangi sisa gaji pensiun.
-function simG7gPensionExistingDetails(deb){
-  const facilities=(deb?.facilities||[]).filter(Boolean).filter(f=>{
-    const code=simProductCodeFromFacility(f);
-    return code==='G2C'||String(code||'').startsWith('G7G');
-  });
-  const g2cInstallment=facilities
-    .filter(f=>simProductCodeFromFacility(f)==='G2C')
-    .reduce((sum,f)=>sum+Number(f?.angsuran_eksisting||0),0);
-  const g7gInstallment=facilities
-    .filter(f=>String(simProductCodeFromFacility(f)||'').startsWith('G7G'))
-    .reduce((sum,f)=>sum+Number(f?.angsuran_eksisting||0),0);
-  return {facilities,g2cInstallment,g7gInstallment,totalInstallment:g2cInstallment+g7gInstallment};
-}
-
-function simSelectableFacilities(deb,rule){
-  if(simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP') return simG7gTopupFacilities(deb);
-  return simFacilityList(deb,rule?.sumber);
-}
-
 function simIsMultiExcludedProduct(value){
   const code=String(value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
   return code.startsWith('G2H') || code.startsWith('G7G');
@@ -13318,8 +13107,6 @@ function v117SyncManualScenario(){
   document.getElementById('v117ManualIncomeLabel').textContent='Jumlah Penghasilan '+(simState.product==='G2C'?'GAJI AKTIF':source);
   document.getElementById('v117ManualPensionWrap').style.display=simState.product==='G2C'?'block':'none';
   document.getElementById('v117ManualFacility').style.display=simState.offer==='NEW'?'none':'block';
-  const existingLabel=document.getElementById('v172ManualExistingInstLabel');
-  if(existingLabel)existingLabel.textContent=(simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP')?'Angsuran Eksisting G2C':'Angsuran Eksisting';
   const box=document.getElementById('v117ManualRule');
   if(box)box.innerHTML=`<span>Status: ${String(rule?.jenisPegawai||'PNS')}</span><span>Sumber: ${simState.product==='G2C'?'GAJI AKTIF + PENSIUN':source}</span><span>RPC: ${Math.round(Number(rule?.rpcPercent||0)*100)}%</span><span>Tenor produk: ${Number(rule?.maxTenorProduct||0)} bulan</span><span>Pengajuan: ${simState.offer}</span>`;
 }
@@ -13369,8 +13156,7 @@ function v116SubmitManualDebtor(event){
   const facilities=[];
   if(simState.offer!=='NEW'){
     const renewalG2c=simState.product==='G2C'&&simState.offer==='MENGULANG';
-    const g7gTopup=simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP';
-    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':(g7gTopup?'G2C':simState.product),sumber_penghasilan:(renewalG2c||g7gTopup)?'GAJI':source,angsuran_eksisting:num('v117ManualExistingInst'),baki_debet:money('v117ManualBaki'),bunga_berjalan:money('v117ManualRunningInterest'),musisi_asuransi:num('v117ManualMusisi')});
+    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':simState.product,sumber_penghasilan:renewalG2c?'GAJI':source,angsuran_eksisting:num('v117ManualExistingInst'),baki_debet:num('v117ManualBaki'),bunga_berjalan:num('v117ManualRunningInterest'),musisi_asuransi:num('v117ManualMusisi')});
   }
   const deb={__manual:true,cif:'MANUAL-'+Date.now(),nama:name,no_hp:val('v116ManualPhone'),tgl_lahir:dob,bup,status_pegawai:status,dinas:val('v116ManualDinas')||'Input Manual',kode_ao:login.kodeAO||login.kode_ao||'',income:incomes,facilities};
   document.getElementById('v116SimManualCard').style.display='none';
@@ -13477,20 +13263,18 @@ function simRefreshFacilities(){
   multiWrap.style.display='none';
   simState.facilities=[];
 
-  const facilities=simSelectableFacilities(simState.debtor,rule);
+  const facilities=simFacilityList(simState.debtor,rule.sumber);
   wrap.style.display='';
 
   if(!facilities.length){
-    const g7gTopup=simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP';
-    select.innerHTML='<option value="">'+(g7gTopup?'Tidak ada fasilitas G2C untuk TOP-UP G7G':'Tidak ada fasilitas pada sumber ini')+'</option>';
+    select.innerHTML='<option value="">Tidak ada fasilitas pada sumber ini</option>';
     simState.facility=null;
     return;
   }
 
   const wantedSource=simNormalizeSource(rule.sumber);
-  const hasMatchingSource=simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP'
-    ? true
-    : (simState.debtor?.facilities||[]).some(f=>simFacilitySource(f)===wantedSource);
+  const hasMatchingSource=(simState.debtor?.facilities||[])
+    .some(f=>simFacilitySource(f)===wantedSource);
 
   select.innerHTML=facilities.map((f,i)=>{
     const facSource=simFacilitySource(f)||'-';
@@ -13521,8 +13305,7 @@ function simContinue(){
   }
 
   if(simState.offer!=='NEW' && !simState.facility){
-    if(simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP') alert('TOP-UP G7G memerlukan fasilitas eksisting G2C pada CIF debitur.');
-    else alert('Tidak ada fasilitas kredit yang sesuai dengan sumber penghasilan produk ini.');
+    alert('Tidak ada fasilitas kredit yang sesuai dengan sumber penghasilan produk ini.');
     return;
   }
 
@@ -13621,16 +13404,7 @@ function v18SpecialRecalc(resetGross){
  const isG2cRenew=simState.product==='G2C'&&simState.offer==='MENGULANG';
  const settlement=simSettlementTotals();
  const releasedG6bInstallment=isG2cRenew?simSelectedInstallmentForSource('GAJI'):0;
- const isG7gTopup=simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP';
- document.getElementById('v17SimTopupInfo').style.display=isG7gTopup?'grid':'none';
- if(isG7gTopup){
-   const g2cFacilities=simG7gTopupFacilities(d),selectedG2c=simState.facility||g2cFacilities[0]||{};
-   const pensionExisting=simG7gPensionExistingDetails(d);
-   document.getElementById('v17SimExistingInst').textContent=simMoney(selectedG2c.angsuran_eksisting||0);
-   document.getElementById('v17SimTotalExisting').textContent=simMoney(pensionExisting.totalInstallment);
-   const info=document.getElementById('v17SimTopupInfo');const labels=info?info.querySelectorAll('small'):[];
-   if(labels[0])labels[0].textContent='Angsuran Eksisting G2C Terpilih';if(labels[1])labels[1].textContent='Total Angsuran Eksisting G2C + G7G';
- }
+ document.getElementById('v17SimTopupInfo').style.display='none';
  document.getElementById('v17SimRenewInfo').style.display=isG2cRenew?'grid':'none';
  const musisiWrap=document.getElementById('v17SimMusisiRefundWrap');if(musisiWrap)musisiWrap.style.display=isG2cRenew?'block':'none';
  if(isG2cRenew){
@@ -13671,32 +13445,20 @@ function v18SpecialRecalc(resetGross){
    // bunga grace period dibayar di muka, biaya asuransi, dan nett pencairan.
    const graceRatePct=Math.max(0,Number(document.getElementById('v18GraceRate')?.value||c.graceRate||8));
    const pensionRatePct=Math.max(0,Number(document.getElementById('v18PensionRate')?.value||c.rate||12));
-   // V18.3.11.170 — G7G parity dengan simulasi referensi bank:
-   // 1) bulan GP dihitung inklusif (sisa masa kerja + 1 bulan),
-   // 2) bunga GP bukan bunga majemuk. Angsuran GP per bulan = plafond x rate / 12,
-   // 3) bunga GP dibayar di muka = angsuran GP yang sudah dibulatkan x jumlah bulan GP,
-   // 4) angsuran masa pensiun tetap anuitas atas sisa tenor setelah GP.
-   const remainingWorkMonths=Math.max(0,v18RemainingWorkMonths(d)||0);
-   const grace=Math.min(tenor,remainingWorkMonths>0?remainingWorkMonths+1:0);
-   const pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12;
-   // V18.3.11.172 — untuk G7G TOP-UP, angsuran eksisting yang mengurangi RPC
-   // adalah seluruh angsuran fasilitas G2C pada CIF debitur. G2C dianggap tetap
-   // berjalan pada skenario TOP-UP, sehingga kapasitas baru = 90% pensiun - G2C.
-   const g2cExistingInstallment=isG7gTopup
-     ? simG7gTopupFacilities(d).reduce((sum,f)=>sum+Number(f?.angsuran_eksisting||0),0)
-     : 0;
-   const rpc=Math.max(0,income*.90-g2cExistingInstallment);
-   // V18.3.11.171 — plafond maksimum G7G selalu dibulatkan ke bawah per Rp1 juta.
-   // Contoh hasil formula Rp77.614.765 menjadi maksimum Rp77.000.000.
-   const rawMaxGross=r===0?rpc*pmonths:rpc*(1-Math.pow(1+r,-pmonths))/r;
-   maxGross=Math.floor(Math.max(0,rawMaxGross)/1000000)*1000000;
-   if(resetGross)gross=maxGross;
-   if(maxGross<=0)gross=0;
-   else if(gross>maxGross)gross=maxGross;
-   if(r===0)inst=pmonths>0?gross/pmonths:0;
-   else inst=gross*r/(1-Math.pow(1+r,-pmonths));
-   const monthlyGraceInterest=Math.round(gross*(graceRatePct/100)/12);
-   upfront=monthlyGraceInterest*grace;
+   const grace=Math.min(tenor,v18RemainingWorkMonths(d)||0),pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12,rpc=income*.90;
+   if(r===0){
+     maxGross=rpc*pmonths;
+     if(resetGross)gross=maxGross;
+     if(gross>maxGross&&maxGross>0)gross=maxGross;
+     inst=pmonths>0?gross/pmonths:0;
+   }else{
+     maxGross=rpc*(1-Math.pow(1+r,-pmonths))/r;
+     if(resetGross)gross=maxGross;
+     if(gross>maxGross&&maxGross>0)gross=maxGross;
+     inst=gross*r/(1-Math.pow(1+r,-pmonths));
+   }
+   const rg=(graceRatePct/100)/12;
+   upfront=rg===0?0:gross*(Math.pow(1+rg,grace)-1);
  }
  document.getElementById('v17SimGross').value=v18Fmt(gross);simState.maxGross=maxGross;
  const promo=simPromoPct();
@@ -13743,15 +13505,12 @@ function v18SpecialRecalc(resetGross){
  const dr=document.getElementById('v17CostDiscountRow');if(dr)dr.style.display=Number(fees.diskonAsuransi||0)>0?'flex':'none';
  document.getElementById('v17CostInsuranceDiscount').textContent='- '+simMoney(fees.diskonAsuransi||0);
  const g2cCapacity=g2cCapacityDetails(d,income,tenor,releasedG6bInstallment);
- const g7gPensionExisting=isG7gTopup?simG7gPensionExistingDetails(d):null;
  const g2cActiveIncome=g2cCapacity.activeIncome,g2cExisting=g2cCapacity.activeExisting;
  const g2cActiveCapacity=g2cCapacity.activeCapacity,g2cPensionCapacity=g2cCapacity.pensionCapacity;
  document.getElementById('v17RemainingIncomeLabel').textContent=simState.product==='G2H-THT-PNS'?'Sisa Uang THT':(simState.product==='G2C'?'Sisa Gaji Aktif / Pensiun':'Sisa Gaji Pensiun');
  document.getElementById('v17RemainingIncome').textContent=simState.product==='G2C'
    ? `${simMoney(Math.max(0,g2cActiveIncome-g2cCapacity.effectiveActiveExisting-inst))} / ${simMoney(Math.max(0,income-inst))}`
-   : simMoney(simState.product==='G2H-THT-PNS'
-      ? Math.max(0,income-gross)
-      : Math.max(0,income-inst-Number(g7gPensionExisting?.totalInstallment||0)));
+   : simMoney(simState.product==='G2H-THT-PNS'?Math.max(0,income-gross):Math.max(0,income-inst));
  const g2cInfo=document.getElementById('v35G2cRpcInfo');
  if(g2cInfo)g2cInfo.style.display=simState.product==='G2C'?'grid':'none';
  if(simState.product==='G2C'){
@@ -13830,7 +13589,6 @@ function simRecalculate(resetGross){
   if(musisiRefundWrap) musisiRefundWrap.style.display=isRenew?'block':'none';
 
   if(isTopup){
-    const info=document.getElementById('v17SimTopupInfo'),labels=info?info.querySelectorAll('small'):[];if(labels[0])labels[0].textContent='Angsuran Eksisting Fasilitas';if(labels[1])labels[1].textContent='Total Angsuran Eksisting Sumber';
     document.getElementById('v17SimExistingInst').textContent=simMoney(f.angsuran_eksisting||0);
     document.getElementById('v17SimTotalExisting').textContent=simMoney(simSourceTotalInstallment(deb,rule.sumber));
   }
@@ -13928,17 +13686,14 @@ function simCurrentSnapshot(){
     const specialIncome=v18Num(document.getElementById('v18SpecialIncome')?.value||0);
     const pensionIncome=simState.product==='G2C'?specialIncome:0;
     const remainingTht=simState.product==='G2H-THT-PNS'?Math.max(0,specialIncome-gross):null;
-    const g7gExisting=simState.product==='G7G-GRACE PERIOD-PNS'&&simState.offer==='TOPUP'
-      ? simG7gPensionExistingDetails(deb)
-      : null;
     const g2c=simState.product==='G2C'?g2cCapacityDetails(deb,pensionIncome,tenor,releasedG6bInstallment):null;
     if(simState.product==='G2C'&&(!g2c.activeIncome||!g2c.pensionIncome||g2c.maxInstallment<=0||gross<=0||tenor<=0)) return null;
     if(simState.product==='G2C'&&simState.offer==='MENGULANG'&&!settlement.facilities.length) return null;
     return {
       deb,rule,gross,tenor,baseRate:baseSpecialRate,spread:specialSpread,effectiveRate:specialRate,
       promoUsed:simPromoPct()>0,promoPct:simPromoPct(),installment:simState.v18Installment||0,
-      fees,facility:simState.facility||settlement.facilities[0]||{},facilities:settlement.facilities,
-      settlement,special:true,specialIncome,remainingTht,g2c,g7gExisting
+      fees,facility:settlement.facilities[0]||{},facilities:settlement.facilities,
+      settlement,special:true,specialIncome,remainingTht,g2c
     };
   }
   const gross=v18Num(document.getElementById('v17SimGross')?.value||0);
@@ -13995,13 +13750,7 @@ function simWaMessage(){
           `\n• Fase Gaji Pensiun: *${s.g2c.pensionMonths} bulan*`;
   }
   if(simState.offer==='TOPUP'){
-    if(s.g7gExisting){
-      extra=`\n• Angsuran Eksisting G2C: *${simMoney(s.g7gExisting.g2cInstallment)}*`+
-            `\n• Angsuran Eksisting G7G: *${simMoney(s.g7gExisting.g7gInstallment)}*`+
-            `\n• Sisa Gaji Pensiun: *${simMoney(Math.max(0,s.specialIncome-s.installment-s.g7gExisting.totalInstallment))}*`;
-    }else{
-      extra=`\n• Angsuran Eksisting: *${simMoney(s.facility.angsuran_eksisting||0)}*`;
-    }
+    extra=`\n• Angsuran Eksisting: *${simMoney(s.facility.angsuran_eksisting||0)}*`;
   }
   if(simState.offer==='MENGULANG'){
     const facilities=Array.isArray(s.facilities)&&s.facilities.length?s.facilities:[s.facility].filter(Boolean);
@@ -14119,7 +13868,7 @@ async function simSaveAndLogActivities(snapshot,phone,activityType){
   return records;
 }
 
-function simSendWa(){
+async function simSendWa(){
   const s=simCurrentSnapshot();
   if(!s) return;
   let phone=String(document.getElementById('v17SimWaPhone')?.value||'').replace(/\D/g,'');
@@ -14128,9 +13877,13 @@ function simSendWa(){
   const msg=String(document.getElementById('v17SimWaPreview')?.value||'').trim();
   if(!msg){ alert('Pesan WhatsApp belum tersedia.'); return; }
 
-  // Simpan lokal langsung; sinkronisasi server menggunakan keepalive di belakang layar.
-  Promise.resolve(simSaveAndLogActivities(s,phone,'SIMULASI_WA'))
-    .catch(err=>console.warn('Activity simulasi WA background:',err));
+  // V170: tunggu sinkronisasi Activity Log sebelum keluar ke WhatsApp.
+  try{
+    const savePromise=simSaveAndLogActivities(s,phone,'SIMULASI_WA');
+    await Promise.race([savePromise,new Promise(resolve=>setTimeout(resolve,5000))]);
+  }catch(err){
+    console.warn('Activity simulasi WA:',err);
+  }
 
   window.location.href='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);
 }
@@ -14193,9 +13946,7 @@ function simBuildCaptureBlob(){
       const selectedExisting=simState.offer==='MENGULANG'?simSelectedInstallmentForSource(s.rule.sumber):0;
       const remain=simState.product==='G2H-THT-PNS'
         ? Math.max(0,Number(s.remainingTht||0))
-        : (s.g7gExisting
-          ? Math.max(0,income-s.installment-s.g7gExisting.totalInstallment)
-          : Math.max(0,income-Math.max(0,totalExisting-selectedExisting)-s.installment));
+        : Math.max(0,income-Math.max(0,totalExisting-selectedExisting)-s.installment);
       if(simState.product==='G2C'&&s.g2c){
         txt('Gaji Aktif',simMoney(s.g2c.activeIncome),cy);cy+=50;
         txt('Estimasi Gaji Pensiun',simMoney(s.g2c.pensionIncome),cy);cy+=50;
@@ -14205,10 +13956,6 @@ function simBuildCaptureBlob(){
       }else if(simState.product==='G2H-THT-PNS'){
         txt('Sisa THT',simMoney(remain),cy);cy+=50;
       }else{
-        if(s.g7gExisting){
-          txt('Angsuran Eksisting G2C',simMoney(s.g7gExisting.g2cInstallment),cy);cy+=50;
-          txt('Angsuran Eksisting G7G',simMoney(s.g7gExisting.g7gInstallment),cy);cy+=50;
-        }
         txt('Sisa '+String(s.rule.sumber||'Gaji'),simMoney(remain),cy);cy+=50;
       }
 
@@ -14291,9 +14038,14 @@ async function simShareCaptureToWhatsApp(){
     const filename='Simulasi_Kredit_'+safe+'_'+new Date().toISOString().slice(0,10)+'.png';
     const file=new File([blob],filename,{type:'image/png'});
 
-    // Simpan aktivitas tanpa menahan pembukaan native share sheet/WhatsApp.
-    Promise.resolve(simSaveAndLogActivities(s,String(s.deb.no_hp||''),'DOWNLOAD_SIMULASI'))
-      .catch(err=>console.warn('Activity share simulasi background:',err));
+    // V170: selesaikan pencatatan Activity Log sebelum membuka native
+    // share sheet/fallback WhatsApp, agar request tidak terputus saat keluar halaman.
+    try{
+      const savePromise=simSaveAndLogActivities(s,String(s.deb.no_hp||''),'DOWNLOAD_SIMULASI');
+      await Promise.race([savePromise,new Promise(resolve=>setTimeout(resolve,5000))]);
+    }catch(err){
+      console.warn('Activity share simulasi:',err);
+    }
 
     // Web Share API adalah satu-satunya cara browser/PWA mengirim file gambar
     // langsung ke share sheet tanpa server upload. Tidak menyertakan text otomatis.
@@ -14378,7 +14130,7 @@ function simBind(){
 
   document.getElementById('v17SimFacility')?.addEventListener('change',e=>{
     const rule=simProductRule();
-    const arr=simSelectableFacilities(simState.debtor,rule);
+    const arr=simFacilityList(simState.debtor,rule?.sumber);
     simState.facility=arr[Number(e.target.value)||0]||null;
     const musisiRefund=document.getElementById('v17SimMusisiRefund');
     if(musisiRefund) musisiRefund.value=simState.offer==='MENGULANG' ? v18Fmt(Number(simState.facility?.musisi_asuransi||0)) : '0';
@@ -14452,41 +14204,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 window.v17OpenSimulation=simOpen;
-// V18.3.11.174 — API publik untuk membuka simulator dari kartu potensi
-// sambil mempertahankan debitur terpilih. Pengisian data tetap memakai
-// simSelectDebtor agar identik dengan alur pencarian debitur di simulator.
-window.v174OpenSelectedDebtor=function(config){
-  const data=config||{},deb=data.debtor;
-  if(!deb) throw new Error('data debitur tidak ditemukan');
-  simOpen();
-
-  const product=String(data.product||'').trim();
-  const offer=simNormOffer(data.offer||'NEW');
-  const productEl=document.getElementById('v17SimProduct');
-  if(productEl&&product&&[...productEl.options].some(o=>o.value===product)){
-    productEl.value=product;
-    simState.product=product;
-  }else if(product){
-    throw new Error('produk '+product+' tidak tersedia');
-  }
-
-  const offerEl=document.getElementById('v17SimOffer');
-  if(offerEl){offerEl.value=offer;simState.offer=simNormOffer(offerEl.value);}
-  simState.mandatorySavingMultiplierEdited=false;
-  g2cApplyOfferRule();
-  v18SpecialUI();
-  simRenderProductInfo();
-  simSelectDebtor(deb);
-
-  const search=document.getElementById('v17SimSearch');
-  if(search)search.value=String(deb.nama||deb.cif||'');
-  requestAnimationFrame(()=>{
-    const specialIncome=document.getElementById('v18SpecialIncome');
-    if(specialIncome&&v18IsSpecial())specialIncome.focus();
-    else document.getElementById('v17SimContinue')?.focus();
-  });
-  return true;
-};
 })();
 </script>
 
@@ -14834,6 +14551,24 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
         return r;
       }).catch(function(err){ console.warn('Activity Log server gagal (aktivitas AO tetap dilanjutkan):',err); return {success:false,error:String(err&&err.message||err)}; });
     }catch(e){ console.warn('Activity Log:',e); return Promise.resolve({success:false}); }
+  };
+
+  // V170: helper terpusat untuk sinkronisasi Activity Log sebelum navigasi.
+  // Timeout hanya fail-safe agar UI tetap bisa melanjutkan jika backend sedang down.
+  window.waitForCentralActivity=async function(record,activityType,timeoutMs){
+    const ms=Math.max(1000,Number(timeoutMs||5000));
+    if(!record||typeof window.pushCentralActivity!=='function') return {success:false,skipped:true};
+    try{
+      const result=await Promise.race([
+        Promise.resolve(window.pushCentralActivity(record,activityType)),
+        new Promise(resolve=>setTimeout(()=>resolve({success:false,timeout:true}),ms))
+      ]);
+      if(result?.timeout) console.warn('Activity Log timeout sebelum navigasi:',activityType);
+      return result;
+    }catch(err){
+      console.warn('Activity Log sebelum navigasi:',err);
+      return {success:false,error:String(err?.message||err)};
+    }
   };
 
   window.loadAdminActivityLogs=async function(){
@@ -16947,7 +16682,7 @@ window.VERIFIED_OFFER_PUBLIC_BASE='https://penawaran.simulasikonsumer.id/';
 window.v77CreateVerifiedOffer=async function(){const st=document.getElementById('v77OfferStatus'),b=document.getElementById('v77CreateBtn');try{if(!composerItem)composerItem=getPayload();if(!cred())throw new Error('Sesi login Google tidak tersedia.');b.disabled=true;st.textContent='Membuat token aman dan batas simulasi...';const expiryDays=Number(document.getElementById('v77ExpiryDays').value||7);const payload={cif:composerItem.cif,debtorName:composerItem.debtorName,phone:composerItem.phone,product:composerItem.product,offerType:composerItem.offerType,source:composerItem.source,gross:composerItem.gross,tenor:composerItem.tenor,maxGross:composerItem.maxGross,maxInstallment:composerItem.maxInstallment,maxTenor:composerItem.maxTenor,minGross:composerItem.minGross,grossStep:composerItem.grossStep,minTenor:composerItem.minTenor,tenorStep:composerItem.tenorStep,rate:composerItem.rate,rateDecimal:composerItem.rateDecimal,insuranceAge:composerItem.insuranceAge,outstanding:composerItem.outstanding,bungaBerjalan:composerItem.bungaBerjalan,musisiAsuransi:composerItem.musisiAsuransi,feeSnapshot:composerItem.feeSnapshot,installment:composerItem.installment,net:composerItem.net};const r=await callApi('createVerifiedOffer',cred(),{offer:payload,expiryDays:expiryDays});if(!r||!r.success)throw new Error(r?.error||'Gagal membuat penawaran.');const offerBase=String(window.VERIFIED_OFFER_PUBLIC_BASE||'https://penawaran.simulasikonsumer.id/').trim();const u=new URL(offerBase);u.searchParams.set('offer',r.token);generated={...r,link:u.toString()};document.getElementById('v77VerifyCode').textContent=r.verifyCode;document.getElementById('v77OfferLink').textContent=generated.link;document.getElementById('v77Generated').style.display='block';st.textContent='Link berhasil dibuat. Debitur dapat menyesuaikan langsung plafond Rp10.000.000 s.d. '+rp(r.maxGross)+' dan tenor 6 s.d. '+r.maxTenor+' bulan. Template WA lama tetap tersedia.';}catch(e){st.textContent='Gagal: '+(e.message||e);b.disabled=false;}};
 function copyText(t){if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(t);const x=document.createElement('textarea');x.value=t;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();return Promise.resolve();}
 window.v77CopyOfferLink=()=>generated&&copyText(generated.link).then(()=>{document.getElementById('v77OfferStatus').textContent='Link disalin.'});window.v77CopyOfferCode=()=>generated&&copyText(generated.verifyCode).then(()=>{document.getElementById('v77OfferStatus').textContent='Kode verifikasi disalin.'});window.v77PreviewOffer=()=>{if(generated)window.open(generated.link,'_blank','noopener')};
-window.v77SendVerifiedWa=function(){if(!generated||!composerItem)return;let phone=String(composerItem.phone||'').replace(/\D/g,'');if(phone.startsWith('0'))phone='62'+phone.slice(1);if(!phone){alert('Nomor WhatsApp debitur tidak tersedia.');return;}const ao=String(window.currentUser?.name||window.currentUser?.nama||window.currentUser?.namaAO||'Account Officer').trim();const msg='Halo Bapak/Ibu '+composerItem.debtorName+', saya '+ao+'.\n\nUntuk keamanan, saya tidak meminta PIN, OTP, password, atau data kartu. Detail simulasi penawaran dapat dilihat melalui portal penawaran terverifikasi berikut:\n'+generated.link+'\n\nKode verifikasi: '+generated.verifyCode+'\nPastikan alamat browser tertulis penawaran.simulasikonsumer.id dan kode pada halaman sama dengan kode di pesan ini.\n\nDi halaman tersebut Bapak/Ibu dapat menyesuaikan sendiri plafond dan jangka waktu sampai batas potensi yang tersedia. Jika ragu membuka link, Bapak/Ibu tetap dapat membalas pesan ini dan saya akan menjelaskan penawarannya melalui WhatsApp.';try{const act=saveOfferActivity(composerItem.item,msg);if(act&&window.pushCentralActivity)Promise.resolve(window.pushCentralActivity(act,'PENAWARAN_WA')).catch(()=>{});}catch(e){}try{Promise.resolve(callApi('markVerifiedOfferSent',cred(),{token:generated.token})).catch(()=>{});}catch(e){}window.location.href='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);};
+window.v77SendVerifiedWa=async function(){if(!generated||!composerItem)return;let phone=String(composerItem.phone||'').replace(/\D/g,'');if(phone.startsWith('0'))phone='62'+phone.slice(1);if(!phone){alert('Nomor WhatsApp debitur tidak tersedia.');return;}const ao=String(window.currentUser?.name||window.currentUser?.nama||window.currentUser?.namaAO||'Account Officer').trim();const msg='Halo Bapak/Ibu '+composerItem.debtorName+', saya '+ao+'.\n\nUntuk keamanan, saya tidak meminta PIN, OTP, password, atau data kartu. Detail simulasi penawaran dapat dilihat melalui portal penawaran terverifikasi berikut:\n'+generated.link+'\n\nKode verifikasi: '+generated.verifyCode+'\nPastikan alamat browser tertulis penawaran.simulasikonsumer.id dan kode pada halaman sama dengan kode di pesan ini.\n\nDi halaman tersebut Bapak/Ibu dapat menyesuaikan sendiri plafond dan jangka waktu sampai batas potensi yang tersedia. Jika ragu membuka link, Bapak/Ibu tetap dapat membalas pesan ini dan saya akan menjelaskan penawarannya melalui WhatsApp.';try{const act=saveOfferActivity(composerItem.item,msg);if(act&&window.waitForCentralActivity)await window.waitForCentralActivity(act,'PENAWARAN_WA',5000);else if(act&&window.pushCentralActivity)await Promise.race([Promise.resolve(window.pushCentralActivity(act,'PENAWARAN_WA')),new Promise(resolve=>setTimeout(resolve,5000))]);}catch(e){console.warn('Activity verified WA:',e);}try{await Promise.race([Promise.resolve(callApi('markVerifiedOfferSent',cred(),{token:generated.token})),new Promise(resolve=>setTimeout(resolve,3000))]);}catch(e){}window.location.href='https://wa.me/'+phone+'?text='+encodeURIComponent(msg);};
 function calcDynamic(o,gross,tenor){const d=o.dynamic||{},f=d.fee||{};const absMaxG=Number(d.maxGross||o.gross||0),minG=Number(d.minGross||Math.min(absMaxG,10000000)),stepG=Math.max(1,Number(d.grossStep||1000000)),maxT=Number(d.maxTenor||o.tenor||0),minT=Number(d.minTenor||Math.min(maxT,6)),stepT=Math.max(1,Number(d.tenorStep||1)),rate=Number(d.rateDecimal||0),maxInst=Number(d.maxInstallment||0),i=rate/12;tenor=Math.round(Math.max(minT,Math.min(maxT,Math.round((Number(tenor||0)-minT)/stepT)*stepT+minT)));let maxG=absMaxG;if(maxInst>0&&tenor>0){let raw=0;if(i===0)raw=maxInst*tenor;else{const p=Math.pow(1+i,tenor);raw=maxInst*(p-1)/(i*p)}raw=Math.floor(raw/stepG)*stepG;if(raw>0)maxG=absMaxG>0?Math.min(absMaxG,raw):raw}maxG=Math.max(minG,maxG||minG);gross=Math.max(minG,Math.min(maxG,Math.round((Number(gross||0)-minG)/stepG)*stepG+minG));const pow=Math.pow(1+i,tenor),installment=i===0?gross/tenor:gross*(i*pow)/(pow-1),years=Math.ceil(tenor/12);let prov=0;if(f.isTHT)prov=Math.round(gross*.01);else if(f.isG2H)prov=Math.round(gross*.0025);else if(tenor<=84)prov=Math.round(years*gross*(Number(f.provisionLow||.2)/100));else prov=Math.round(gross*(Number(f.provisionHigh||1.5)/100));let adm=f.isG2HTht?Math.round(gross*.0025):(gross>250000000?Number(f.adminTier3||600000):gross>100000000?Number(f.adminTier2||350000):Number(f.adminTier1||200000));const ins=Math.ceil((gross+(gross*rate)/12)*years*(Number(f.insuranceRatePct||0)/100)),tab=Math.round(installment*Number(f.tabMultiplier||0)),net=Math.max(0,gross-prov-adm-ins-tab-Number(f.outstanding||0)-Number(f.bungaBerjalan||0)-Number(f.musisi||0));return{gross,tenor,installment,net,maxGrossForTenor:maxG};}
 function renderDynamic(o){const d=o.dynamic||{},locked=Boolean(o.response),current=calcDynamic(o,o.gross,o.tenor);if(!d.enabled)return '<div class="v77-offer-summary"><div><small>TENOR</small><b>'+esc(o.tenor)+' bulan</b></div><div><small>PLAFOND GROSS</small><b>'+esc(rp(o.gross))+'</b></div><div><small>ESTIMASI ANGSURAN</small><b>'+esc(rp(o.installment))+'/bln</b></div><div><small>ESTIMASI NETT</small><b>'+esc(rp(o.net))+'</b></div></div>';return '<div class="v79-sim '+(locked?'v79-locked':'')+'" id="v79DynamicSim"><div class="v79-sim-head"><div><h3>Atur Simulasi Anda</h3><p>Silakan tentukan plafond dan jangka waktu sesuai kebutuhan, maksimal sesuai potensi Anda.</p></div><span id="v79GrossLimit" class="v79-limit">Maks. '+rp(current.maxGrossForTenor)+'</span></div><div class="v79-adjust-info"><i class="fa-solid fa-sliders"></i><b>Plafond dan tenor simulasi dapat Anda sesuaikan langsung.</b> Geser slider atau isi angkanya sesuai kebutuhan Anda. Minimum plafond <b>Rp10.000.000</b> dan minimum tenor <b>6 bulan</b>, sedangkan batas maksimum mengikuti kartu potensi Anda.</div><div class="v79-control"><div class="v79-control-top"><label>Plafond Gross Pilihan</label><input id="v79GrossNumber" class="v79-number" type="number" min="'+d.minGross+'" max="'+current.maxGrossForTenor+'" step="'+d.grossStep+'" value="'+current.gross+'"></div><input id="v79GrossRange" class="v79-range" type="range" min="'+d.minGross+'" max="'+current.maxGrossForTenor+'" step="'+d.grossStep+'" value="'+current.gross+'"><div class="v79-scale"><span>'+rp(d.minGross)+'</span><span id="v79GrossMaxScale">'+rp(current.maxGrossForTenor)+'</span></div></div><div class="v79-control"><div class="v79-control-top"><label>Jangka Waktu Pilihan</label><input id="v79TenorNumber" class="v79-number" type="number" min="'+d.minTenor+'" max="'+d.maxTenor+'" step="'+d.tenorStep+'" value="'+current.tenor+'"></div><input id="v79TenorRange" class="v79-range" type="range" min="'+d.minTenor+'" max="'+d.maxTenor+'" step="'+d.tenorStep+'" value="'+current.tenor+'"><div class="v79-scale"><span>'+d.minTenor+' bulan</span><span>'+d.maxTenor+' bulan</span></div></div><div class="v79-result"><div><small>PLAFOND PILIHAN</small><b id="v79GrossOut">'+rp(current.gross)+'</b></div><div><small>TENOR PILIHAN</small><b id="v79TenorOut">'+current.tenor+' bulan</b></div><div><small>ESTIMASI ANGSURAN</small><b id="v79InstallmentOut">'+rp(current.installment)+'/bln</b></div><div class="accent"><small>ESTIMASI NETT</small><b id="v79NetOut">'+rp(current.net)+'</b></div><div class="wide"><small>SUKU BUNGA</small><b>'+esc(o.rate||'-')+'</b></div></div><div class="v79-dynamic-note">Perubahan hanya merupakan simulasi. Plafond/tenor final tetap mengikuti verifikasi, ketentuan produk, dan persetujuan kredit.</div></div>';}
 function bindDynamic(o){if(!o.dynamic?.enabled||o.response)return;const gn=document.getElementById('v79GrossNumber'),gr=document.getElementById('v79GrossRange'),tn=document.getElementById('v79TenorNumber'),tr=document.getElementById('v79TenorRange');if(!gn||!gr||!tn||!tr)return;const update=(src)=>{if(src===gn)gr.value=gn.value;if(src===gr)gn.value=gr.value;if(src===tn)tr.value=tn.value;if(src===tr)tn.value=tr.value;const c=calcDynamic(o,gn.value,tn.value);gn.max=gr.max=c.maxGrossForTenor;gn.value=gr.value=c.gross;tn.value=tr.value=c.tenor;document.getElementById('v79GrossLimit').textContent='Maks. '+rp(c.maxGrossForTenor);document.getElementById('v79GrossMaxScale').textContent=rp(c.maxGrossForTenor);document.getElementById('v79GrossOut').textContent=rp(c.gross);document.getElementById('v79TenorOut').textContent=c.tenor+' bulan';document.getElementById('v79InstallmentOut').textContent=rp(c.installment)+'/bln';document.getElementById('v79NetOut').textContent=rp(c.net);};[gn,gr,tn,tr].forEach(x=>x.addEventListener('input',()=>update(x)));update(gn);}
@@ -17611,7 +17346,7 @@ document.addEventListener('visibilitychange',()=>{
 </script>
 <script src="./android-back-v111.js?v=137"></script>
 <script src="./customer-care-v109.js"></script>
-<script src="./bundling-g6b-g2c-v117.js?v=175"></script>
+<script src="./bundling-g6b-g2c-v117.js"></script>
 <script src="./upload-v120.js?v=129" onerror="document.getElementById('v87ImportStatus').textContent='Modul upload V129 gagal dimuat. Muat ulang aplikasi atau hapus cache situs.'"></script>
 <script src="./usage-traffic-v122.js"></script>
 <script src="./score-header-v137.js?v=137"></script>

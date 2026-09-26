@@ -105,13 +105,6 @@ function applyInsurancePromo(fee,gross,pct,insuranceBaseOverride){
  result.netPencairan=Math.max(0,Number(gross||0)-result.totalPotongan);
  return result;
 }
-// V175: nett bundling wajib dihitung pada level gabungan. Nett per produk
-// dibatasi minimum Rp0 oleh engine biaya, sehingga menjumlahkan nett G6B dan
-// G2C dapat menghilangkan kelebihan pelunasan G6B yang tetap harus mengurangi
-// pencairan gabungan.
-function combinedNet(totalGross,totalDeductions){
- return Math.max(0,Number(totalGross||0)-Number(totalDeductions||0));
-}
 function insuranceBase(deb,gross,tenor,annualRate,product){
  try{
   const rules=getDebtorTenorRules(deb.status_pegawai,deb.tgl_lahir,deb.bup,product==='G6B'?300:180,deb.tgl_pelantikan,deb.masa_jabatan_bulan);
@@ -224,7 +217,7 @@ function recalc(resetGross){
  };
  const g6b=calcProduct('g6b','G6B',mode,allocation.g6b,6,e.g6bMax,mode==='MENGULANG'?settlement:{});
  const g2c=calcProduct('g2c','G2C','NEW',allocation.g2c,e.g2cMin,e.g2cMax,{});
- const used=g6b.installment+g2c.installment,finalCommitment=settlement.existingInstallment-settlement.releasedInstallment+used,totalGross=g6b.gross+g2c.gross,totalDeductions=Number(g6b.fee.totalPotongan||0)+Number(g2c.fee.totalPotongan||0),totalNet=combinedNet(totalGross,totalDeductions);
+ const used=g6b.installment+g2c.installment,finalCommitment=settlement.existingInstallment-settlement.releasedInstallment+used,totalGross=g6b.gross+g2c.gross,totalNet=Number(g6b.fee.netPencairan||0)+Number(g2c.fee.netPencairan||0),totalDeductions=Number(g6b.fee.totalPotongan||0)+Number(g2c.fee.totalPotongan||0);
  modal.querySelector('[data-rpc-summary]').innerHTML=`<div><small>RPC Gaji Aktif 90%</small><b>${money(settlement.activeRpc)}</b></div><div><small>Kewajiban GAJI Lama</small><b>${money(settlement.existingInstallment)}</b></div>${mode==='MENGULANG'?`<div><small>Angsuran G6B Dibebaskan</small><b>${money(settlement.releasedInstallment)}</b></div>`:''}<div><small>Ruang RPC Efektif</small><b>${money(settlement.available)}</b></div><div><small>RPC Pensiun 90%</small><b>${money(pension*.90)}</b></div><div><small>Alokasi G6B / G2C</small><b>${money(allocation.g6b)} / ${money(allocation.g2c)}</b></div>`;
  modal.querySelector('[data-total-net]').textContent=money(totalNet);
  modal.querySelector('[data-total-costs]').innerHTML=`<div><span>Total Plafond Gross</span><b>${money(totalGross)}</b></div><div><span>Nett G6B</span><b>${money(g6b.fee.netPencairan)}</b></div><div><span>Nett G2C</span><b>${money(g2c.fee.netPencairan)}</b></div><div><span>Total Potongan</span><b>${money(totalDeductions)}</b></div><div><span>Total Angsuran Baru</span><b>${money(used)}</b></div><div class="total"><span>Total Angsuran Setelah Bundling</span><b>${money(finalCommitment)} / ${money(settlement.activeRpc)}</b></div>`;
@@ -278,7 +271,7 @@ function boot(){
  `;document.head.appendChild(style);
  modal=document.createElement('dialog');modal.id='v115Bundle';modal.innerHTML='<div class="v17-sim-head"><button type="button" data-close aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></button><div><div class="v17-sim-title">Simulasi Interaktif Bundling</div><div class="v17-sim-subtitle">G6B + G2C • NEW atau MENGULANG • promo per produk</div></div></div><main><div data-body></div></main>';document.body.appendChild(modal);modal.querySelector('[data-close]').onclick=back;modal.addEventListener('cancel',e=>{e.preventDefault();back();});window.v111AndroidBack?.register('v115Bundle',back);
 }
-window.v117BundleRules={monthsUntil,bupInfo,source,productCode,access,eligibility,renewalCapacity,allocate,annuityInstallment,annuityGross,applyInsurancePromo,combinedNet};
+window.v117BundleRules={monthsUntil,bupInfo,source,productCode,access,eligibility,renewalCapacity,allocate,annuityInstallment,annuityGross,applyInsurancePromo};
 window.v116BundleRules=window.v117BundleRules;
 window.v115BundleRules=window.v117BundleRules;
 window.openBundlingG6bG2c=open;
