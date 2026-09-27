@@ -15530,6 +15530,15 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     }
   };
   window.loadMyActivityPhotos=window.loadMyActivityFromServer;
+  // V181: one-shot guard prevents multiple page hooks/timers from spawning duplicate activity syncs.
+  let photoSyncInFlight=null;
+  const originalLoadMyActivityFromServer=window.loadMyActivityFromServer;
+  window.loadMyActivityFromServer=async function(){
+    if(photoSyncInFlight) return photoSyncInFlight;
+    photoSyncInFlight=Promise.resolve(originalLoadMyActivityFromServer()).finally(()=>{photoSyncInFlight=null;});
+    return photoSyncInFlight;
+  };
+  window.loadMyActivityPhotos=window.loadMyActivityFromServer;
 
   function photoAuthError(value){return /google.*(?:token|credential)|id token|token.*(?:invalid|kedaluwarsa|expired)|credential.*(?:invalid|expired)|sesi.*(?:berakhir|tidak.*valid)/i.test(String(value?.message||value?.error||value||''));}
   function tokenExpiresSoon(token){try{let part=String(token||'').split('.')[1].replace(/-/g,'+').replace(/_/g,'/');part+='='.repeat((4-part.length%4)%4);const payload=JSON.parse(atob(part));return !payload.exp||Date.now()>=(Number(payload.exp)*1000-60000);}catch(e){return true;}}
