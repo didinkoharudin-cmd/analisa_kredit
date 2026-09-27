@@ -8500,7 +8500,7 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V179 O1 Activity Read Pagination Stability: operational Pipeline + Activity endpoints
+  // V180 O1 Activity Photo Supabase Hybrid: operational Pipeline + Activity endpoints
   // use the dedicated O1 Worker. Authentication remains through the same
   // Google credential; all other legacy actions stay on the main API.
   const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
@@ -11938,7 +11938,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=179',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=180',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
