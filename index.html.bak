@@ -8500,7 +8500,7 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V182 O1 Activity Photo: upload/read diarahkan ke O1 Worker; foto legacy tetap fallback ke Google.
+  // V180 O1 Activity Photo Supabase Hybrid: operational Pipeline + Activity endpoints
   // use the dedicated O1 Worker. Authentication remains through the same
   // Google credential; all other legacy actions stay on the main API.
   const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
@@ -8509,9 +8509,7 @@ function updateWaPreview() {
     'saveProspectPipeline',
     'logActivity',
     'getActivityLogs',
-    'getExecutiveActivityLogs',
-    'uploadActivityPhoto',
-    'getActivityPhoto'
+    'getExecutiveActivityLogs'
   ]);
 
   window.googleCredential = null;
@@ -11940,7 +11938,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=182',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=180',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
