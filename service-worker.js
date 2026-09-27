@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.184-o1-photo-orphan-recovery';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.184-o1-photo-complete';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
