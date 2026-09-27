@@ -14793,15 +14793,22 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
         search:document.getElementById('adminActivitySearch')?.value||''
       };
       const all=[];
-      const pageSize=250;
-      let offset=0;
-      for(let page=0; page<40 && all.length<10000; page++){
-        const result=await window.callApi('getActivityLogs',cred,Object.assign({},baseQuery,{pageSize,offset}));
+      // V188 Activity Admin: gunakan endpoint executive khusus Admin/Supervisor.
+      // Sebelumnya menu Admin melakukan hingga 40 request getActivityLogs x 250
+      // baris. Pada Activity Log yang sudah besar, rangkaian request ini mudah
+      // berakhir dengan browser "Load Failed" meskipun satu request tunggal normal.
+      // Endpoint executive mengizinkan batch lebih besar dan tetap dibatasi server.
+      const pageSize=1000;
+      let beforeRow=0;
+      let complete=false;
+      for(let page=0; page<20 && !complete && all.length<10000; page++){
+        const result=await window.callApi('getExecutiveActivityLogs',cred,Object.assign({},baseQuery,{pageSize,beforeRow}));
         if(!result||!result.success) throw new Error((result&&result.error)||'Gagal mengambil Activity Log.');
         const batch=Array.isArray(result.activities)?result.activities:[];
         all.push(...batch);
-        if(!result.hasMore||batch.length<pageSize||!batch.length) break;
-        offset=Number(result.nextOffset??(offset+batch.length));
+        complete=Boolean(result.complete);
+        beforeRow=Number(result.nextBeforeRow||0);
+        if(!beforeRow && !complete) complete=true;
       }
       window.adminActivityLogs=all.slice(0,10000);
       window.adminActivityPage=1;
