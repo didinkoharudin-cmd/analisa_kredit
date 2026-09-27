@@ -8500,7 +8500,7 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V183 O1 Activity Photo: upload/read diarahkan ke O1 Worker; foto legacy tetap fallback ke Google.
+  // V184 O1 Activity Photo: recovery orphan activity + guard tombol foto tanpa media; foto legacy tetap fallback ke Google.
   // use the dedicated O1 Worker. Authentication remains through the same
   // Google credential; all other legacy actions stay on the main API.
   const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
@@ -11382,7 +11382,7 @@ function renderV9Activity(){
       row.innerHTML=
         '<div class="v9-activity-top"><b>'+escapeHtml(item.nama||item.objectName||'Aktivitas AO')+'</b><span class="v9-chip">FOTO AKTIVITAS</span></div>'+
         '<div class="v9-activity-meta">Jenis: '+escapeHtml(String(item.photoCategory||'-').replace(/_/g,' '))+'<br>'+escapeHtml(item.photoNote||'Tanpa keterangan')+'<br>Disimpan: '+escapeHtml(item.waktuDisplay||'-')+(item.photoLocationName?'<br><b>Lokasi: '+escapeHtml(item.photoLocationName)+'</b> • akurasi ±'+Math.round(Number(item.photoAccuracy||0))+' m':'')+'</div>'+
-        '<div class="v9-activity-actions"><button data-photo-file-id="'+escapeHtml(item.photoFileId||'')+'" data-photo-title="'+escapeHtml(item.nama||'Foto Aktivitas AO')+'" class="v20-photo-view" style="background:#dbeafe;color:#1d4ed8"><i class="fa-solid fa-image"></i> Lihat Foto</button>'+(hasLocation?'<a href="'+escapeHtml(mapsUrl)+'" target="_blank" rel="noopener" style="background:#dcfce7;color:#166534;text-decoration:none;padding:8px;border-radius:9px;font-size:10px;font-weight:800"><i class="fa-solid fa-map-location-dot"></i> Maps</a>':'')+'</div>';
+        '<div class="v9-activity-actions">'+(item.photoFileId?'<button data-photo-file-id="'+escapeHtml(item.photoFileId)+'" data-photo-title="'+escapeHtml(item.nama||'Foto Aktivitas AO')+'" class="v20-photo-view" style="background:#dbeafe;color:#1d4ed8"><i class="fa-solid fa-image"></i> Lihat Foto</button>':'<span style="background:#fef3c7;color:#92400e;padding:8px;border-radius:9px;font-size:10px;font-weight:800"><i class="fa-solid fa-triangle-exclamation"></i> Dokumentasi belum tersedia</span>')+(hasLocation?'<a href="'+escapeHtml(mapsUrl)+'" target="_blank" rel="noopener" style="background:#dcfce7;color:#166534;text-decoration:none;padding:8px;border-radius:9px;font-size:10px;font-weight:800"><i class="fa-solid fa-map-location-dot"></i> Maps</a>':'')+'</div>';
     }else{
       row.innerHTML=
         '<div class="v9-activity-top"><b>'+escapeHtml(item.nama||'Debitur')+'</b>'+
@@ -11950,7 +11950,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=183',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=184',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -15588,7 +15588,28 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       try{
         const status=el('v20PhotoStatus');if(status)status.textContent=attempt===1?'Mengunggah dokumentasi aktivitas...':'Koneksi belum stabil. Mencoba kembali ('+attempt+'/3)...';
         const result=await window.callApi('uploadActivityPhoto',cred,{photo:prepared.photo});
-        if(result?.success){saveUploadedPhoto(prepared,result);return result;}
+        if(result?.success){
+          // V184: jika Activity sudah terlanjur tercipta tanpa activity_media (orphan
+          // akibat percobaan upload sebelumnya), Worker dapat mengembalikan
+          // duplicate=true tetapi photoFileId kosong. Jangan menyimpan keadaan kosong;
+          // buat clientKey baru untuk menyelesaikan upload file yang sama.
+          if(result.duplicate && !String(result.photoFileId||'').trim()){
+            const repairKey='PHOTO_REPAIR_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+            const repairPhoto=Object.assign({},prepared.photo,{clientKey:repairKey});
+            const repaired=await window.callApi('uploadActivityPhoto',cred,{photo:repairPhoto});
+            if(repaired?.success && String(repaired.photoFileId||'').trim()){
+              prepared.photo=repairPhoto;
+              prepared.meta.clientKey=repairKey;
+              saveUploadedPhoto(prepared,repaired);
+              return repaired;
+            }
+            if(photoAuthError(repaired))return queuePhotoAfterLogin(prepared,repaired?.error);
+            lastError=new Error(repaired?.error||'Server menemukan Activity lama tetapi dokumentasi belum terpasang.');
+          }else{
+            saveUploadedPhoto(prepared,result);return result;
+          }
+          if(lastError) throw lastError;
+        }
         if(photoAuthError(result))return queuePhotoAfterLogin(prepared,result?.error);
         lastError=new Error(result?.error||'Upload foto ditolak server.');
       }catch(err){
