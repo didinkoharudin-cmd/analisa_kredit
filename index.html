@@ -8500,7 +8500,7 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V174 O1 direct routing/stability: operational Pipeline + Activity endpoints
+  // V179 O1 Activity Read Pagination Stability: operational Pipeline + Activity endpoints
   // use the dedicated O1 Worker. Authentication remains through the same
   // Google credential; all other legacy actions stay on the main API.
   const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
@@ -11938,7 +11938,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=174',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=179',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -14641,16 +14641,25 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     try{
       const cred=window.googleCredential || (typeof googleCredential!=='undefined'?googleCredential:'');
       if(!cred) throw new Error('Sesi login Google tidak tersedia.');
-      const result=await window.callApi('getActivityLogs',cred,{
+      const baseQuery={
         dateFrom:document.getElementById('adminActivityDateFrom')?.value||'',
         dateTo:document.getElementById('adminActivityDateTo')?.value||'',
         kodeAO:document.getElementById('adminActivityAO')?.value||'',
         activityType:document.getElementById('adminActivityType')?.value||'',
-        search:document.getElementById('adminActivitySearch')?.value||'',
-        limit:10000
-      });
-      if(!result||!result.success) throw new Error((result&&result.error)||'Gagal mengambil Activity Log.');
-      window.adminActivityLogs=Array.isArray(result.activities)?result.activities:[];
+        search:document.getElementById('adminActivitySearch')?.value||''
+      };
+      const all=[];
+      const pageSize=250;
+      let offset=0;
+      for(let page=0; page<40 && all.length<10000; page++){
+        const result=await window.callApi('getActivityLogs',cred,Object.assign({},baseQuery,{pageSize,offset}));
+        if(!result||!result.success) throw new Error((result&&result.error)||'Gagal mengambil Activity Log.');
+        const batch=Array.isArray(result.activities)?result.activities:[];
+        all.push(...batch);
+        if(!result.hasMore||batch.length<pageSize||!batch.length) break;
+        offset=Number(result.nextOffset??(offset+batch.length));
+      }
+      window.adminActivityLogs=all.slice(0,10000);
       window.adminActivityPage=1;
       renderAdminActivityLogs();
       if(status) status.textContent='Data server berhasil dimuat • '+new Date().toLocaleString('id-ID');
@@ -15493,12 +15502,21 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     const cred=credential();if(!cred||typeof window.callApi!=='function')return {success:false,skipped:true};
     try{
       const selectedDate=typeof v50ActivitySelectedDate==='function'?v50ActivitySelectedDate():'';
-      const query={limit:1000};if(selectedDate){query.dateFrom=selectedDate;query.dateTo=selectedDate;}
-      const result=await window.callApi('getActivityLogs',cred,query);
-      if(!result?.success)throw new Error(result?.error||'Activity Log server tidak dapat dimuat.');
+      const query={};if(selectedDate){query.dateFrom=selectedDate;query.dateTo=selectedDate;}
+      const serverRaw=[];
+      const pageSize=250;
+      let offset=0;
+      for(let page=0; page<8 && serverRaw.length<1000; page++){
+        const result=await window.callApi('getActivityLogs',cred,Object.assign({},query,{pageSize,offset}));
+        if(!result?.success)throw new Error(result?.error||'Activity Log server tidak dapat dimuat.');
+        const batch=Array.isArray(result.activities)?result.activities:[];
+        serverRaw.push(...batch);
+        if(!result.hasMore||batch.length<pageSize||!batch.length)break;
+        offset=Number(result.nextOffset??(offset+batch.length));
+      }
       let local=[];try{local=JSON.parse(localStorage.getItem(LOCAL_ACTIVITY_KEY)||'[]');if(!Array.isArray(local))local=[];}catch(e){local=[];}
       const allowed=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI','FOTO_AKTIVITAS']);
-      const server=(Array.isArray(result.activities)?result.activities:[]).filter(x=>allowed.has(String(x.activityType||'').toUpperCase())).map(serverActivityToLocal);
+      const server=serverRaw.filter(x=>allowed.has(String(x.activityType||'').toUpperCase())).map(serverActivityToLocal);
       const known=new Set(server.map(x=>String(x.key||x.photoFileId||'')));
       const pendingLocal=local.filter(x=>{const key=String(x.key||x.photoFileId||'');return key&&!known.has(key);});
       const rows=server.concat(pendingLocal).sort((a,b)=>new Date(b.waktu||0)-new Date(a.waktu||0)).slice(0,1000);
