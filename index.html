@@ -1,3 +1,4 @@
+<!-- V18.3.11.186 — Manual Simulation to Prospect Pipeline fix; V185 photo recovery preserved. -->
 <!DOCTYPE html>
 <!-- V18.3.11.3 G7G RATE EDITABLE + PHOTO NOTARY CONDITIONAL; includes V18.3.11.2 orientation fix. -->
 
@@ -3465,7 +3466,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
           <label>Musisi Asuransi<input id="v117ManualMusisi" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
         </div>
       </div>
-      <div class="v17-sim-rule-strip"><span>Wajib: nama, tanggal lahir, dan jumlah penghasilan.</span><span>Nomor WA, dinas, serta rincian fasilitas bersifat opsional.</span><span>Data manual tidak disimpan ke database.</span></div>
+      <div class="v17-sim-rule-strip"><span>Wajib: nama, tanggal lahir, dan jumlah penghasilan.</span><span>Nomor WA, dinas, serta rincian fasilitas bersifat opsional.</span><span>Data manual tidak masuk database kredit/penghasilan; hasil simulasi valid otomatis dicatat sebagai prospek berstatus SIMULASI.</span></div>
       <div class="v116-manual-actions"><button id="v116ManualCancel" type="button"><i class="fa-solid fa-arrow-left"></i> Kembali</button><button type="submit"><i class="fa-solid fa-calculator"></i> Gunakan Data Manual</button></div>
     </form>
   </div>
@@ -11382,7 +11383,7 @@ function renderV9Activity(){
       row.innerHTML=
         '<div class="v9-activity-top"><b>'+escapeHtml(item.nama||item.objectName||'Aktivitas AO')+'</b><span class="v9-chip">FOTO AKTIVITAS</span></div>'+
         '<div class="v9-activity-meta">Jenis: '+escapeHtml(String(item.photoCategory||'-').replace(/_/g,' '))+'<br>'+escapeHtml(item.photoNote||'Tanpa keterangan')+'<br>Disimpan: '+escapeHtml(item.waktuDisplay||'-')+(item.photoLocationName?'<br><b>Lokasi: '+escapeHtml(item.photoLocationName)+'</b> • akurasi ±'+Math.round(Number(item.photoAccuracy||0))+' m':'')+'</div>'+
-        '<div class="v9-activity-actions"><button data-photo-file-id="'+escapeHtml(item.photoFileId||'')+'" data-photo-title="'+escapeHtml(item.nama||'Foto Aktivitas AO')+'" class="v20-photo-view" style="background:#dbeafe;color:#1d4ed8"><i class="fa-solid fa-image"></i> Lihat Foto</button>'+(hasLocation?'<a href="'+escapeHtml(mapsUrl)+'" target="_blank" rel="noopener" style="background:#dcfce7;color:#166534;text-decoration:none;padding:8px;border-radius:9px;font-size:10px;font-weight:800"><i class="fa-solid fa-map-location-dot"></i> Maps</a>':'')+'</div>';
+        '<div class="v9-activity-actions">'+(String(item.photoFileId||'').trim()?'<button data-photo-file-id="'+escapeHtml(item.photoFileId)+'" data-photo-title="'+escapeHtml(item.nama||'Foto Aktivitas AO')+'" class="v20-photo-view" style="background:#dbeafe;color:#1d4ed8"><i class="fa-solid fa-image"></i> Lihat Foto</button>':(String(item.key||'').trim()?'<button data-photo-repair-key="'+escapeHtml(item.key)+'" data-photo-repair-title="'+escapeHtml(item.nama||'Aktivitas AO')+'" data-photo-repair-category="'+escapeHtml(item.photoCategory||'AKTIVITAS_LAINNYA')+'" data-photo-repair-note="'+escapeHtml(item.photoNote||'')+'" class="v20-photo-repair" style="background:#fef3c7;color:#92400e"><i class="fa-solid fa-rotate"></i> Pulihkan Foto</button>':'<span style="background:#f1f5f9;color:#64748b;padding:8px;border-radius:9px;font-size:10px;font-weight:800"><i class="fa-regular fa-image"></i> Foto belum tersedia</span>'))+(hasLocation?'<a href="'+escapeHtml(mapsUrl)+'" target="_blank" rel="noopener" style="background:#dcfce7;color:#166534;text-decoration:none;padding:8px;border-radius:9px;font-size:10px;font-weight:800"><i class="fa-solid fa-map-location-dot"></i> Maps</a>':'')+'</div>';
     }else{
       row.innerHTML=
         '<div class="v9-activity-top"><b>'+escapeHtml(item.nama||'Debitur')+'</b>'+
@@ -11950,7 +11951,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=184',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=186',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -12578,8 +12579,126 @@ const simState={
   maxGross:0,
   age:0,
   insuranceAge:0,
-  mandatorySavingMultiplierEdited:false
+  mandatorySavingMultiplierEdited:false,
+  manualPipelineTimer:null,
+  manualPipelineKey:'',
+  manualPipelineSaving:false
 };
+
+// V187: bridge seluruh hasil simulasi yang dibagikan/di-download -> Pipeline Prospek.
+// Simulasi Manual dan DOWNLOAD_SIMULASI memakai satu jalur upsert yang idempotent.
+function simPipelineLogin(){
+  return (typeof currentUser!=='undefined'&&currentUser)||window.currentUser||{};
+}
+
+function simPipelineKey(snapshot){
+  const d=snapshot?.deb||{};
+  const login=simPipelineLogin();
+  const email=String(login.email||login.emailAO||'').trim().toLowerCase();
+  const name=String(d.nama||'').trim().toUpperCase().replace(/\s+/g,' ');
+  const cif=String(d.cif||'').trim().toUpperCase();
+  const product=String(simState.product||'').trim().toUpperCase();
+  const offer=String(simState.offer||'NEW').trim().toUpperCase();
+  const loan=String(snapshot?.facility?.no_pinjaman||'').trim().toUpperCase();
+  if(d.__manual) return 'MANUAL-SIM|'+email+'|'+name+'|'+String(d.tgl_lahir||'').slice(0,10)+'|'+product+'|'+offer;
+  return 'SIM-DOWNLOAD|'+email+'|'+cif+'|'+product+'|'+offer+'|'+loan;
+}
+
+function simManualPipelineKey(snapshot){ return simPipelineKey(snapshot); }
+
+function simPipelineSource(snapshot){
+  return normalizeWaIncomeSource(
+    simState.product==='G2C'?'GAJI/PENSIUN':snapshot?.rule?.sumber,
+    {tipe_pinjaman:simState.product}
+  ) || (simState.product==='G2C'?'GAJI/PENSIUN':String(snapshot?.rule?.sumber||'GAJI'));
+}
+
+function simPipelinePayload(snapshot,reason){
+  const d=snapshot?.deb||{};
+  return {
+    cif:String(d.cif||''),
+    nama:String(d.nama||'Debitur'),
+    noHp:String(d.no_hp||''),
+    produk:String(simState.product||''),
+    sumber:String(simPipelineSource(snapshot)||''),
+    jenisPengajuan:String(simState.offer||'NEW'),
+    plafond:Number(snapshot?.gross||0),
+    status:'SIMULASI',
+    reminderActive:false,
+    nextFollowup:'',
+    hasilFollowup:'',
+    catatan:reason==='DOWNLOAD_SIMULASI'
+      ? 'Dibuat/diperbarui otomatis dari Download/Share Simulasi.'
+      : 'Dibuat/diperbarui otomatis dari Simulasi Manual.'
+  };
+}
+
+async function simSyncSimulationPipeline(snapshot,reason){
+  if(!snapshot?.deb) return {success:false,skipped:true,reason:'NO_DEBTOR'};
+  if(!(Number(snapshot.gross||0)>0 && Number(snapshot.tenor||0)>0)) return {success:false,skipped:true,reason:'SIMULASI_BELUM_VALID'};
+  const cred=window.googleCredential || (typeof googleCredential!=='undefined'?googleCredential:'');
+  if(!cred || typeof window.callApi!=='function') return {success:false,skipped:true,reason:'SESSION_NOT_READY'};
+
+  const key=simPipelineKey(snapshot);
+  const payload=simPipelinePayload(snapshot,reason);
+  let existing=null;
+
+  try{
+    // Manual uses a stable legacy_id directly. For database debtors, first look
+    // for an existing prospect with the same CIF/product/jenis pengajuan so a
+    // download updates the existing pipeline card instead of creating a second one.
+    if(!snapshot.deb.__manual){
+      try{
+        const sr=await window.callApi('getProspectPipeline',cred,{search:String(snapshot.deb.cif||''),page:1,pageSize:10});
+        if(sr?.success && Array.isArray(sr.prospects)){
+          const cif=String(snapshot.deb.cif||'').trim().toUpperCase();
+          const product=String(simState.product||'').trim().toUpperCase();
+          const offer=String(simState.offer||'').trim().toUpperCase();
+          existing=sr.prospects.find(p=>
+            String(p.cif||'').trim().toUpperCase()===cif &&
+            String(p.produk||'').trim().toUpperCase()===product &&
+            String(p.jenisPengajuan||'').trim().toUpperCase()===offer
+          )||null;
+        }
+      }catch(findErr){
+        console.warn('[V187] Pencarian prospek existing sebelum DOWNLOAD_SIMULASI gagal:',findErr);
+      }
+    }
+
+    const request=Object.assign({},payload);
+    if(existing){
+      request.id=String(existing.id||'');
+      if(existing.supabaseId) request.supabaseId=String(existing.supabaseId);
+    }else{
+      request.legacyId=key;
+    }
+
+    const r=await window.callApi('saveProspectPipeline',cred,{prospect:request});
+    if(!r?.success) throw new Error(r?.error||'Pipeline simulasi gagal disimpan.');
+    if(snapshot.deb.__manual) simState.manualPipelineKey=key;
+    return r;
+  }catch(err){
+    console.warn('[V187] Simulasi -> Pipeline gagal:',err);
+    return {success:false,error:String(err?.message||err)};
+  }
+}
+
+async function simSyncManualPipeline(snapshot){
+  return simSyncSimulationPipeline(snapshot,'SIMULASI_MANUAL');
+}
+
+function scheduleManualPipelineSync(){
+  if(!simState.debtor?.__manual) return;
+  if(simState.manualPipelineTimer) clearTimeout(simState.manualPipelineTimer);
+  simState.manualPipelineTimer=setTimeout(()=>{
+    simState.manualPipelineTimer=null;
+    try{
+      const snapshot=simCurrentSnapshot();
+      if(snapshot) simSyncManualPipeline(snapshot);
+    }catch(err){ console.warn('[V187] Snapshot Pipeline:',err); }
+  },500);
+}
+
 
 function simMoney(v){
   return 'Rp '+Math.round(Number(v)||0).toLocaleString('id-ID');
@@ -13105,6 +13224,10 @@ function simResetPerson(){
   simState.facility=null;
   simState.facilities=[];
   simState.mandatorySavingMultiplierEdited=false;
+  if(simState.manualPipelineTimer) clearTimeout(simState.manualPipelineTimer);
+  simState.manualPipelineTimer=null;
+  simState.manualPipelineKey='';
+  simState.manualPipelineSaving=false;
   document.getElementById('v17SimEmployeeCard').style.display='none';
   document.getElementById('v17SimStepSearch').style.display='';
   document.getElementById('v17SimStepCalc').style.display='none';
@@ -13584,6 +13707,7 @@ function v18SpecialRecalc(resetGross){
  const nw=document.getElementById('v17SimNotaryWrap'),nr=document.getElementById('v17CostNotaryRow');
  if(nw)nw.style.display=gross>500000000?'block':'none';if(nr)nr.style.display=gross>500000000?'flex':'none';
  document.getElementById('v17CostNotary').textContent=simMoney(fees.biayaNotaris||0);
+ scheduleManualPipelineSync();
 }
 
 function simRecalculate(resetGross){
@@ -13705,6 +13829,7 @@ function simRecalculate(resetGross){
   if(notaryWrap) notaryWrap.style.display=gross>500000000?'block':'none';
   if(notaryRow) notaryRow.style.display=gross>500000000?'flex':'none';
   document.getElementById('v17CostNotary').textContent=simMoney(fees.biayaNotaris||0);
+  scheduleManualPipelineSync();
 }
 
 
@@ -13898,6 +14023,13 @@ function simActivityRecords(snapshot,phone){
 
 async function simSaveAndLogActivities(snapshot,phone,activityType){
   const records=simActivityRecords(snapshot,phone);
+
+  // V187: DOWNLOAD_SIMULASI juga harus membuat/memperbarui prospek Pipeline.
+  // Jangan menggagalkan download/Activity bila sinkronisasi Pipeline gagal.
+  if(String(activityType||'').toUpperCase()==='DOWNLOAD_SIMULASI'){
+    try{ await simSyncSimulationPipeline(snapshot,'DOWNLOAD_SIMULASI'); }
+    catch(err){ console.warn('[V187] DOWNLOAD_SIMULASI -> Pipeline:',err); }
+  }
   try{
     const activity=JSON.parse(localStorage.getItem('analisaKredit_offerActivity_v1')||'[]');
     records.forEach(rec=>{
@@ -15342,6 +15474,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   let previewUrl='';
   let selectedLocation=null;
   let locationInFlight=null;
+  let repairClientKey='';
 
   function el(id){ return document.getElementById(id); }
   function escText(v){ return String(v??''); }
@@ -15355,6 +15488,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     if(!open) resetCaptureForm();
   }
   function resetCaptureForm(){
+    repairClientKey='';
     selectedFile=null;
     selectedLocation=null;
     locationInFlight=null;
@@ -15483,7 +15617,13 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     let rows=[];
     try{rows=JSON.parse(localStorage.getItem(LOCAL_ACTIVITY_KEY)||'[]');if(!Array.isArray(rows))rows=[];}catch(e){rows=[];}
     const key=String(meta?.key||meta?.photoFileId||'');
-    rows=rows.filter(x=>String(x?.key||x?.photoFileId||'')!==key);rows.unshift(meta);
+    const photoId=String(meta?.photoFileId||'').trim();
+    rows=rows.filter(x=>{
+      const sameKey=String(x?.key||x?.photoFileId||'')===key;
+      const samePhoto=photoId&&String(x?.photoFileId||'').trim()===photoId;
+      return !sameKey&&!samePhoto;
+    });
+    rows.unshift(meta);
     try{localStorage.setItem(LOCAL_ACTIVITY_KEY,JSON.stringify(rows.slice(0,1000)));}catch(e){console.warn('My Activity foto:',e);}
     window.renderV9Activity?.();
   }
@@ -15503,11 +15643,37 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       tipe_pinjaman:x.produk||'',produk_pengajuan:x.produk||'',jenis_penawaran:x.jenis_pengajuan||type,
       tenor:Number(x.tenor||0),plafond_gross:Number(x.plafond_gross||0),estimasi_angsuran:Number(x.angsuran||0),
       potensi_nett:Number(x.nett||0),outstanding:Number(x.outstanding||0),no_hp:x.no_hp||'',
-      photoCategory:x.photoCategory||'',photoNote:x.photoNote||'',photoFileId:x.photoFileId||'',
+      photoCategory:x.photoCategory||'',photoNote:x.photoNote||'',photoFileId:x.photoFileId||'',photoActivityId:x.photoActivityId||'',
       photoFileName:x.photoFileName||'',photoLatitude:x.photoLatitude,photoLongitude:x.photoLongitude,
       photoAccuracy:x.photoAccuracy,photoLocationTimestamp:x.photoLocationTimestamp||'',
       photoLocationName:x.photoLocationName||'',photoLocationAddress:x.photoLocationAddress||''
     };
+  }
+
+  function normalizeMyActivityRows(rows){
+    const out=[];
+    const seenPhotos=new Set();
+    const seenActivities=new Set();
+    (Array.isArray(rows)?rows:[]).forEach(row=>{
+      const type=String(row?.activityType||'').trim().toUpperCase();
+      const photoId=String(row?.photoFileId||'').trim();
+      const key=String(row?.key||row?.clientKey||'').trim();
+      if(type==='FOTO_AKTIVITAS'){
+        // A single media object must appear only once even when an old local
+        // cache entry has a different clientKey than the server row.
+        const identity=photoId?('MEDIA:'+photoId):(key?('KEY:'+key):('ROW:'+String(row?.waktu||'')+'|'+String(row?.nama||'')));
+        if(seenPhotos.has(identity)) return;
+        seenPhotos.add(identity);
+      }else{
+        // Keep legitimate repeated activities, but suppress exact cache/server
+        // duplicates produced by a previous sync.
+        const identity=[type,key,String(row?.waktu||'')].join('|');
+        if(seenActivities.has(identity)) return;
+        seenActivities.add(identity);
+      }
+      out.push(row);
+    });
+    return out;
   }
 
   window.loadMyActivityFromServer=async function(){
@@ -15529,9 +15695,18 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       let local=[];try{local=JSON.parse(localStorage.getItem(LOCAL_ACTIVITY_KEY)||'[]');if(!Array.isArray(local))local=[];}catch(e){local=[];}
       const allowed=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI','FOTO_AKTIVITAS']);
       const server=serverRaw.filter(x=>allowed.has(String(x.activityType||'').toUpperCase())).map(serverActivityToLocal);
-      const known=new Set(server.map(x=>String(x.key||x.photoFileId||'')));
-      const pendingLocal=local.filter(x=>{const key=String(x.key||x.photoFileId||'');return key&&!known.has(key);});
-      const rows=server.concat(pendingLocal).sort((a,b)=>new Date(b.waktu||0)-new Date(a.waktu||0)).slice(0,1000);
+      const serverKeys=new Set(server.map(x=>String(x.key||x.clientKey||'')));
+      const serverPhotoIds=new Set(server.filter(x=>String(x.activityType||'').toUpperCase()==='FOTO_AKTIVITAS'&&x.photoFileId).map(x=>String(x.photoFileId)));
+      const pendingLocal=local.filter(x=>{
+        const type=String(x?.activityType||'').toUpperCase();
+        const key=String(x?.key||x?.clientKey||'');
+        const photoId=String(x?.photoFileId||'');
+        // Once the server exposes the same media UUID, the server copy is authoritative.
+        if(type==='FOTO_AKTIVITAS'&&photoId&&serverPhotoIds.has(photoId)) return false;
+        return key&&!serverKeys.has(key);
+      });
+      const rows=normalizeMyActivityRows(server.concat(pendingLocal))
+        .sort((a,b)=>new Date(b.waktu||0)-new Date(a.waktu||0)).slice(0,1000);
       localStorage.setItem(LOCAL_ACTIVITY_KEY,JSON.stringify(rows));
       window.renderV9Activity?.();
       return {success:true,total:rows.length,serverTotal:server.length};
@@ -15561,7 +15736,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     savePhotoLocal({
       key:m.clientKey,activityType:'FOTO_AKTIVITAS',waktu:now.toISOString(),waktuDisplay:now.toLocaleString('id-ID'),
       nama:m.objectName||'Aktivitas AO',objectName:m.objectName,photoCategory:m.category,photoNote:m.note,
-      photoFileId:result.photoFileId||'',photoFileName:result.photoFileName||'',
+      photoFileId:result.photoFileId||'',photoActivityId:result.activityId||'',photoFileName:result.photoFileName||'',
       photoLatitude:location.latitude,photoLongitude:location.longitude,photoAccuracy:location.accuracy,
       photoLocationTimestamp:new Date(location.timestamp).toISOString(),photoLocationName:result.locationName||location.placeName,
       photoLocationAddress:result.locationAddress||location.formattedAddress,kode_ao:window.currentUser?.kodeAO||''
@@ -15617,7 +15792,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     const button=el('v20PhotoSave'),status=el('v20PhotoStatus'),old=button?.innerHTML||'';
     if(button){button.disabled=true;button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Mengompresi...';}
     if(status)status.textContent='Menyiapkan foto agar hemat kuota...';
-    const clientKey='PHOTO_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+    const clientKey=repairClientKey||('PHOTO_'+Date.now()+'_'+Math.random().toString(36).slice(2,10));
     try{
       if(button)button.innerHTML='<i class="fa-solid fa-satellite-dish fa-pulse"></i> Mencari GPS...';
       if(status)status.textContent='Mengambil lokasi berakurasi tinggi dari perangkat...';
@@ -15676,6 +15851,17 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     }catch(err){if(loading)loading.textContent='Gagal memuat foto: '+String(err?.message||err);}
   };
 
+  window.preparePhotoRepair=function(clientKey,title,category,note){
+    const key=String(clientKey||'').trim();
+    if(!key){alert('Kunci aktivitas untuk pemulihan foto tidak tersedia.');return;}
+    repairClientKey=key;
+    setCaptureOpen(true);
+    if(el('v20PhotoObject'))el('v20PhotoObject').value=String(title||'Aktivitas AO');
+    if(el('v20PhotoCategory'))el('v20PhotoCategory').value=String(category||'AKTIVITAS_LAINNYA');
+    if(el('v20PhotoNote'))el('v20PhotoNote').value=String(note||'');
+    if(el('v20PhotoStatus'))el('v20PhotoStatus').textContent='Mode pemulihan foto: pilih ulang foto untuk aktivitas ini. Aktivitas lama tidak akan dibuat ganda.';
+  };
+
   function handlePhotoSelection(input){
     const file=input?.files?.[0];if(!file)return;
     const looksLikeImage=/^image\//i.test(String(file.type||''))||/\.(jpe?g|png|webp|heic|heif)$/i.test(String(file.name||''));
@@ -15707,6 +15893,8 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     el('v20PhotoViewerClose')?.addEventListener('click',()=>setViewerOpen(false));
     el('v20PhotoViewerModal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)setViewerOpen(false);});
     document.addEventListener('click',e=>{
+      const repair=e.target.closest('.v20-photo-repair');
+      if(repair){window.preparePhotoRepair(repair.dataset.photoRepairKey,repair.dataset.photoRepairTitle,repair.dataset.photoRepairCategory,repair.dataset.photoRepairNote);return;}
       const btn=e.target.closest('.v20-photo-view');if(btn)window.openActivityPhoto(btn.dataset.photoFileId,btn.dataset.photoTitle);
     });
     document.querySelector('[data-v9-page="activity"]')?.addEventListener('click',()=>setTimeout(()=>window.loadMyActivityPhotos?.(),120));
