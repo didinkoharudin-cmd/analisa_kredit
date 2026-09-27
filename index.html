@@ -8500,7 +8500,7 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V182 O1 Activity Photo: upload/read diarahkan ke O1 Worker; foto legacy tetap fallback ke Google.
+  // V183 O1 Activity Photo: upload/read diarahkan ke O1 Worker; foto legacy tetap fallback ke Google.
   // use the dedicated O1 Worker. Authentication remains through the same
   // Google credential; all other legacy actions stay on the main API.
   const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
@@ -8510,9 +8510,19 @@ function updateWaPreview() {
     'logActivity',
     'getActivityLogs',
     'getExecutiveActivityLogs',
-    'uploadActivityPhoto',
-    'getActivityPhoto'
+    'uploadActivityPhoto'
   ]);
+
+  // V183: getActivityPhoto memakai dua jalur berdasarkan format ID.
+  // Foto baru O1/Supabase memiliki UUID; foto lama tetap memakai Google API
+  // agar tidak dikirim ke Worker O1 dan tidak membebani lane O1 dengan request
+  // legacy yang memang tidak dapat dibaca oleh Supabase Storage.
+  const isSupabasePhotoId = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||'').trim());
+  const shouldUseO1FrontendAction = (action, payload) => {
+    const a=String(action||'');
+    if(a==='getActivityPhoto') return isSupabasePhotoId(payload?.photoFileId);
+    return O1_FRONTEND_ACTIONS.has(a);
+  };
 
   window.googleCredential = null;
   window.currentUser = null;
@@ -8690,7 +8700,7 @@ function updateWaPreview() {
   // sehingga edit/save Pipeline masih dapat berjalan bersamaan dengan My Activity,
   // Admin Activity, dan reminder polling. Burst seperti itu sempat menghasilkan
   // HTTP 503 / Failed to fetch walaupun request tunggal berhasil.
-  const SCORE_O1_LANE_ACTIONS = new Set([...O1_FRONTEND_ACTIONS]);
+  const SCORE_O1_LANE_ACTIONS = new Set([...O1_FRONTEND_ACTIONS, 'getActivityPhoto']);
   let scoreO1LaneTail = Promise.resolve();
   const scoreSleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
 
@@ -9055,7 +9065,7 @@ function updateWaPreview() {
           const controller = ('AbortController' in window) ? new AbortController() : null;
           const timer = controller ? setTimeout(()=>controller.abort(), timeoutMs) : null;
           try{
-            const apiUrl = O1_FRONTEND_ACTIONS.has(String(action||''))
+            const apiUrl = shouldUseO1FrontendAction(action,extraPayload)
               ? O1_API_URL
               : AUTH_CONFIG.API_URL;
             const response=await fetch(apiUrl,{
@@ -11940,7 +11950,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=182',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=183',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
