@@ -8500,7 +8500,7 @@ function updateWaPreview() {
     API_URL: 'https://analisa-kredit-api.didin-koharudin.workers.dev/'
   };
 
-  // V172 O1 direct routing: operational Pipeline + Activity endpoints
+  // V174 O1 direct routing/stability: operational Pipeline + Activity endpoints
   // use the dedicated O1 Worker. Authentication remains through the same
   // Google credential; all other legacy actions stay on the main API.
   const O1_API_URL = 'https://score-operational-o1-pilot.didin-koharudin.workers.dev/';
@@ -8683,7 +8683,23 @@ function updateWaPreview() {
   };
   let scoreBackgroundTail = Promise.resolve();
   const scoreRequestInFlight = new Map();
+  // V174: dedicated O1 Worker single lane. Semua action yang diarahkan ke O1
+  // Worker (READ maupun WRITE) diserialkan. Sebelumnya V173 hanya menahan READ,
+  // sehingga edit/save Pipeline masih dapat berjalan bersamaan dengan My Activity,
+  // Admin Activity, dan reminder polling. Burst seperti itu sempat menghasilkan
+  // HTTP 503 / Failed to fetch walaupun request tunggal berhasil.
+  const SCORE_O1_LANE_ACTIONS = new Set([...O1_FRONTEND_ACTIONS]);
+  let scoreO1LaneTail = Promise.resolve();
   const scoreSleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
+
+  function scoreAcquireO1Lane(action){
+    if(!SCORE_O1_LANE_ACTIONS.has(String(action||''))) return null;
+    let release;
+    const gate=new Promise(resolve=>{ release=resolve; });
+    const previous=scoreO1LaneTail;
+    scoreO1LaneTail=previous.catch(()=>{}).then(()=>gate);
+    return previous.catch(()=>{}).then(()=>release);
+  }
 
   function scoreMarkAuthenticated(){
     scoreStartupNetwork.authAt=Date.now();
@@ -9017,6 +9033,7 @@ function updateWaPreview() {
       // dibuat SETELAH giliran diperoleh, sehingga request tidak timeout hanya
       // karena menunggu Smart Sync selesai.
       const backgroundRelease=await scoreAcquireBackgroundSlot(action);
+      const o1LaneRelease=await scoreAcquireO1Lane(action);
       try{
         let lastError=null;
         const isBackgroundActivity = action === 'logActivity' || action === 'trackUsage' || action === 'sendWebPushChatFast';
@@ -9030,7 +9047,7 @@ function updateWaPreview() {
         // V163: getData tetap single-flight, tetapi boleh melakukan SATU retry
         // berurutan hanya bila respons gateway bukan JSON / koneksi putus sebelum
         // respons dapat dibaca. Retry tidak pernah berjalan paralel.
-        const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || isBackgroundActivity) ? 1 : 2;
+        const maxAttempts = (action === 'importBranchData' || action === 'manageBranchV91' || action === 'manageCentralBannerV91' || action === 'sendChatMessage' || action === 'sendWhatsAppCloudTemplate' || action === 'sendWhatsAppCloudTestTemplate' || action === 'saveProspectPipeline' || isBackgroundActivity) ? 1 : 2;
 
         for(let attempt=1; attempt<=maxAttempts; attempt++){
           const controller = ('AbortController' in window) ? new AbortController() : null;
@@ -9081,6 +9098,7 @@ function updateWaPreview() {
         }
         throw lastError || new Error('Gagal menghubungi server API.');
       }finally{
+        if(typeof o1LaneRelease==='function') o1LaneRelease();
         if(typeof backgroundRelease==='function') backgroundRelease();
       }
     })();
@@ -11920,7 +11938,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=172',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=174',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
