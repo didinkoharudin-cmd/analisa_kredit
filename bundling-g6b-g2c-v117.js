@@ -66,7 +66,7 @@ function eligibility(deb,now=new Date(),u=user(),scenario='NEW'){
  const until70=new Date(birth(deb));until70.setFullYear(until70.getFullYear()+70);
  const g2cMax=Math.min(Number(g2cRule.maxTenorProduct||180),Math.max(0,monthsUntil(until70,now)||0));
  if(g6bMax<6||g2cMax<=info.remainingMonths)return {ok:false,reason:'Tenor bundling tidak mencukupi'};
- return {ok:true,mode:scenarioMode,info,salary,salaryFacilities,renewalFacilities,g6bMax:Math.floor(g6bMax),g2cMax:Math.floor(g2cMax),g2cMin:Math.max(6,Math.floor(info.remainingMonths)+1)};
+ return {ok:true,mode:scenarioMode,info,salary,salaryFacilities,renewalFacilities,g6bMax:Math.floor(g6bMax),g2cMax:Math.floor(g2cMax),g2cMin:6};
 }
 function renewalCapacity(selectedFacilities,allSalaryFacilities,activeIncome){
  const chosen=(selectedFacilities||[]).filter(Boolean),all=(allSalaryFacilities||[]).filter(Boolean);
@@ -217,11 +217,20 @@ function recalc(resetGross){
  };
  const g6b=calcProduct('g6b','G6B',mode,allocation.g6b,6,e.g6bMax,mode==='MENGULANG'?settlement:{});
  const g2c=calcProduct('g2c','G2C','NEW',allocation.g2c,e.g2cMin,e.g2cMax,{});
- const used=g6b.installment+g2c.installment,finalCommitment=settlement.existingInstallment-settlement.releasedInstallment+used,totalGross=g6b.gross+g2c.gross,totalNet=Number(g6b.fee.netPencairan||0)+Number(g2c.fee.netPencairan||0),totalDeductions=Number(g6b.fee.totalPotongan||0)+Number(g2c.fee.totalPotongan||0);
+ const used=g6b.installment+g2c.installment,finalCommitment=settlement.existingInstallment-settlement.releasedInstallment+used,totalGross=g6b.gross+g2c.gross;
+ // V189: NETT BUNDLING dihitung dari total plafond dikurangi seluruh biaya dan seluruh pelunasan.
+ // Jangan menjumlahkan nett per produk karena nett individual dapat ter-clamp di 0 dan menyembunyikan
+ // pelunasan/biaya yang melebihi plafond salah satu fasilitas.
+ const g6bPayoff=Number(g6b.fee.pelunasanBakiDebet||0)+Number(g6b.fee.bungaBerjalan||0)+Number(g6b.fee.biayaMusisiAsuransi||g6b.fee.pengembalianMusisiAsuransi||0);
+ const g2cPayoff=Number(g2c.fee.pelunasanBakiDebet||0)+Number(g2c.fee.bungaBerjalan||0)+Number(g2c.fee.biayaMusisiAsuransi||g2c.fee.pengembalianMusisiAsuransi||0);
+ const totalPayoff=g6bPayoff+g2cPayoff;
+ const totalDeductions=Number(g6b.fee.totalPotongan||0)+Number(g2c.fee.totalPotongan||0);
+ const totalCosts=Math.max(0,totalDeductions-totalPayoff);
+ const totalNet=Math.max(0,totalGross-totalCosts-totalPayoff);
  modal.querySelector('[data-rpc-summary]').innerHTML=`<div><small>RPC Gaji Aktif 90%</small><b>${money(settlement.activeRpc)}</b></div><div><small>Kewajiban GAJI Lama</small><b>${money(settlement.existingInstallment)}</b></div>${mode==='MENGULANG'?`<div><small>Angsuran G6B Dibebaskan</small><b>${money(settlement.releasedInstallment)}</b></div>`:''}<div><small>Ruang RPC Efektif</small><b>${money(settlement.available)}</b></div><div><small>RPC Pensiun 90%</small><b>${money(pension*.90)}</b></div><div><small>Alokasi G6B / G2C</small><b>${money(allocation.g6b)} / ${money(allocation.g2c)}</b></div>`;
  modal.querySelector('[data-total-net]').textContent=money(totalNet);
- modal.querySelector('[data-total-costs]').innerHTML=`<div><span>Total Plafond Gross</span><b>${money(totalGross)}</b></div><div><span>Nett G6B</span><b>${money(g6b.fee.netPencairan)}</b></div><div><span>Nett G2C</span><b>${money(g2c.fee.netPencairan)}</b></div><div><span>Total Potongan</span><b>${money(totalDeductions)}</b></div><div><span>Total Angsuran Baru</span><b>${money(used)}</b></div><div class="total"><span>Total Angsuran Setelah Bundling</span><b>${money(finalCommitment)} / ${money(settlement.activeRpc)}</b></div>`;
- snapshot={deb,e,mode,renewals,active,pension,settlement,allocation,g6b,g2c,totalGross,totalNet,totalDeductions,used,finalCommitment,createdAt:new Date()};
+ modal.querySelector('[data-total-costs]').innerHTML=`<div><span>Total Plafond Gross</span><b>${money(totalGross)}</b></div><div><span>Total Biaya</span><b>${money(totalCosts)}</b></div><div><span>Total Pelunasan</span><b>${money(totalPayoff)}</b></div><div><span>Nett G6B</span><b>${money(g6b.fee.netPencairan)}</b></div><div><span>Nett G2C</span><b>${money(g2c.fee.netPencairan)}</b></div><div><span>Total Potongan</span><b>${money(totalDeductions)}</b></div><div><span>Total Angsuran Baru</span><b>${money(used)}</b></div><div class="total"><span>Total Angsuran Setelah Bundling</span><b>${money(finalCommitment)} / ${money(settlement.activeRpc)}</b></div>`;
+ snapshot={deb,e,mode,renewals,active,pension,settlement,allocation,g6b,g2c,totalGross,totalNet,totalDeductions,totalCosts,totalPayoff,used,finalCommitment,createdAt:new Date()};
 }
 function togglePromo(code){
  const used=modal.querySelector(`[data-${code}-promo]`).value==='YES';
@@ -246,7 +255,7 @@ function captureBlob(){
   card(450,355);x.fillStyle='#172554';x.font='700 30px Arial';x.fillText('Kapasitas Bundling',75,505);let y=section('RPC BERSAMA',530);line('RPC Gaji Aktif 90%',money(s.settlement.activeRpc),y);y+=50;line('Kewajiban GAJI Lama',money(s.settlement.existingInstallment),y);y+=50;if(s.mode==='MENGULANG'){line('Angsuran G6B Dibebaskan',money(s.settlement.releasedInstallment),y);y+=50;}line('Ruang RPC Efektif',money(s.settlement.available),y);y+=50;line('Alokasi G6B / G2C',money(s.allocation.g6b)+' / '+money(s.allocation.g2c),y);
   const drawProduct=(result,title,start,height)=>{card(start,height);x.fillStyle='#172554';x.font='700 30px Arial';x.fillText(title,75,start+55);let py=section('RINCIAN FASILITAS & BIAYA',start+80),step=43;line('Plafond Gross',money(result.gross),py);py+=step;line('Tenor',result.tenor+' bulan',py);py+=step;line('Bunga Efektif',result.effectiveRate.toFixed(2)+'% p.a.',py);py+=step;line('Angsuran',money(result.installment),py);py+=step;if(result.promo.used){line('Promo Asuransi','Diskon '+result.promo.pct+'% • Spread '+result.promo.spread.toFixed(2)+'%',py);py+=step;line('Asuransi sebelum Promo',money(result.fee.biayaAsuransiBase),py);py+=step;line('Diskon Asuransi','- '+money(result.fee.diskonAsuransi),py,true);py+=step;}line('Biaya Asuransi',money(result.fee.biayaAsuransi),py);py+=step;line('Biaya Provisi',money(result.fee.biayaProvisi),py);py+=step;line('Biaya Administrasi',money(result.fee.biayaAdmin),py);py+=step;line('Tabungan Wajib',money(result.fee.tabunganWajib),py);py+=step;if(result.offer==='MENGULANG'){line('Pelunasan Sisa Pokok',money(result.fee.pelunasanBakiDebet),py);py+=step;line('Bunga Berjalan',money(result.fee.bungaBerjalan),py);py+=step;line('Musisi Asuransi',money(result.fee.biayaMusisiAsuransi),py);py+=step;}line('Total Potongan',money(result.fee.totalPotongan),py);py+=step;line('DITERIMA NETT',money(result.fee.netPencairan),py,true);};
   drawProduct(s.g6b,'G6B • '+s.g6b.offer,835,850);drawProduct(s.g2c,'G2C • NEW',1715,700);
-  card(2450,165,'#ecfdf5');line('TOTAL PLAFOND BUNDLING',money(s.totalGross),2510);line('TOTAL NETT BUNDLING',money(s.totalNet),2570,true);x.fillStyle='#64748b';x.font='19px Arial';x.textAlign='left';x.fillText('Simulasi bersifat estimasi dan mengikuti parameter kredit yang berlaku.',55,2705);x.fillText('Tanggal: '+new Date().toLocaleString('id-ID'),55,2745);
+  card(2450,220,'#ecfdf5');line('TOTAL PLAFOND BUNDLING',money(s.totalGross),2505);line('TOTAL BIAYA',money(s.totalCosts),2550);line('TOTAL PELUNASAN',money(s.totalPayoff),2595);line('TOTAL NETT BUNDLING',money(s.totalNet),2645,true);x.fillStyle='#64748b';x.font='19px Arial';x.textAlign='left';x.fillText('Simulasi bersifat estimasi dan mengikuti parameter kredit yang berlaku.',55,2735);x.fillText('Tanggal: '+new Date().toLocaleString('id-ID'),55,2775);
   c.toBlob(blob=>blob?resolve(blob):reject(new Error('Gagal membuat gambar simulasi bundling.')),'image/png',.95);
  }catch(err){reject(err);}});
 }
