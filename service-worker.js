@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.186-o1-manual-pipeline';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.189-bundling-fix';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
@@ -14,7 +14,7 @@ const SHELL = [
   './upload-v120.js?v=129',
   './android-back-v111.js?v=137',
   './customer-care-v109.js',
-  './bundling-g6b-g2c-v117.js',
+  './bundling-g6b-g2c-v189.js?v=1891',
   './usage-traffic-v122.js',
   './manifest.webmanifest',
   './offline.html'
