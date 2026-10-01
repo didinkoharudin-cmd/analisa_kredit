@@ -3142,7 +3142,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" data-v18-special="G7G-GRACE PERIOD-PNS"><i class="fa-solid fa-hourglass-start"></i><span><b>G7G</b><small>Grace Period • PNS</small></span></button>
 <button type="button" data-v18-special="G2C"><i class="fa-solid fa-user-clock"></i><span><b>G2C</b><small>PraPensiun • PNS</small></span></button>
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
-<button type="button" id="v190KgbPisanShortcut" title="KGB PISAN"><i class="fa-solid fa-bolt"></i><span><b>KBG PISAN</b><small>G6K • G6L • G6M • G6N</small></span></button>
+<button type="button" id="v190KgbPisanShortcut" title="KGB PISAN"><i class="fa-solid fa-bolt"></i><span><b>KGB PISAN</b><small>G6K • G6L • G6M • G6N</small></span></button>
 </div>
 <section class="v9-page active" id="v9PageHome"><div class="v9-title">Home</div>
 <div id="aoBannerWrap" class="ao-banner-wrap" style="display:none">
@@ -3398,6 +3398,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
       </div>
 
       <div id="v17SimProductInfo" class="v17-sim-rule-strip"></div>
+      <div id="v191KgbPisanMinGrossNote" style="display:none;margin-top:6px;padding:7px 9px;border-radius:9px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:9px;font-weight:800"></div>
 
       <label class="v17-sim-search-label">Cari CIF / Nama
         <div class="v17-sim-searchbox">
@@ -6539,6 +6540,37 @@ Terima kasih.`
 
                 {
                     const maxTenorNew=isPppk?120:300;
+                    // V192: Debitur tanpa fasilitas kredit tetap dapat menjadi
+                    // potensi KGB PISAN. Gunakan produk KGB PISAN sebagai
+                    // kandidat NEW khusus sumber GAJI, sesuai status pegawai.
+                    // PNS -> G6K, PPPK -> G6M. Variasi G6L/G6N tetap berasal
+                    // dari fasilitas/parameter produk yang memang tercatat.
+                    const kgbPisanNoFacilityProduct = isPppk ? 'G6M' : 'G6K';
+                    const hasNoFacility = deb.facilities.length === 0;
+                    if(hasNoFacility){
+                      const incomeKgb=Number(deb.income?.GAJI||0);
+                      const kgbRule=getProdRule(kgbPisanNoFacilityProduct)||{};
+                      const kgbRpc=Number(kgbRule.rpcPercent||.90);
+                      const kgbMaxRpc=incomeKgb*kgbRpc;
+                      const kgbTr=getDebtorTenorRules(deb.status_pegawai,deb.tgl_lahir,deb.bup,Number(kgbRule.maxTenorProduct||maxTenorNew),deb.tgl_pelantikan,deb.masa_jabatan_bulan);
+                      if(incomeKgb>0 && !kgbTr.termExpired && kgbTr.tenorEfektif>0){
+                        const kgbGross=calculatePlafonFromAngsuran(kgbMaxRpc,kgbTr.tenorEfektif,kgbPisanNoFacilityProduct,'NEW');
+                        const kgbAng=calculateInstallmentFromPlafon(kgbGross,kgbTr.tenorEfektif,kgbPisanNoFacilityProduct,'NEW');
+                        const kgbFees=calculateCreditFees(kgbGross,kgbTr.tenorEfektif,kgbPisanNoFacilityProduct,deb.status_pegawai,kgbTr.usiaAsuransi||kgbTr.usiaTahun,0,kgbAng,0,0,'NEW');
+                        if(Number(kgbGross)>=5000000){
+                          loanDatabase.push({
+                            loan_id:deb.cif+'_KGB_PISAN_NEW',no_pinjaman:'KGB PISAN (Tanpa Fasilitas)',
+                            tipe_pinjaman:kgbPisanNoFacilityProduct,sumber_penghasilan:'GAJI',cif:deb.cif,nama:deb.nama,dinas:deb.dinas,kode_ao:deb.kode_ao,no_hp:deb.no_hp,
+                            baki_debet:0,bunga_berjalan:0,musisi_asuransi:0,angsuran_eksisting:0,maxAngsuranTopUp:0,maxAngsuranNew:kgbMaxRpc,
+                            selectedTenor:kgbTr.tenorEfektif,maxAllowedTenor:kgbTr.tenorEfektif,potensiPlafonTopUp:0,plafonGrossTopUp:0,pctBerjalan:0,isEligibleMengulang:false,
+                            potensiNew:kgbFees.netPencairan,plafonGrossNew:kgbGross,plafonGrossMengulang:0,potensiMengulang:0,
+                            jenis_pengajuan:'NEW',jenis_penawaran:'NEW',status:'NEW',status_pengajuan:'NEW',prodRule:kgbRule,cifRef:deb,
+                            isKgbPisan:true
+                          });
+                        }
+                      }
+                    }
+
                     const sources=[
                       {source:'GAJI',rpc:.90,fallback:isPppk?'J9K':'G6B'},
                       {source:'SERTIFIKASI',rpc:.90,fallback:null},
@@ -6598,7 +6630,7 @@ Terima kasih.`
                         // Selama sumber penghasilan/RPC dan tenor efektif memungkinkan,
                         // kalkulasi renewal tetap dibentuk. Status >=50% disimpan terpisah
                         // hanya untuk filter opsional pada tampilan.
-                        if (nominalIncome > 0 && initialTenor > 0) {
+                        if (!V191_KGB_PISAN_PRODUCTS.has(String(f.tipe_pinjaman||'').trim().toUpperCase()) && nominalIncome > 0 && initialTenor > 0) {
                             isEligibleMengulang = true;
                             const maxAngsuranRenewal = f.angsuran_eksisting + maxAngsuranTopUp;
                             totalPlafonRenewal = calculatePlafonFromAngsuran(maxAngsuranRenewal, initialTenor, f.tipe_pinjaman, 'MENGULANG', f);
@@ -11058,6 +11090,7 @@ function isOfferEligible(o,type){
     return Number(o?.potensiPlafonTopUp||0)>0;
   }
   if(offer==='MENGULANG'){
+    if(V190_KGB_PISAN_PRODUCTS.has(normFilterValue(val(o,['tipe_pinjaman','produk','PRODUK','TIPE_PINJAMAN'])))) return false;
     return Number(o?.potensiMengulang||0)>0 &&
       (Boolean(o?.isEligibleMengulang) || Number(o?.potensiMengulang||0)>0);
   }
@@ -12762,6 +12795,27 @@ function simNormOffer(v){
   return v;
 }
 
+// V192: aturan KGB PISAN termasuk debitur tanpa fasilitas kredit.
+const V191_KGB_PISAN_PRODUCTS=new Set(['G6K','G6L','G6M','G6N']);
+const V191_KGB_PISAN_MIN_GROSS=5000000;
+function simIsKgbPisanProduct(product){
+  return V191_KGB_PISAN_PRODUCTS.has(String(product||'').trim().toUpperCase());
+}
+function simApplyKgbPisanOfferRule(){
+  const select=document.getElementById('v17SimOffer');
+  const manual=document.getElementById('v117ManualOffer');
+  const product=String(simState.product||'').trim().toUpperCase();
+  const isKgb=simIsKgbPisanProduct(product);
+  [select,manual].forEach(el=>{
+    if(!el)return;
+    const opt=el.querySelector('option[value=\"MENGULANG\"]');
+    if(opt) opt.disabled=isKgb;
+    if(isKgb&&String(el.value||'').toUpperCase()==='MENGULANG') el.value='NEW';
+  });
+  if(isKgb&&simState.offer==='MENGULANG') simState.offer='NEW';
+  return isKgb;
+}
+
 const V18_SPECIAL_PRODUCTS={
  'G2H-THT-PNS':{source:'THT',sumber:'THT',jenisPegawai:'PNS',rpcPercent:0,maxTenorProduct:38,rate:8.5,eligibility:36},
  'G7G-GRACE PERIOD-PNS':{source:'PENSIUN',sumber:'PENSIUN',jenisPegawai:'PNS',rpcPercent:.90,maxTenorProduct:180,rate:12,graceRate:8,eligibility:60},
@@ -13098,6 +13152,7 @@ function simIsG2cRenewFacility(f){
 }
 
 function simMultiRenewEnabled(){
+  if(simIsKgbPisanProduct(simState.product)) return false;
   if(simState.product==='G2C') return simState.offer==='MENGULANG';
   return simState.offer==='MENGULANG' && !simIsMultiExcludedProduct(simState.product) && !v18IsSpecial();
 }
@@ -13239,6 +13294,7 @@ function simRenderProductInfo(){
   const sourceLabel=simState.product==='G2C'?'GAJI AKTIF + GAJI PENSIUN':rule.sumber;
   box.innerHTML=
     `<span>Sumber: ${sourceLabel}</span>`+
+    (simIsKgbPisanProduct(simState.product)?'<span style="color:#9a3412;font-weight:900">KGB PISAN • Min. Gross Rp 5.000.000 • Tanpa MENGULANG</span>':'')+
     `<span>Status: ${rule.jenisPegawai}</span>`+
     `<span>RPC: ${Math.round(Number(rule.rpcPercent||0)*100)}%</span>`+
     `<span>Tenor Produk: ${Number(rule.maxTenorProduct||0)} bln</span>`;
@@ -13316,6 +13372,8 @@ function v117SyncManualScenario(){
   if(topup)topup.disabled=product.value==='G2C';
   if(product.value==='G2C'&&offer.value==='TOPUP')offer.value='NEW';
   simState.product=product.value;simState.offer=simNormOffer(offer.value);
+  simApplyKgbPisanOfferRule();
+  if(simIsKgbPisanProduct(simState.product)) offer.value=simState.offer;
   const mainProduct=document.getElementById('v17SimProduct'),mainOffer=document.getElementById('v17SimOffer');
   if(mainProduct)mainProduct.value=simState.product;if(mainOffer)mainOffer.value=simState.offer;
   const rule=simProductRule(),source=simNormalizeSource(rule?.sumber||rule?.source||'GAJI')||'GAJI';
@@ -13507,6 +13565,7 @@ function simRefreshFacilities(){
 }
 
 function simContinue(){
+  simApplyKgbPisanOfferRule();
   const deb=simState.debtor;
   const rule=simProductRule();
   if(!deb||!rule){
@@ -13784,13 +13843,23 @@ function simRecalculate(resetGross){
   simState.maxGross=maxGross;
 
   const grossInput=document.getElementById('v17SimGross');
+  const isKgbPisan=simIsKgbPisanProduct(simState.product);
+  const minGross=isKgbPisan?V191_KGB_PISAN_MIN_GROSS:0;
   grossInput.removeAttribute('max');
+  grossInput.min=String(minGross);
   let gross=v18Num(grossInput.value||0);
   if(resetGross) gross=maxGross;
-  gross=Math.max(0,gross);
+  gross=Math.max(minGross,gross);
   if(maxGross>0 && gross>maxGross) gross=maxGross;
   grossInput.value=v18Fmt(gross);
-  grossInput.style.borderColor='';
+  grossInput.style.borderColor=(isKgbPisan&&maxGross>0&&maxGross<minGross)?'#dc2626':'';
+  const minGrossNote=document.getElementById('v191KgbPisanMinGrossNote');
+  if(minGrossNote){
+    minGrossNote.style.display=isKgbPisan?'block':'none';
+    minGrossNote.textContent=isKgbPisan
+      ? (maxGross>0&&maxGross<minGross ? 'Potensi maksimum di bawah minimum KGB PISAN Rp 5.000.000.' : 'KGB PISAN: minimum plafond gross Rp 5.000.000 dan tidak berlaku MENGULANG.')
+      : '';
+  }
 
   const installment=simInstallmentFromGross(gross,tenor,effectiveAnnualRate);
 
@@ -14346,6 +14415,7 @@ function simBind(){
     simState.product=e.target.value;
     simState.mandatorySavingMultiplierEdited=false;
     g2cApplyOfferRule();
+    simApplyKgbPisanOfferRule();
     v18SpecialUI();
     simRenderProductInfo();
     simState.debtor=null;
@@ -14357,6 +14427,7 @@ function simBind(){
 
   document.getElementById('v17SimOffer')?.addEventListener('change',e=>{
     simState.offer=simNormOffer(e.target.value);
+    simApplyKgbPisanOfferRule();
     if(simState.product==='G2C'&&simState.offer==='TOPUP'){
       e.target.value='NEW';
       simState.offer='NEW';
