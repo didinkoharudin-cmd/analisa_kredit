@@ -3178,11 +3178,6 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button data-v9-offer="MENGULANG" title="Potensi Debitur MENGULANG"><i class="fa-solid fa-arrows-rotate"></i><b>MENGULANG</b><span>Renewal</span></button>
   <button id="v17SimulationShortcut" type="button" title="Simulasi Interaktif"><i class="fa-solid fa-calculator"></i><b>SIMULASI</b><span>Hitung Manual</span></button>
 </div>
-<div class="v198-special-potential" aria-label="Potensi G2H dan G7G">
-  <button type="button" data-v198-special="G2H-THT-PNS" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
-  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
-</div>
-
 <div class="v17-income-title"><i class="fa-solid fa-wallet"></i> Sumber Penghasilan</div>
 <div class="v9-access v17-income-access">
   <button data-v9-income="GAJI" title="Filter sumber penghasilan Gaji"><i class="fa-solid fa-wallet"></i><b>GAJI</b><span>Gaji Pokok</span></button>
@@ -3196,6 +3191,10 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" data-v18-special="G7G-GRACE PERIOD-PNS"><i class="fa-solid fa-hourglass-start"></i><span><b>G7G</b><small>Grace Period • PNS</small></span></button>
 <button type="button" data-v18-special="G2C"><i class="fa-solid fa-user-clock"></i><span><b>G2C</b><small>PraPensiun • PNS</small></span></button>
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
+</div>
+<div class="v198-special-potential" aria-label="Potensi G2H dan G7G">
+  <button type="button" data-v198-special="G2H-THT-PNS" onclick="v18OpenSpecial('G2H-THT-PNS');return false;" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
+  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" onclick="v18OpenSpecial('G7G-GRACE PERIOD-PNS');return false;" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
 </div>
 <div class="v190-kgb-separator" role="separator" aria-label="Pemisah Simulasi KPPB dan KGB PISAN"></div>
 <div class="v190-kgb-shortcut-wrap">
@@ -11947,10 +11946,8 @@ function bind(){
   });
 
   document.getElementById('v190KgbPisanShortcut')?.addEventListener('click',quickKgbPisan);
-  // V198: restore Home shortcuts Potensi G2H/G7G without changing V197 KGB PISAN rules.
-  document.querySelectorAll('[data-v198-special]').forEach(b=>b.addEventListener('click',()=>{
-    if(typeof v18OpenSpecial==='function') v18OpenSpecial(b.dataset.v198Special);
-  }));
+  // V199: shortcut Potensi G2H/G7G menggunakan onclick langsung agar tetap responsif
+  // walaupun Home dirender ulang. Tidak mengubah logika simulasi maupun KGB PISAN.
 
   document.getElementById('v9WaNav')?.addEventListener('click',openWhatsapp);
   document.getElementById('v9ExportActivity')?.addEventListener('click',exportActivityExcel);
