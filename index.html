@@ -2413,6 +2413,30 @@ button:active{transform:scale(.97)}
   #v190KgbPisanShortcut{
     border-color:#99f6e4!important;
   }
+  .v190-kgb-separator{
+    height:1px;
+    margin:11px 2px 9px;
+    background:linear-gradient(90deg,transparent,#cbd5e1 12%,#cbd5e1 88%,transparent);
+  }
+  .v190-kgb-shortcut-wrap{display:flex;justify-content:center;}
+  .v190-kgb-shortcut-wrap #v190KgbPisanShortcut{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    min-height:74px;
+    padding:7px 10px!important;
+  }
+  #v190KgbPisanShortcut .v190-kgb-logo{
+    width:48px;height:40px;flex:0 0 48px;border-radius:11px;overflow:hidden;
+    background:#38bdf8;display:block;box-shadow:0 3px 8px rgba(15,23,42,.12);
+    border:1px solid rgba(255,255,255,.85);
+  }
+  #v190KgbPisanShortcut .v190-kgb-logo img{width:100%;height:100%;display:block;object-fit:cover;object-position:center;}
+  #v190KgbPisanShortcut>span:last-child{text-align:left;}
+  #v190KgbPisanShortcut>span:last-child b{display:block;}
+  #v190KgbPisanShortcut>span:last-child small{display:block;}
 
   #v9PageSimulasi{
     margin:-10px -10px 0!important;
@@ -3142,7 +3166,13 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" data-v18-special="G7G-GRACE PERIOD-PNS"><i class="fa-solid fa-hourglass-start"></i><span><b>G7G</b><small>Grace Period • PNS</small></span></button>
 <button type="button" data-v18-special="G2C"><i class="fa-solid fa-user-clock"></i><span><b>G2C</b><small>PraPensiun • PNS</small></span></button>
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
-<button type="button" id="v190KgbPisanShortcut" title="KGB PISAN"><i class="fa-solid fa-bolt"></i><span><b>KGB PISAN</b><small>G6K • G6L • G6M • G6N</small></span></button>
+</div>
+<div class="v190-kgb-separator" role="separator" aria-label="Pemisah Simulasi KPPB dan KGB PISAN"></div>
+<div class="v190-kgb-shortcut-wrap">
+<button type="button" id="v190KgbPisanShortcut" title="KGB PISAN">
+  <span class="v190-kgb-logo"><img src="./kgb-pisan-logo.jpg" alt="KGB PISAN" loading="lazy"></span>
+  <span><b>KGB PISAN</b><small>G6K • G6L • G6M • G6N</small></span>
+</button>
 </div>
 <section class="v9-page active" id="v9PageHome"><div class="v9-title">Home</div>
 <div id="aoBannerWrap" class="ao-banner-wrap" style="display:none">

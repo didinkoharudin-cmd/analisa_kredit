@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.192-kgb-pisan';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.195-kgb-pisan-icon';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
@@ -11,6 +11,7 @@ const SHELL = [
   './score-logo-white-compact.png',
   './score-icon-192.png',
   './score-icon-512.png',
+  './kgb-pisan-logo.jpg',
   './upload-v120.js?v=129',
   './android-back-v111.js?v=137',
   './customer-care-v109.js',
