@@ -6550,34 +6550,38 @@ Terima kasih.`
 
                 {
                     const maxTenorNew=isPppk?120:300;
-                    // V192: Debitur tanpa fasilitas kredit tetap dapat menjadi
-                    // potensi KGB PISAN. Gunakan produk KGB PISAN sebagai
-                    // kandidat NEW khusus sumber GAJI, sesuai status pegawai.
-                    // PNS -> G6K, PPPK -> G6M. Variasi G6L/G6N tetap berasal
-                    // dari fasilitas/parameter produk yang memang tercatat.
-                    const kgbPisanNoFacilityProduct = isPppk ? 'G6M' : 'G6K';
-                    const hasNoFacility = deb.facilities.length === 0;
-                    if(hasNoFacility){
-                      const incomeKgb=Number(deb.income?.GAJI||0);
-                      const kgbRule=getProdRule(kgbPisanNoFacilityProduct)||{};
-                      const kgbRpc=Number(kgbRule.rpcPercent||.90);
-                      const kgbMaxRpc=incomeKgb*kgbRpc;
-                      const kgbTr=getDebtorTenorRules(deb.status_pegawai,deb.tgl_lahir,deb.bup,Number(kgbRule.maxTenorProduct||maxTenorNew),deb.tgl_pelantikan,deb.masa_jabatan_bulan);
-                      if(incomeKgb>0 && !kgbTr.termExpired && kgbTr.tenorEfektif>0){
-                        const kgbGross=calculatePlafonFromAngsuran(kgbMaxRpc,kgbTr.tenorEfektif,kgbPisanNoFacilityProduct,'NEW');
-                        const kgbAng=calculateInstallmentFromPlafon(kgbGross,kgbTr.tenorEfektif,kgbPisanNoFacilityProduct,'NEW');
-                        const kgbFees=calculateCreditFees(kgbGross,kgbTr.tenorEfektif,kgbPisanNoFacilityProduct,deb.status_pegawai,kgbTr.usiaAsuransi||kgbTr.usiaTahun,0,kgbAng,0,0,'NEW');
-                        if(Number(kgbGross)>=5000000){
-                          loanDatabase.push({
-                            loan_id:deb.cif+'_KGB_PISAN_NEW',no_pinjaman:'KGB PISAN (Tanpa Fasilitas)',
-                            tipe_pinjaman:kgbPisanNoFacilityProduct,sumber_penghasilan:'GAJI',cif:deb.cif,nama:deb.nama,dinas:deb.dinas,kode_ao:deb.kode_ao,no_hp:deb.no_hp,
-                            baki_debet:0,bunga_berjalan:0,musisi_asuransi:0,angsuran_eksisting:0,maxAngsuranTopUp:0,maxAngsuranNew:kgbMaxRpc,
-                            selectedTenor:kgbTr.tenorEfektif,maxAllowedTenor:kgbTr.tenorEfektif,potensiPlafonTopUp:0,plafonGrossTopUp:0,pctBerjalan:0,isEligibleMengulang:false,
-                            potensiNew:kgbFees.netPencairan,plafonGrossNew:kgbGross,plafonGrossMengulang:0,potensiMengulang:0,
-                            jenis_pengajuan:'NEW',jenis_penawaran:'NEW',status:'NEW',status_pengajuan:'NEW',prodRule:kgbRule,cifRef:deb,
-                            isKgbPisan:true
-                          });
-                        }
+                    // V193: klasifikasi KGB PISAN berdasarkan ADA/TIDAKNYA
+                    // fasilitas kredit yang sumber pengembaliannya GAJI.
+                    // PNS  : tanpa fasilitas GAJI -> G6K, sudah ada -> G6L.
+                    // PPPK : tanpa fasilitas GAJI -> G6N, sudah ada -> G6M.
+                    // Keberadaan fasilitas dari sumber lain (TPP/SERTIFIKASI/etc)
+                    // tidak mengubah klasifikasi; yang dicek khusus adalah sumber GAJI.
+                    const hasGajiFacility = deb.facilities.some(f => {
+                      const src = String(f.sumber_penghasilan || '').trim().toUpperCase();
+                      return src === 'GAJI' || src === 'GAJI/PENSIUN';
+                    });
+                    const kgbPisanProduct = isPppk
+                      ? (hasGajiFacility ? 'G6M' : 'G6N')
+                      : (hasGajiFacility ? 'G6L' : 'G6K');
+                    const incomeKgb=Number(deb.income?.GAJI||0);
+                    const kgbRule=getProdRule(kgbPisanProduct)||{};
+                    const kgbRpc=Number(kgbRule.rpcPercent||.90);
+                    const kgbMaxRpc=incomeKgb*kgbRpc;
+                    const kgbTr=getDebtorTenorRules(deb.status_pegawai,deb.tgl_lahir,deb.bup,Number(kgbRule.maxTenorProduct||maxTenorNew),deb.tgl_pelantikan,deb.masa_jabatan_bulan);
+                    if(incomeKgb>0 && !kgbTr.termExpired && kgbTr.tenorEfektif>0){
+                      const kgbGross=calculatePlafonFromAngsuran(kgbMaxRpc,kgbTr.tenorEfektif,kgbPisanProduct,'NEW');
+                      const kgbAng=calculateInstallmentFromPlafon(kgbGross,kgbTr.tenorEfektif,kgbPisanProduct,'NEW');
+                      const kgbFees=calculateCreditFees(kgbGross,kgbTr.tenorEfektif,kgbPisanProduct,deb.status_pegawai,kgbTr.usiaAsuransi||kgbTr.usiaTahun,0,kgbAng,0,0,'NEW');
+                      if(Number(kgbGross)>=V191_KGB_PISAN_MIN_GROSS){
+                        loanDatabase.push({
+                          loan_id:deb.cif+'_KGB_PISAN_NEW',no_pinjaman:'KGB PISAN (GAJI)',
+                          tipe_pinjaman:kgbPisanProduct,sumber_penghasilan:'GAJI',cif:deb.cif,nama:deb.nama,dinas:deb.dinas,kode_ao:deb.kode_ao,no_hp:deb.no_hp,
+                          baki_debet:0,bunga_berjalan:0,musisi_asuransi:0,angsuran_eksisting:0,maxAngsuranTopUp:0,maxAngsuranNew:kgbMaxRpc,
+                          selectedTenor:kgbTr.tenorEfektif,maxAllowedTenor:kgbTr.tenorEfektif,potensiPlafonTopUp:0,plafonGrossTopUp:0,pctBerjalan:0,isEligibleMengulang:false,
+                          potensiNew:kgbFees.netPencairan,plafonGrossNew:kgbGross,plafonGrossMengulang:0,potensiMengulang:0,
+                          jenis_pengajuan:'NEW',jenis_penawaran:'NEW',status:'NEW',status_pengajuan:'NEW',prodRule:kgbRule,cifRef:deb,
+                          isKgbPisan:true,hasGajiFacility, kgbPisanEligibility:hasGajiFacility?'SUDAH_ADA_FASILITAS_GAJI':'BELUM_ADA_FASILITAS_GAJI'
+                        });
                       }
                     }
 
