@@ -6550,10 +6550,10 @@ Terima kasih.`
 
                 {
                     const maxTenorNew=isPppk?120:300;
-                    // V193: klasifikasi KGB PISAN berdasarkan ADA/TIDAKNYA
+                    // V194: klasifikasi KGB PISAN berdasarkan ADA/TIDAKNYA
                     // fasilitas kredit yang sumber pengembaliannya GAJI.
-                    // PNS  : tanpa fasilitas GAJI -> G6K, sudah ada -> G6L.
-                    // PPPK : tanpa fasilitas GAJI -> G6N, sudah ada -> G6M.
+                    // PNS  : tanpa fasilitas GAJI -> G6L, sudah ada -> G6K.
+                    // PPPK : tanpa fasilitas GAJI -> G6M, sudah ada -> G6N.
                     // Keberadaan fasilitas dari sumber lain (TPP/SERTIFIKASI/etc)
                     // tidak mengubah klasifikasi; yang dicek khusus adalah sumber GAJI.
                     const hasGajiFacility = deb.facilities.some(f => {
@@ -6561,8 +6561,8 @@ Terima kasih.`
                       return src === 'GAJI' || src === 'GAJI/PENSIUN';
                     });
                     const kgbPisanProduct = isPppk
-                      ? (hasGajiFacility ? 'G6M' : 'G6N')
-                      : (hasGajiFacility ? 'G6L' : 'G6K');
+                      ? (hasGajiFacility ? 'G6N' : 'G6M')
+                      : (hasGajiFacility ? 'G6K' : 'G6L');
                     const incomeKgb=Number(deb.income?.GAJI||0);
                     const kgbRule=getProdRule(kgbPisanProduct)||{};
                     const kgbRpc=Number(kgbRule.rpcPercent||.90);
