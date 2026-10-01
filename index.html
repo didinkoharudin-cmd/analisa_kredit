@@ -2406,6 +2406,13 @@ button:active{transform:scale(.97)}
     background:linear-gradient(145deg,#0ea5e9,#2563eb)!important;
     color:#fff!important;
   }
+  #v190KgbPisanShortcut i{
+    background:linear-gradient(145deg,#0f766e,#0ea5a4)!important;
+    color:#fff!important;
+  }
+  #v190KgbPisanShortcut{
+    border-color:#99f6e4!important;
+  }
 
   #v9PageSimulasi{
     margin:-10px -10px 0!important;
@@ -3135,6 +3142,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" data-v18-special="G7G-GRACE PERIOD-PNS"><i class="fa-solid fa-hourglass-start"></i><span><b>G7G</b><small>Grace Period • PNS</small></span></button>
 <button type="button" data-v18-special="G2C"><i class="fa-solid fa-user-clock"></i><span><b>G2C</b><small>PraPensiun • PNS</small></span></button>
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
+<button type="button" id="v190KgbPisanShortcut" title="KGB PISAN"><i class="fa-solid fa-bolt"></i><span><b>KBG PISAN</b><small>G6K • G6L • G6M • G6N</small></span></button>
 </div>
 <section class="v9-page active" id="v9PageHome"><div class="v9-title">Home</div>
 <div id="aoBannerWrap" class="ao-banner-wrap" style="display:none">
@@ -3816,7 +3824,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Simulasi Kredit Konsumer
+                Analisis Kredit Presisi
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
@@ -10873,6 +10881,9 @@ function v875IsHalfTenorReached(o){
   return Number(o?.pctBerjalan || 0) >= 50;
 }
 let v9QuickIncomeSource = '';
+// V190: shortcut KGB PISAN = gabungan produk G6K/G6L/G6M/G6N.
+let v9QuickKgbPisan = false;
+const V190_KGB_PISAN_PRODUCTS = new Set(['G6K','G6L','G6M','G6N']);
 // V166: urutan kartu Debitur berdasarkan status flagging (bukan filter).
 let v166DebtorFlagSortMode = 'UNFLAGGED_FIRST';
 
@@ -11080,6 +11091,12 @@ function normFilterValue(v){ return String(v ?? '').trim().toUpperCase(); }
 function getFilteredLoans(){
   let rows=getLoans().slice();
 
+  if(v9QuickKgbPisan){
+    rows=rows.filter(o=>V190_KGB_PISAN_PRODUCTS.has(
+      normFilterValue(val(o,['tipe_pinjaman','produk','PRODUK','TIPE_PINJAMAN']))
+    ));
+  }
+
   if(v9QuickIncomeSource){
     const targetSource=String(v9QuickIncomeSource).toUpperCase();
     rows=rows.filter(o=>{
@@ -11211,6 +11228,14 @@ function renderDebtors(){
     sourceNote.className='v16-filter-chipbar income';
     sourceNote.innerHTML='<span><i class="fa-solid fa-wallet"></i> '+escapeHtml(v9QuickIncomeSource)+'</span><button type="button" id="v17ClearIncomeSource">Semua</button>';
     list.appendChild(sourceNote);
+  }
+
+  if(v9QuickKgbPisan){
+    const chip=document.createElement('div');
+    chip.className='v16-filter-chipbar offer';
+    chip.innerHTML='<span><i class="fa-solid fa-bolt"></i> KGB PISAN • G6K / G6L / G6M / G6N</span>' +
+      '<button type="button" id="v190ClearKgbPisan">Semua</button>';
+    list.appendChild(chip);
   }
 
   if(v9QuickOfferType){
@@ -11719,6 +11744,7 @@ function quickOffer(type){
   type=String(type||'').toUpperCase();
   if(!allowed.includes(type)) return;
   v9QuickOfferType=type;
+  v9QuickKgbPisan=false;
   if(type!=='MENGULANG') v875MengulangHalfTenorOnly=false;
   window.v16DebtorOffset=0;
 
@@ -11729,6 +11755,7 @@ function quickOffer(type){
 
 function clearQuickOffer(){
   v9QuickOfferType='';
+  v9QuickKgbPisan=false;
   v875MengulangHalfTenorOnly=false;
   window.v16DebtorOffset=0;
   renderDebtors();
@@ -11736,6 +11763,7 @@ function clearQuickOffer(){
 
 function quickIncomeSource(source){
   source=String(source||'').trim().toUpperCase();
+  v9QuickKgbPisan=false;
   v9QuickIncomeSource=(source==='SEMUA') ? '' : source;
   window.v16DebtorOffset=0;
 
@@ -11756,6 +11784,17 @@ function clearQuickIncomeSource(){
   document.querySelectorAll('[data-v9-income]').forEach(btn=>{
     btn.classList.toggle('v17-income-active',btn.dataset.v9Income==='SEMUA');
   });
+  renderDebtors();
+}
+
+function quickKgbPisan(){
+  v9QuickKgbPisan=true;
+  v9QuickOfferType='';
+  v875MengulangHalfTenorOnly=false;
+  v9QuickIncomeSource='';
+  window.v16DebtorOffset=0;
+  document.querySelectorAll('[data-v9-income]').forEach(btn=>btn.classList.toggle('v17-income-active',btn.dataset.v9Income==='SEMUA'));
+  go('debitur');
   renderDebtors();
 }
 
@@ -11789,6 +11828,8 @@ function bind(){
     btn.addEventListener('click',()=>quickIncomeSource(btn.dataset.v9Income));
   });
 
+  document.getElementById('v190KgbPisanShortcut')?.addEventListener('click',quickKgbPisan);
+
   document.getElementById('v9WaNav')?.addEventListener('click',openWhatsapp);
   document.getElementById('v9ExportActivity')?.addEventListener('click',exportActivityExcel);
   document.getElementById('v50ActivityDate')?.addEventListener('change',()=>{renderV9Activity();window.loadMyActivityFromServer?.();});
@@ -11798,6 +11839,12 @@ function bind(){
   document.getElementById('v9DebtorList')?.addEventListener('click',e=>{
     if(e.target.closest('#v17ClearIncomeSource')){
       clearQuickIncomeSource();
+      return;
+    }
+    if(e.target.closest('#v190ClearKgbPisan')){
+      v9QuickKgbPisan=false;
+      window.v16DebtorOffset=0;
+      renderDebtors();
       return;
     }
     if(e.target.closest('#v9ClearQuickOffer')){
