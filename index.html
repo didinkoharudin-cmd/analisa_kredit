@@ -3130,6 +3130,11 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 }
 </style>
 <link rel="stylesheet" href="./score-v158.css?v=158">
+
+<style id="v203-potential-page-css">
+.v203-potential-card.selected{border-color:#0757c7!important;box-shadow:0 0 0 2px rgba(7,87,199,.12)!important}
+.v203-potential-card .v16-card-finance strong{font-size:11px}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -3196,8 +3201,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
 </div>
 <div class="v198-special-potential" aria-label="Potensi G2H dan G7G">
-  <button type="button" data-v198-special="G2H-THT-PNS" onclick="v200OpenPotential('G2H');return false;" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
-  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" onclick="v200OpenPotential('G7G');return false;" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
+  <button type="button" data-v198-special="G2H-THT-PNS" onclick="v203OpenPotentialPage('G2H');return false;" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
+  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" onclick="v203OpenPotentialPage('G7G');return false;" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
 </div>
 <div id="v200PotentialOverlay" class="v200-potential-overlay" aria-hidden="true"><div class="v200-potential-modal" role="dialog" aria-modal="true" aria-labelledby="v200PotentialTitle"><div class="v200-potential-head"><div><h3 id="v200PotentialTitle">Potensi</h3><small id="v200PotentialSubtitle">Perhitungan berdasarkan parameter yang berlaku</small></div><button type="button" class="v200-potential-close" id="v200PotentialClose" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><div class="v200-potential-summary"><div class="v200-pot-kpi"><b id="v200PotentialCount">0</b><span>Debitur eligible</span></div><div class="v200-pot-kpi"><b>FILTER</b><span>PNS + usia sesuai ketentuan</span></div><div class="v200-pot-kpi"><b>WA</b><span>Penawaran dapat dikirim</span></div></div><div id="v200PotentialList" class="v200-potential-list"></div></div></div>
 <div class="v190-kgb-separator" role="separator" aria-label="Pemisah Simulasi KPPB dan KGB PISAN"></div>
@@ -11349,6 +11354,7 @@ function renderDashboard(){
 }
 
 function renderDebtors(){
+  if(window.v9SpecialPotentialType){ renderPotentialDebtorsV203(window.v9SpecialPotentialType); return; }
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
 
@@ -11748,7 +11754,7 @@ function go(page){
   const shell=document.querySelector('#mobileV9Home .v9-shell');
   if(shell) shell.scrollTo({top:0,left:0,behavior:'auto'});
 
-  if(page==='home') renderDashboard();
+  if(page==='home'){ window.v9SpecialPotentialType=''; renderDashboard(); }
   if(page==='debitur'){ populateFilters(getLoans()); renderDebtors(); }
   if(page==='activity'){renderV9Activity();setTimeout(()=>window.loadMyActivityFromServer?.(),80);}
   if(page==='menu') populateFilters(getLoans());
@@ -13052,6 +13058,112 @@ async function v200OpenWaPotential(p){
   window.location.href='https://wa.me/'+p.phone+'?text='+encodeURIComponent(msg);
 }
 
+function v203OpenPotentialPage(type){
+  type=String(type||'').toUpperCase();
+  if(type!=='G2H'&&type!=='G7G') return;
+  window.v9SpecialPotentialType=type;
+  window.v200SelectedPotential=null;
+  window.v200PotentialRows=[];
+  window.v9Selected=null;
+  window.v9SelectedOfferType='';
+  selectedLoanId='';
+  window.v16DebtorOffset=0;
+  go('debitur');
+  renderPotentialDebtorsV203(type);
+}
+
+function renderPotentialDebtorsV203(type){
+  const list=document.getElementById('v9DebtorList');
+  if(!list) return;
+  type=String(type||window.v9SpecialPotentialType||'').toUpperCase();
+  if(type!=='G2H'&&type!=='G7G') return;
+
+  const rows=Object.values(cifDatabase||{})
+    .filter(d=>v200EligibleDebtor(d,type))
+    .map(d=>({deb:d,type,phone:v200Phone(d.no_hp),monthsWork:v18RemainingWorkMonths(d)}))
+    .sort((a,b)=>String(a.deb.nama||'').localeCompare(String(b.deb.nama||''),'id'));
+
+  window.v203PotentialRows=rows;
+  window.v200PotentialRows=rows;
+  window.v200SelectedPotential=null;
+  window.v9Selected=null;
+  window.v9SelectedOfferType='';
+  selectedLoanId='';
+
+  list.innerHTML='';
+  const summary=document.createElement('div');
+  summary.className='v16-debtor-summary';
+  summary.innerHTML=`<span>Potensi <b>${type}</b> • Total <b>${rows.length.toLocaleString('id-ID')}</b> debitur</span><button type="button" id="v203PotentialBack" class="v16-load-more" style="margin:0;padding:6px 10px">Kembali</button>`;
+  list.appendChild(summary);
+  summary.querySelector('#v203PotentialBack')?.addEventListener('click',()=>{
+    window.v9SpecialPotentialType='';
+    renderDebtors();
+  });
+
+  if(!rows.length){
+    const empty=document.createElement('div');
+    empty.className='v9-empty';
+    empty.innerHTML=`Tidak ada debitur eligible untuk Potensi ${escapeHtml(type)}.`;
+    list.appendChild(empty);
+    return;
+  }
+
+  const cards=document.createElement('div');
+  cards.className='v16-debtor-cards';
+  rows.forEach((p,i)=>{
+    const d=p.deb;
+    const nama=String(d.nama||'Debitur');
+    const age=typeof simAge==='function'?simAge(d.tgl_lahir):'-';
+    const initial=escapeHtml((nama.trim().charAt(0)||'D').toUpperCase());
+    const phone=String(p.phone||'');
+    const card=document.createElement('article');
+    card.className='v16-debtor-card v203-potential-card';
+    card.dataset.v203PotentialIndex=String(i);
+    card.innerHTML=`
+      <div class="v16-card-main">
+        <div class="v16-avatar new">${initial}</div>
+        <div class="v16-card-identity">
+          <div class="v16-name-row"><h3>${escapeHtml(nama)}</h3><span class="v16-offer-tag new">${escapeHtml(type)}</span></div>
+          <div class="v16-employee"><b>${escapeHtml(d.status_pegawai||'PNS')}</b><span>|</span><b>${escapeHtml(d.dinas||'-')}</b></div>
+          <div class="v16-ao">CIF ${escapeHtml(d.cif||'-')}</div>
+        </div>
+      </div>
+      <div class="v16-card-finance">
+        <div><small>Kriteria</small><strong>PNS • ${age} Tahun</strong></div>
+        <div class="pencairan"><small>Sisa Masa Kerja</small><strong class="nett">${escapeHtml(String(p.monthsWork||0))} Bulan</strong></div>
+      </div>
+      <div class="v16-card-footer">
+        <div class="v16-fact"><i class="fa-regular fa-calendar"></i><span>${escapeHtml(String(age))} Tahun</span></div>
+        <div class="v16-fact"><i class="fa-solid fa-hourglass-half"></i><span>${escapeHtml(String(p.monthsWork||0))} Bulan</span></div>
+        <button type="button" class="v16-detail-btn" data-v203-potential-index="${i}"><i class="fa-regular fa-file-lines"></i><span>Pilih</span></button>
+        <button type="button" class="v16-card-wa" data-v203-potential-wa="${i}" ${phone?'':'disabled style="opacity:.45;cursor:not-allowed"'} title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+      </div>`;
+    cards.appendChild(card);
+  });
+  list.appendChild(cards);
+
+  cards.addEventListener('click',e=>{
+    const wa=e.target.closest('[data-v203-potential-wa]');
+    const pick=e.target.closest('[data-v203-potential-index]');
+    if(wa){
+      e.stopPropagation();
+      const row=rows[Number(wa.dataset.v203PotentialWa)];
+      if(row) v200OpenWaPotential(row);
+      return;
+    }
+    if(!pick) return;
+    const idx=Number(pick.dataset.v203PotentialIndex);
+    const row=rows[idx];
+    if(!row) return;
+    window.v200SelectedPotential=row;
+    window.v9Selected=row;
+    window.v9SelectedOfferType='NEW';
+    selectedLoanId='';
+    cards.querySelectorAll('.v16-debtor-card').forEach(x=>x.classList.remove('selected'));
+    pick.closest('.v16-debtor-card')?.classList.add('selected');
+  });
+}
+
 function v200OpenPotential(type){
   const overlay=document.getElementById('v200PotentialOverlay'),list=document.getElementById('v200PotentialList');
   if(!overlay||!list)return;
@@ -13106,6 +13218,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   document.getElementById('v9WaNav')?.addEventListener('v200-potential-wa',()=>{});
 });
+function v18OpenSpecial(k){
+  simOpen();
+  setTimeout(()=>{
+    v18AddProducts();
+    const e=document.getElementById('v17SimProduct');
+    if(!e) return;
+    e.value=k;
+    e.dispatchEvent(new Event('change',{bubbles:true}));
+  },0);
+}
 function v18BindMoney(el,cb){if(!el||el.dataset.money)return;el.dataset.money='1';el.addEventListener('input',()=>{const n=v18Num(el.value);el.value=n?v18Fmt(n):'';cb&&cb()})}
 
 function g2cApplyOfferRule(){
