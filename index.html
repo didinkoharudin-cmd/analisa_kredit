@@ -5241,6 +5241,16 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         let penghasilanRawData = [];
         let cifDatabase = {}; 
         let loanDatabase = [];
+
+        // V192.1: definisi aturan KGB PISAN harus tersedia sebelum Smart Sync
+        // menjalankan processBothData(). Pada V192 konstanta dideklarasikan jauh
+        // di bawah sehingga akses saat sync memicu "V191_KGB_PISAN_PRODUCTS is not defined"
+        // / temporal-dead-zone pada sebagian alur startup.
+        const V191_KGB_PISAN_PRODUCTS = new Set(['G6K','G6L','G6M','G6N']);
+        const V191_KGB_PISAN_MIN_GROSS = 5000000;
+        function simIsKgbPisanProduct(product){
+          return V191_KGB_PISAN_PRODUCTS.has(String(product||'').trim().toUpperCase());
+        }
         // V58: expose read-only accessor for inline Bulk WA without duplicating state.
         window.v59BulkWaGetLoans = function(){ return Array.isArray(loanDatabase) ? loanDatabase : []; };
         window.v58BulkWaGetLoans = window.v59BulkWaGetLoans; window.v57BulkWaGetLoans = window.v59BulkWaGetLoans; 
@@ -12795,12 +12805,7 @@ function simNormOffer(v){
   return v;
 }
 
-// V192: aturan KGB PISAN termasuk debitur tanpa fasilitas kredit.
-const V191_KGB_PISAN_PRODUCTS=new Set(['G6K','G6L','G6M','G6N']);
-const V191_KGB_PISAN_MIN_GROSS=5000000;
-function simIsKgbPisanProduct(product){
-  return V191_KGB_PISAN_PRODUCTS.has(String(product||'').trim().toUpperCase());
-}
+// V192.1: aturan KGB PISAN didefinisikan lebih awal agar tersedia saat sync.
 function simApplyKgbPisanOfferRule(){
   const select=document.getElementById('v17SimOffer');
   const manual=document.getElementById('v117ManualOffer');
