@@ -2794,6 +2794,14 @@ button:active{transform:scale(.97)}
 }
 </style>
 
+<style id="v198-special-potential-css">
+.v198-special-potential{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 10px}
+.v198-special-potential button{min-height:54px;border:1px solid #dbe7f5;border-radius:14px;background:#fff;display:flex;align-items:center;gap:9px;padding:8px 10px;text-align:left;box-shadow:0 2px 8px rgba(15,23,42,.04);cursor:pointer}
+.v198-special-potential button i{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#eef4ff;color:#0757c7;flex:0 0 auto}
+.v198-special-potential button b{display:block;color:#172554;font-size:9px;line-height:1.1}
+.v198-special-potential button small{display:block;color:#73839b;font-size:7px;margin-top:3px;line-height:1.1}
+@media(max-width:768px){.v198-special-potential{gap:10px;margin:10px 0 12px}.v198-special-potential button{min-height:68px;padding:12px 14px}.v198-special-potential button i{width:40px;height:40px}.v198-special-potential button b{font-size:11px}.v198-special-potential button small{font-size:8px}}
+</style>
 <style id="v18-special-css">@media all{.v18-special-products{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.v18-special-products button{min-height:54px;border:1px solid #e1e9f5;border-radius:14px;background:#fff;display:flex;align-items:center;gap:9px;padding:8px 10px;text-align:left}.v18-special-products i{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#eef4ff;color:#0757c7}.v18-special-products b{display:block;color:#172554;font-size:9px}.v18-special-products small{display:block;color:#73839b;font-size:7px;margin-top:2px}.v18-special-info{grid-column:1/-1;padding:9px;border-radius:12px;background:#f1f6ff;border:1px solid #dbeafe;color:#345078;font-size:8px;line-height:1.45}#v17SimGross{font-weight:900}}</style>
 <style id="v18-2-special-fix-css">
 @media all{
@@ -3169,6 +3177,10 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button data-v9-offer="TOP-UP" title="Potensi Debitur TOP-UP"><i class="fa-solid fa-chart-line"></i><b>TOP-UP</b><span>Tambah Plafon</span></button>
   <button data-v9-offer="MENGULANG" title="Potensi Debitur MENGULANG"><i class="fa-solid fa-arrows-rotate"></i><b>MENGULANG</b><span>Renewal</span></button>
   <button id="v17SimulationShortcut" type="button" title="Simulasi Interaktif"><i class="fa-solid fa-calculator"></i><b>SIMULASI</b><span>Hitung Manual</span></button>
+</div>
+<div class="v198-special-potential" aria-label="Potensi G2H dan G7G">
+  <button type="button" data-v198-special="G2H-THT-PNS" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
+  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
 </div>
 
 <div class="v17-income-title"><i class="fa-solid fa-wallet"></i> Sumber Penghasilan</div>
@@ -5290,7 +5302,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         let cifDatabase = {}; 
         let loanDatabase = [];
 
-        // V192.1: definisi aturan KGB PISAN harus tersedia sebelum Smart Sync
+        // V197: aturan KGB PISAN hanya berlaku untuk PNS/PPPK. Definisi tetap tersedia sebelum Smart Sync
         // menjalankan processBothData(). Pada V192 konstanta dideklarasikan jauh
         // di bawah sehingga akses saat sync memicu "V191_KGB_PISAN_PRODUCTS is not defined"
         // / temporal-dead-zone pada sebagian alur startup.
@@ -6611,12 +6623,16 @@ Terima kasih.`
                     const kgbPisanProduct = isPppk
                       ? (hasGajiFacility ? 'G6N' : 'G6M')
                       : (hasGajiFacility ? 'G6K' : 'G6L');
+                    // V197: KGB PISAN hanya untuk jenis pekerjaan PNS dan PPPK.
+                    // Memiliki sumber penghasilan GAJI saja tidak cukup; TNI/POLRI,
+                    // BUMN/BUMD, SWASTA, NON ASN, dll tidak boleh menjadi potensi KGB PISAN.
+                    const isKgbPisanEmployee = canonicalStatus === 'PNS' || canonicalStatus === 'PPPK';
                     const incomeKgb=Number(deb.income?.GAJI||0);
                     const kgbRule=getProdRule(kgbPisanProduct)||{};
                     const kgbRpc=Number(kgbRule.rpcPercent||.90);
                     const kgbMaxRpc=incomeKgb*kgbRpc;
                     const kgbTr=getDebtorTenorRules(deb.status_pegawai,deb.tgl_lahir,deb.bup,Number(kgbRule.maxTenorProduct||maxTenorNew),deb.tgl_pelantikan,deb.masa_jabatan_bulan);
-                    if(incomeKgb>0 && !kgbTr.termExpired && kgbTr.tenorEfektif>0){
+                    if(isKgbPisanEmployee && incomeKgb>0 && !kgbTr.termExpired && kgbTr.tenorEfektif>0){
                       const kgbGross=calculatePlafonFromAngsuran(kgbMaxRpc,kgbTr.tenorEfektif,kgbPisanProduct,'NEW');
                       const kgbAng=calculateInstallmentFromPlafon(kgbGross,kgbTr.tenorEfektif,kgbPisanProduct,'NEW');
                       const kgbFees=calculateCreditFees(kgbGross,kgbTr.tenorEfektif,kgbPisanProduct,deb.status_pegawai,kgbTr.usiaAsuransi||kgbTr.usiaTahun,0,kgbAng,0,0,'NEW');
@@ -11187,9 +11203,16 @@ function getFilteredLoans(){
   let rows=getLoans().slice();
 
   if(v9QuickKgbPisan){
-    rows=rows.filter(o=>V190_KGB_PISAN_PRODUCTS.has(
-      normFilterValue(val(o,['tipe_pinjaman','produk','PRODUK','TIPE_PINJAMAN']))
-    ));
+    // V197: shortcut KGB PISAN hanya menampilkan PNS/PPPK.
+    // Guard ini juga menutup record lama G6K/G6L/G6M/G6N milik jenis pekerjaan lain.
+    rows=rows.filter(o=>{
+      const productOk=V190_KGB_PISAN_PRODUCTS.has(
+        normFilterValue(val(o,['tipe_pinjaman','produk','PRODUK','TIPE_PINJAMAN']))
+      );
+      if(!productOk) return false;
+      const status=getEmployeeStatus(o);
+      return status==='PNS' || status==='PPPK';
+    });
   }
 
   if(v9QuickIncomeSource){
@@ -11924,6 +11947,10 @@ function bind(){
   });
 
   document.getElementById('v190KgbPisanShortcut')?.addEventListener('click',quickKgbPisan);
+  // V198: restore Home shortcuts Potensi G2H/G7G without changing V197 KGB PISAN rules.
+  document.querySelectorAll('[data-v198-special]').forEach(b=>b.addEventListener('click',()=>{
+    if(typeof v18OpenSpecial==='function') v18OpenSpecial(b.dataset.v198Special);
+  }));
 
   document.getElementById('v9WaNav')?.addEventListener('click',openWhatsapp);
   document.getElementById('v9ExportActivity')?.addEventListener('click',exportActivityExcel);

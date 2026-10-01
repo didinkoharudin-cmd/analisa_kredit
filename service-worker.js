@@ -1,4 +1,4 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.196-kgb-pisan-icon';
+const CACHE = 'analisis-kredit-pwa-V18.3.11.198-restore-g2h-g7g';
 
 // V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
 // dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
