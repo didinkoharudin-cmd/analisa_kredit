@@ -404,6 +404,9 @@ body.app-locked > main { display:none !important; }
 @media(max-width:560px){.v64-test-grid{grid-template-columns:1fr}.v64-param-preview div{grid-template-columns:95px minmax(0,1fr)}.v64-test-actions button{flex:1}.v64-test-shell{max-height:96vh;border-radius:16px}.v64-template-row{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.v63-cloud-admin-meta{grid-template-columns:repeat(2,1fr)}.v63-cloud-admin-actions button{flex:1}}
 
+
+/* V207 hard guard: legacy Potensi dashboard/overlay is retired. */
+#v200PotentialOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important;}
 </style>
 <style id="v95-display-fixes">
 /* V95: Desktop AO standings use the complete content width instead of the
@@ -3201,10 +3204,9 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <button type="button" id="v113BundleShortcut"><i class="fa-solid fa-layer-group"></i><span><b>BUNDLING</b><small>G6B + G2C • PROMO &amp; SHARE</small></span></button>
 </div>
 <div class="v198-special-potential" aria-label="Potensi G2H dan G7G">
-  <button type="button" data-v198-special="G2H-THT-PNS" onclick="v203OpenPotentialPage('G2H');return false;" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
-  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" onclick="v203OpenPotentialPage('G7G');return false;" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
+  <button type="button" data-v198-special="G2H-THT-PNS" onclick="window.v203OpenPotentialPage && window.v203OpenPotentialPage('G2H');return false;" title="Potensi G2H"><i class="fa-solid fa-sack-dollar"></i><span><b>POTENSI G2H</b><small>THT • PNS</small></span></button>
+  <button type="button" data-v198-special="G7G-GRACE PERIOD-PNS" onclick="window.v203OpenPotentialPage && window.v203OpenPotentialPage('G7G');return false;" title="Potensi G7G"><i class="fa-solid fa-hourglass-half"></i><span><b>POTENSI G7G</b><small>Grace Period • PNS</small></span></button>
 </div>
-<div id="v200PotentialOverlay" class="v200-potential-overlay" aria-hidden="true"><div class="v200-potential-modal" role="dialog" aria-modal="true" aria-labelledby="v200PotentialTitle"><div class="v200-potential-head"><div><h3 id="v200PotentialTitle">Potensi</h3><small id="v200PotentialSubtitle">Perhitungan berdasarkan parameter yang berlaku</small></div><button type="button" class="v200-potential-close" id="v200PotentialClose" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div><div class="v200-potential-summary"><div class="v200-pot-kpi"><b id="v200PotentialCount">0</b><span>Debitur eligible</span></div><div class="v200-pot-kpi"><b>FILTER</b><span>PNS + usia sesuai ketentuan</span></div><div class="v200-pot-kpi"><b>WA</b><span>Penawaran dapat dikirim</span></div></div><div id="v200PotentialList" class="v200-potential-list"></div></div></div>
 <div class="v190-kgb-separator" role="separator" aria-label="Pemisah Simulasi KPPB dan KGB PISAN"></div>
 <div class="v190-kgb-shortcut-wrap">
 <button type="button" id="v190KgbPisanShortcut" title="KGB PISAN">
@@ -12153,7 +12155,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=186',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=207',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -13072,6 +13074,8 @@ function v203OpenPotentialPage(type){
   renderPotentialDebtorsV203(type);
 }
 
+window.v203OpenPotentialPage=v203OpenPotentialPage;
+
 function renderPotentialDebtorsV203(type){
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
@@ -13164,60 +13168,7 @@ function renderPotentialDebtorsV203(type){
   });
 }
 
-function v200OpenPotential(type){
-  const overlay=document.getElementById('v200PotentialOverlay'),list=document.getElementById('v200PotentialList');
-  if(!overlay||!list)return;
-  const eligible=Object.values(cifDatabase||{})
-    .filter(d=>v200EligibleDebtor(d,type))
-    .map(d=>({deb:d,type,phone:v200Phone(d.no_hp),monthsWork:v18RemainingWorkMonths(d)}))
-    .sort((a,b)=>String(a.deb.nama||'').localeCompare(String(b.deb.nama||''),'id'));
-  document.getElementById('v200PotentialTitle').textContent=type==='G2H'?'Potensi G2H':'Potensi G7G';
-  document.getElementById('v200PotentialSubtitle').textContent=type==='G2H'
-    ?'Daftar PNS yang memenuhi kriteria usia/masa kerja G2H. Tidak menggunakan data THT pada kartu potensi.'
-    :'Daftar PNS yang memenuhi kriteria usia/masa kerja G7G. Tidak menggunakan estimasi gaji pensiun pada kartu potensi.';
-  document.getElementById('v200PotentialCount').textContent=eligible.length.toLocaleString('id-ID');
-  window.v200PotentialRows=eligible;
-  window.v200SelectedPotential=null;
-  list.innerHTML=eligible.length?eligible.map((p,i)=>{
-    const age=typeof simAge==='function'?simAge(p.deb.tgl_lahir):'-';
-    const initial=escapeHtml((String(p.deb.nama||'D').trim().charAt(0)||'D').toUpperCase());
-    return `<article class="v200-potential-card" data-v200-potential-index="${i}">
-      <div class="v16-card-main">
-        <div class="v16-avatar new">${initial}</div>
-        <div class="v16-card-identity">
-          <div class="v16-name-row"><h3>${escapeHtml(p.deb.nama||'-')}</h3><span class="v16-offer-tag new">${escapeHtml(type==='G2H'?'G2H':'G7G')}</span></div>
-          <div class="v16-employee"><b>PNS</b><span>|</span><b>${escapeHtml(p.deb.dinas||'-')}</b></div>
-          <div class="v16-ao">CIF ${escapeHtml(p.deb.cif||'-')} • Usia ${age} th • Sisa ${p.monthsWork} bln</div>
-        </div>
-      </div>
-      <div class="v16-card-footer">
-        <div class="v16-fact"><i class="fa-regular fa-calendar"></i><span>${age} Tahun</span></div>
-        <div class="v16-fact"><i class="fa-solid fa-hourglass-half"></i><span>${p.monthsWork} Bulan</span></div>
-        <button type="button" class="v16-card-wa" ${p.phone?`onclick="event.stopPropagation();v200OpenWaPotential(v200PotentialRows[${i}])"`:'disabled style="opacity:.45;cursor:not-allowed"'} title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
-      </div>
-    </article>`;
-  }).join(''):'<div class="v200-pot-empty"><b>Belum ada debitur yang memenuhi kriteria.</b><br>Screening hanya menggunakan status PNS dan kriteria usia/masa kerja produk.</div>';
-  overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
-}
-
-function v200ClosePotential(){const o=document.getElementById('v200PotentialOverlay');if(o){o.classList.remove('show');o.setAttribute('aria-hidden','true')}}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('v200PotentialClose')?.addEventListener('click',v200ClosePotential);
-  document.getElementById('v200PotentialOverlay')?.addEventListener('click',e=>{if(e.target===e.currentTarget)v200ClosePotential()});
-  document.getElementById('v200PotentialList')?.addEventListener('click',e=>{
-    const card=e.target.closest('[data-v200-potential-index]');
-    if(!card) return;
-    if(e.target.closest('.v16-card-wa')) return;
-    const idx=Number(card.dataset.v200PotentialIndex);
-    const row=window.v200PotentialRows?.[idx];
-    if(!row) return;
-    window.v200SelectedPotential=row;
-    document.querySelectorAll('#v200PotentialList .v200-potential-card').forEach(x=>x.classList.remove('selected'));
-    card.classList.add('selected');
-  });
-  document.getElementById('v9WaNav')?.addEventListener('v200-potential-wa',()=>{});
-});
+// V207: legacy Potensi overlay removed. Potensi G2H/G7G always uses the Debitur page.
 function v18OpenSpecial(k){
   simOpen();
   setTimeout(()=>{
@@ -14886,9 +14837,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 window.v17OpenSimulation=simOpen;
-window.v200OpenPotential=v200OpenPotential;
 window.v200OpenWaPotential=v200OpenWaPotential;
-window.v200ClosePotential=v200ClosePotential;
 })();
 </script>
 
