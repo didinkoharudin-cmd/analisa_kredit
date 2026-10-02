@@ -404,6 +404,9 @@ body.app-locked > main { display:none !important; }
 @media(max-width:560px){.v64-test-grid{grid-template-columns:1fr}.v64-param-preview div{grid-template-columns:95px minmax(0,1fr)}.v64-test-actions button{flex:1}.v64-test-shell{max-height:96vh;border-radius:16px}.v64-template-row{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.v63-cloud-admin-meta{grid-template-columns:repeat(2,1fr)}.v63-cloud-admin-actions button{flex:1}}
 
+
+/* V207 hard guard: legacy Potensi dashboard/overlay is retired. */
+#v200PotentialOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important;}
 </style>
 <style id="v95-display-fixes">
 /* V95: Desktop AO standings use the complete content width instead of the
@@ -2794,6 +2797,8 @@ button:active{transform:scale(.97)}
 }
 </style>
 
+
+</style>
 <style id="v18-special-css">@media all{.v18-special-products{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.v18-special-products button{min-height:54px;border:1px solid #e1e9f5;border-radius:14px;background:#fff;display:flex;align-items:center;gap:9px;padding:8px 10px;text-align:left}.v18-special-products i{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#eef4ff;color:#0757c7}.v18-special-products b{display:block;color:#172554;font-size:9px}.v18-special-products small{display:block;color:#73839b;font-size:7px;margin-top:2px}.v18-special-info{grid-column:1/-1;padding:9px;border-radius:12px;background:#f1f6ff;border:1px solid #dbeafe;color:#345078;font-size:8px;line-height:1.45}#v17SimGross{font-weight:900}}</style>
 <style id="v18-2-special-fix-css">
 @media all{
@@ -3119,6 +3124,11 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 }
 </style>
 <link rel="stylesheet" href="./score-v158.css?v=158">
+
+<style id="v203-potential-page-css">
+.v203-potential-card.selected{border-color:#0757c7!important;box-shadow:0 0 0 2px rgba(7,87,199,.12)!important}
+.v203-potential-card .v16-card-finance strong{font-size:11px}
+</style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen app-locked">
@@ -3170,7 +3180,6 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button data-v9-offer="MENGULANG" title="Potensi Debitur MENGULANG"><i class="fa-solid fa-arrows-rotate"></i><b>MENGULANG</b><span>Renewal</span></button>
   <button id="v17SimulationShortcut" type="button" title="Simulasi Interaktif"><i class="fa-solid fa-calculator"></i><b>SIMULASI</b><span>Hitung Manual</span></button>
 </div>
-
 <div class="v17-income-title"><i class="fa-solid fa-wallet"></i> Sumber Penghasilan</div>
 <div class="v9-access v17-income-access">
   <button data-v9-income="GAJI" title="Filter sumber penghasilan Gaji"><i class="fa-solid fa-wallet"></i><b>GAJI</b><span>Gaji Pokok</span></button>
@@ -3237,7 +3246,9 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
-<section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v81OpenProductivityMenu" type="button" onclick="openAoProductivityDashboard()" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#0f766e);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:none;align-items:center;gap:10px"><i class="fa-solid fa-gauge-high" style="font-size:20px"></i><span><b style="display:block">Monitoring Produktivitas AO</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Dashboard analitik khusus Admin/Supervisor</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v25OpenAoMonitoring" type="button" style="width:100%;margin-bottom:12px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f4c81,#0d9488);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-ranking-star" style="font-size:20px"></i><span><b style="display:block">Laporan Harian &amp; Realisasi</b><small style="font-size:8px;font-weight:600;color:#d5f5f2">AO dapat input realisasi sendiri • Admin/SPV dapat input seluruh AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div class="v9-filters"><label>Produk<select id="v9FilterProduk"><option value="">Semua Produk</option></select></label><label>Jenis Pengajuan<select id="v9FilterJenis"><option value="">Semua Jenis</option></select></label><label>Status Pegawai<select id="v9FilterStatus"><option value="">Semua Status Pegawai</option></select></label><label>Nama Dinas<select id="v9FilterDinas"><option value="">Semua Dinas</option></select></label><label>Kode AO<select id="v9FilterAO"><option value="">Semua AO</option></select></label><input id="v9FilterSearch" type="hidden"></div></div></section>
+<section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div style="margin:12px 0 8px;padding:0 2px;font-size:9px;font-weight:950;color:#64748b;text-transform:uppercase;letter-spacing:.04em"><i class="fa-solid fa-bullseye" style="color:#2563eb;margin-right:5px"></i>Potensi KPPB</div>
+<button id="v208OpenPotentialG2H" type="button" onclick="window.v203OpenPotentialPage && window.v203OpenPotentialPage('G2H');return false;" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-chart-line" style="font-size:20px"></i><span><b style="display:block">Potensi G2H</b><small style="font-size:8px;font-weight:600;color:#dbeafe">PNS • berdasarkan usia • tanpa fasilitas G2H</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button>
+<button id="v208OpenPotentialG7G" type="button" onclick="window.v203OpenPotentialPage && window.v203OpenPotentialPage('G7G');return false;" style="width:100%;margin-bottom:12px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-hourglass-half" style="font-size:20px"></i><span><b style="display:block">Potensi G7G</b><small style="font-size:8px;font-weight:600;color:#ccfbf1">PNS • berdasarkan usia • tanpa fasilitas G7G</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v81OpenProductivityMenu" type="button" onclick="openAoProductivityDashboard()" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#1e3a8a,#0f766e);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:none;align-items:center;gap:10px"><i class="fa-solid fa-gauge-high" style="font-size:20px"></i><span><b style="display:block">Monitoring Produktivitas AO</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Dashboard analitik khusus Admin/Supervisor</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v25OpenAoMonitoring" type="button" style="width:100%;margin-bottom:12px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f4c81,#0d9488);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-ranking-star" style="font-size:20px"></i><span><b style="display:block">Laporan Harian &amp; Realisasi</b><small style="font-size:8px;font-weight:600;color:#d5f5f2">AO dapat input realisasi sendiri • Admin/SPV dapat input seluruh AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div class="v9-filters"><label>Produk<select id="v9FilterProduk"><option value="">Semua Produk</option></select></label><label>Jenis Pengajuan<select id="v9FilterJenis"><option value="">Semua Jenis</option></select></label><label>Status Pegawai<select id="v9FilterStatus"><option value="">Semua Status Pegawai</option></select></label><label>Nama Dinas<select id="v9FilterDinas"><option value="">Semua Dinas</option></select></label><label>Kode AO<select id="v9FilterAO"><option value="">Semua AO</option></select></label><input id="v9FilterSearch" type="hidden"></div></div></section>
 <section class="v9-page" id="v9PageActivity">
   <div class="v9-title">My Activity</div>
   <button id="v46OpenPipeline" type="button" style="width:100%;margin:0 0 10px;border:0;border-radius:13px;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;padding:12px;font-size:11px;font-weight:900;display:flex;align-items:center;gap:9px">
@@ -6035,6 +6046,8 @@ Terima kasih.`
                     });
 
                     m.status_pegawai = detectedStatus || parseStatusPegawai(row['Status Pegawai'] || row['Status'] || row['Jenis Pegawai']) || 'PNS';
+                    const specialIncome = v200SpecialIncomeFields(row);
+                    m.tht = specialIncome.tht; m.pensionIncome = specialIncome.pensionIncome;
 
                     // Fallback khusus nomor HP: cari alias kolom yang umum dan normalisasi ke format WA.
                     const detectedPhone = normalizePhoneFromRow(row);
@@ -6422,6 +6435,10 @@ Terima kasih.`
             };
         }
 
+        // V200: retain special-income fields needed by Potensi G2H/G7G.
+        function v200RawNumberByAliases(row, aliases){ const src=row||{}; const wanted=new Set((aliases||[]).map(x=>normalizeKey(x))); for(const k of Object.keys(src)){ if(wanted.has(normalizeKey(k))){ const n=parseNumber(src[k]); if(Number.isFinite(n)&&n>0)return n; } } return 0; }
+        function v200SpecialIncomeFields(row){ return {tht:v200RawNumberByAliases(row,['THT','Uang THT','Tunjangan Hari Tua','Manfaat THT','Estimasi THT']),pensionIncome:v200RawNumberByAliases(row,['Gaji Pensiun','Estimasi Gaji Pensiun','Pensiun','Penghasilan Pensiun','Gaji Setelah Pensiun','Estimasi Pensiun'])}; }
+
         // --- CORE PROCESSOR BOTH DATA ---
         function processBothData() {
             // V18.3.11.51: fail-closed ownership guard untuk AO.
@@ -6483,7 +6500,9 @@ Terima kasih.`
                         income: {
                             'GAJI': p.gaji || 0,
                             'TPP': p.tpp || 0,
-                            'SERTIFIKASI': p.sertifikasi || 0
+                            'SERTIFIKASI': p.sertifikasi || 0,
+                            'THT': Number(p.tht || 0),
+                            'PENSIUN': Number(p.pensionIncome || 0)
                         },
                         bup: p.bup || 60,
                         tgl_lahir: parseExcelDate(p.tgl_lahir),
@@ -6501,6 +6520,8 @@ Terima kasih.`
                     if (p.gaji !== undefined) existingDebtor.income.GAJI = p.gaji || 0;
                     if (p.tpp !== undefined) existingDebtor.income.TPP = p.tpp || 0;
                     if (p.sertifikasi !== undefined) existingDebtor.income.SERTIFIKASI = p.sertifikasi || 0;
+                    if (p.tht !== undefined) existingDebtor.income.THT = Number(p.tht || 0);
+                    if (p.pensionIncome !== undefined) existingDebtor.income.PENSIUN = Number(p.pensionIncome || 0);
                     if (p.bup) existingDebtor.bup = p.bup;
                     if (parseExcelDate(p.tgl_lahir)) existingDebtor.tgl_lahir = parseExcelDate(p.tgl_lahir);
                     if (parseExcelDate(p.tgl_pelantikan)) existingDebtor.tgl_pelantikan = parseExcelDate(p.tgl_pelantikan);
@@ -6526,7 +6547,7 @@ Terima kasih.`
                         nama: 'Debitur Existing',
                         dinas: 'Dinas General',
                         no_hp: formatPhoneForWA(k.no_hp),
-                        income: { 'GAJI': 0, 'TPP': 0, 'SERTIFIKASI': 0 },
+                        income: { 'GAJI': 0, 'TPP': 0, 'SERTIFIKASI': 0, 'THT': 0, 'PENSIUN': 0 },
                         bup: 60,
                         tgl_lahir: null,
                         tgl_pelantikan: null,
@@ -7531,6 +7552,13 @@ Terima kasih.`
                     item.cifRef.tenorRules.usiaAsuransi || item.cifRef.tenorRules.usiaTahun, 0, angsuranNew, 0, 0, 'NEW'
                 );
                 item.potensiNew = feesNew.netPencairan;
+
+                // V209: jika perubahan tenor membuat gross KGB PISAN turun di bawah Rp5 juta,
+                // langsung refresh daftar agar kartu potensi tidak ditampilkan.
+                if (simIsKgbPisanProduct(item.tipe_pinjaman) && Number(item.plafonGrossNew || 0) < V191_KGB_PISAN_MIN_GROSS) {
+                    filterData();
+                    return;
+                }
             } else {
 
             const grossTopUp = calculatePlafonFromAngsuran(item.maxAngsuranTopUp, item.selectedTenor, item.tipe_pinjaman, 'TOPUP');
@@ -7654,7 +7682,13 @@ Terima kasih.`
                               (l.no_hp || '').toLowerCase().includes(search);
                 }
 
-                return mProduk && mSumber && mPegawai && mDinas && mAO && mStatus && mSearch;
+                // V209: KGB PISAN tidak boleh tampil sebagai kartu potensi
+                // apabila plafond gross NEW di bawah minimum Rp5 juta.
+                // Filter ini menjadi guard kedua selain validasi saat pembentukan loanDatabase,
+                // sehingga perubahan tenor/recalculate tidak dapat menampilkan kartu di bawah minimum.
+                const mKgbPisanGross = !simIsKgbPisanProduct(l.tipe_pinjaman) || Number(l.plafonGrossNew || 0) >= V191_KGB_PISAN_MIN_GROSS;
+
+                return mProduk && mSumber && mPegawai && mDinas && mAO && mStatus && mSearch && mKgbPisanGross;
             });
 
             renderTable(sortLoanData(filtered));
@@ -7671,7 +7705,13 @@ Terima kasih.`
         function renderTable(data, appendPage = false) {
             const tbody = document.getElementById('loanTableBody');
             if (!appendPage) {
-                loanRenderSource = window.v109SortOffers ? window.v109SortOffers(Array.isArray(data) ? data : []) : (Array.isArray(data) ? data : []);
+                // V209 hard guard: jangan pernah render kartu/baris KGB PISAN
+                // dengan plafond gross NEW < Rp5.000.000.
+                const sourceData = (Array.isArray(data) ? data : []).filter(item =>
+                    !simIsKgbPisanProduct(item?.tipe_pinjaman) ||
+                    Number(item?.plafonGrossNew || 0) >= V191_KGB_PISAN_MIN_GROSS
+                );
+                loanRenderSource = window.v109SortOffers ? window.v109SortOffers(sourceData) : sourceData;
                 loanVisibleCount = isMobileDevice() ? 35 : 120;
                 tbody.innerHTML = '';
             }
@@ -8069,7 +8109,9 @@ Terima kasih.`
             const raw = String(value || item?.sumber_penghasilan || item?.prodInfo?.sumber || '').trim().toUpperCase();
             if (raw.includes('SERTIFIKASI')) return 'SERTIFIKASI';
             if (raw.includes('TPP') || raw.includes('TUKIN')) return 'TPP';
+            if (raw.includes('THT')) return 'THT';
             if (raw.includes('PENSIUN') && raw.includes('GAJI')) return 'GAJI/PENSIUN';
+            if (raw === 'PENSIUN' || raw.includes('GAJI PENSIUN')) return 'PENSIUN';
             return 'GAJI';
         }
 
@@ -8087,6 +8129,8 @@ Terima kasih.`
                 benefit:'Perhitungan kemampuan angsuran disesuaikan dengan penerimaan TPP/Tukin dan kewajiban kredit pada sumber yang sama.',
                 closing:'Apakah Bapak/Ibu berminat memanfaatkan TPP/Tukin untuk pengajuan ini?'
             };
+            if (source === 'THT') return {source:'THT',label:'THT (Tabungan Hari Tua)',intro:'penawaran kredit G2H dengan sumber manfaat *THT*',benefit:'Perhitungan plafond menggunakan maksimal *85% dari estimasi THT* dan mengikuti tenor sesuai ketentuan G2H.',closing:'Apakah Bapak/Ibu berminat memanfaatkan fasilitas G2H ini?'};
+            if (source === 'PENSIUN') return {source:'PENSIUN',label:'Gaji Pensiun',intro:'penawaran kredit G7G dengan sumber pembayaran dari *Gaji Pensiun*',benefit:'Perhitungan kemampuan angsuran menggunakan *90% dari estimasi gaji pensiun* dengan grace period sampai masa pensiun.',closing:'Apakah Bapak/Ibu berminat melanjutkan simulasi G7G ini?'};
             if (source === 'GAJI/PENSIUN') return {
                 source:'GAJI/PENSIUN',label:'Gaji Aktif dan Gaji Pensiun',
                 intro:'penawaran kredit pra-pensiun dengan sumber pembayaran dari *Gaji Aktif dan Gaji Pensiun*',
@@ -9051,6 +9095,8 @@ function updateWaPreview() {
         }
       });
       m.status_pegawai = detectedStatus || parseStatusPegawai(row['Status Pegawai'] || row['Status'] || row['Jenis Pegawai']) || 'PNS';
+      const specialIncome = v200SpecialIncomeFields(row);
+      m.tht = specialIncome.tht; m.pensionIncome = specialIncome.pensionIncome;
       const detectedPhone = normalizePhoneFromRow(row);
       if (detectedPhone) m.no_hp = detectedPhone;
       else if (m.no_hp) m.no_hp = formatPhoneForWA(m.no_hp);
@@ -11318,6 +11364,7 @@ function renderDashboard(){
 }
 
 function renderDebtors(){
+  if(window.v9SpecialPotentialType){ renderPotentialDebtorsV203(window.v9SpecialPotentialType); return; }
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
 
@@ -11717,7 +11764,7 @@ function go(page){
   const shell=document.querySelector('#mobileV9Home .v9-shell');
   if(shell) shell.scrollTo({top:0,left:0,behavior:'auto'});
 
-  if(page==='home') renderDashboard();
+  if(page==='home'){ window.v9SpecialPotentialType=''; renderDashboard(); }
   if(page==='debitur'){ populateFilters(getLoans()); renderDebtors(); }
   if(page==='activity'){renderV9Activity();setTimeout(()=>window.loadMyActivityFromServer?.(),80);}
   if(page==='menu') populateFilters(getLoans());
@@ -11745,6 +11792,15 @@ function openSelected(card){
 }
 
 function openWhatsapp(){
+  // V204: kartu Potensi G2H/G7G menggunakan alur WA yang sama dengan kartu lain.
+  // Jika kartu potensi sedang dipilih, tombol WA di bottom menu langsung memakai data kartu tersebut.
+  if(window.v200SelectedPotential){
+    const potential=window.v200SelectedPotential;
+    if(!potential.phone){ alert('Nomor WhatsApp/HP debitur belum tersedia.'); return; }
+    Promise.resolve(v200OpenWaPotential(potential)).catch(err=>{ console.error('WA Potensi:',err); });
+    return;
+  }
+
   const selected = window.v9Selected ||
     loanDatabase.find(l => String(l.loan_id) === String(selectedLoanId));
 
@@ -11935,6 +11991,8 @@ function bind(){
   });
 
   document.getElementById('v190KgbPisanShortcut')?.addEventListener('click',quickKgbPisan);
+  // V208: Potensi G2H/G7G dipindahkan dari Home ke Menu & Filter.
+  // Handler menggunakan onclick global agar tetap responsif setelah render ulang.
 
   document.getElementById('v9WaNav')?.addEventListener('click',openWhatsapp);
   document.getElementById('v9ExportActivity')?.addEventListener('click',exportActivityExcel);
@@ -11966,6 +12024,7 @@ function bind(){
     const offer=waBtn?.dataset.cardWaOfferType || action?.dataset.actionOfferType || row?.dataset.offerType || '';
 
     selectedLoanId=id;
+    window.v200SelectedPotential=null;
     window.v9SelectedOfferType=String(offer).toUpperCase();
     window.v9Selected=getLoans().find(o=>String(val(o,['loan_id','LOAN_ID','no_pinjaman','NO_PINJAMAN']))===String(id)) || null;
 
@@ -12104,7 +12163,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=186',{updateViaCache:'all'})
+      navigator.serviceWorker.register('./service-worker.js?v=208',{updateViaCache:'all'})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -12938,7 +12997,201 @@ function v18SpecialUI(){
    if(i){i.style.display='block';i.innerHTML='<b>G7G:</b> RPC 90% gaji pensiun. Masa GP 8%, masa pensiun 12%. Jatuh tempo maksimal usia 70 tahun.'}
  }
 }
-function v18OpenSpecial(k){simOpen();setTimeout(()=>{v18AddProducts();const e=document.getElementById('v17SimProduct');e.value=k;e.dispatchEvent(new Event('change',{bubbles:true}))},0)}
+function v200Num(v){return Number(String(v??'').replace(/\./g,'').replace(/,/g,'.').replace(/[^\d.-]/g,''))||0}
+function v200Money(v){return 'Rp '+Math.round(Number(v)||0).toLocaleString('id-ID')}
+function v200Phone(v){let p=String(v||'').replace(/\D/g,'');if(!p)return '';if(p.startsWith('0'))p='62'+p.slice(1);if(p.startsWith('8'))p='62'+p;return p}
+
+// V201: kartu Potensi hanya melakukan screening eligibility.
+// Tidak membutuhkan / menampilkan nilai THT atau estimasi gaji pensiun.
+// V202: sebelum masuk kartu Potensi, cek seluruh fasilitas pinjaman berdasarkan CIF.
+// Jika CIF sudah mempunyai fasilitas G2H atau G7G, CIF dikeluarkan dari
+// kartu Potensi G2H maupun Potensi G7G. Pemeriksaan memakai data fasilitas
+// yang sudah dibentuk dari kreditRawData -> deb.facilities, sehingga tidak
+// bergantung pada hasil kalkulasi potensi/loanDatabase.
+// V203: G2H dan G7G adalah produk yang BERBEDA.
+// Kepemilikan salah satu produk hanya menghapus potensi produk yang sama.
+function v202HasExistingProductFacility(deb,type){
+  if(!deb) return false;
+  const wanted=String(type||'').trim().toUpperCase();
+  if(wanted!=='G2H' && wanted!=='G7G') return false;
+  const facilities=Array.isArray(deb.facilities)?deb.facilities:[];
+  return facilities.some(f=>{
+    const product=String(f?.tipe_pinjaman||f?.product||'').trim().toUpperCase();
+    if(wanted==='G2H') return product==='G2H' || product.startsWith('G2H-');
+    return product==='G7G' || product.startsWith('G7G-');
+  });
+}
+
+function v200EligibleDebtor(deb,type){
+  if(!deb || String(deb.status_pegawai||'').trim().toUpperCase()!=='PNS') return false;
+  // V203: hanya blokir produk yang SUDAH dimiliki CIF.
+  // Contoh: sudah G2H tetapi belum G7G -> tetap muncul di Potensi G7G.
+  // Sebaliknya, sudah G7G tetapi belum G2H -> tetap muncul di Potensi G2H.
+  if(v202HasExistingProductFacility(deb,type)) return false;
+  if(!(deb.tgl_lahir instanceof Date) || isNaN(deb.tgl_lahir.getTime())) return false;
+  const monthsWork=v18RemainingWorkMonths(deb);
+  if(monthsWork===null || monthsWork<=0) return false;
+  // Pertahankan ketentuan eligibility yang sudah dipakai produk special:
+  // G2H maksimal 36 bulan sebelum BUP, G7G maksimal 60 bulan sebelum BUP.
+  if(type==='G2H') return monthsWork<=36;
+  if(type==='G7G') return monthsWork<=60;
+  return false;
+}
+
+function v200WaMessage(p){
+  const aoLogin=(typeof currentUser!=='undefined'&&currentUser)?currentUser:{};
+  const namaAO=String(aoLogin.name||aoLogin.nama||aoLogin.namaAO||aoLogin.nama_ao||aoLogin.NAMA_AO||'AO bank bjb').trim();
+  const isG2H=p.type==='G2H';
+  const product=isG2H?'G2H-THT-PNS':'G7G-GRACE PERIOD-PNS';
+  const sourceProfile=isG2H
+    ? {source:'THT',label:'THT',intro:'informasi penawaran fasilitas kredit G2H untuk PNS yang memenuhi kriteria usia dan masa kerja',benefit:'Untuk mengetahui plafond, tenor, angsuran, biaya dan estimasi nett, kami dapat membantu melakukan simulasi sesuai data yang tersedia.',closing:'Apakah Bapak/Ibu berminat untuk kami bantu lakukan simulasi G2H?'}
+    : {source:'PENSIUN',label:'Gaji Pensiun',intro:'informasi penawaran fasilitas kredit G7G untuk PNS yang memenuhi kriteria usia dan masa kerja',benefit:'Untuk mengetahui plafond, tenor, angsuran, biaya dan estimasi nett, kami dapat membantu melakukan simulasi sesuai data yang tersedia.',closing:'Apakah Bapak/Ibu berminat untuk kami bantu lakukan simulasi G7G?'};
+  const detail=isG2H
+    ? `*Informasi Potensi G2H:*\n• Produk: *G2H-THT-PNS*\n• Status: *PNS*\n• Kriteria: *Memenuhi ketentuan usia/masa kerja*\n\nPlafond, tenor, angsuran dan estimasi pencairan akan ditentukan melalui simulasi sesuai data yang tersedia.`
+    : `*Informasi Potensi G7G:*\n• Produk: *G7G-GRACE PERIOD-PNS*\n• Status: *PNS*\n• Kriteria: *Memenuhi ketentuan usia/masa kerja*\n\nPlafond, tenor, angsuran dan estimasi pencairan akan ditentukan melalui simulasi sesuai data yang tersedia.`;
+  const vars={
+    nama_debitur:p.deb.nama||'',nama_ao:namaAO,jenis_penawaran:isG2H?'Potensi G2H':'Potensi G7G',
+    status_pegawai:p.deb.status_pegawai||'PNS',produk,no_pinjaman:'',
+    sumber_pembayaran:sourceProfile.label,sumber_intro:sourceProfile.intro,sumber_manfaat:sourceProfile.benefit,
+    detail_penawaran:detail,ringkasan_penawaran:'',sumber_closing:sourceProfile.closing,
+    plafond_gross:'-',nett:'-',angsuran:'-',tenor:'-',bunga:isG2H?'9.50% flat p.a.':'12.00% p.a.'
+  };
+  return renderWaTemplate(getWaMessageTemplate('NEW',{tipe_pinjaman:product,sumber_penghasilan:sourceProfile.source,prodInfo:{sumber:sourceProfile.source}},sourceProfile.source),vars);
+}
+
+async function v200OpenWaPotential(p){
+  if(!p?.phone){alert('Nomor WhatsApp/HP debitur belum tersedia.');return}
+  const msg=v200WaMessage(p);if(!msg)return;
+  const rec={key:'POTENSI-'+p.type+'-'+String(p.deb.cif||p.deb.nama||Date.now()),waktu:new Date().toISOString(),waktuDisplay:new Date().toLocaleString('id-ID'),loan_id:'',no_pinjaman:'',cif:p.deb.cif||'',nama:p.deb.nama||'',kode_ao:p.deb.kode_ao||'',no_hp:p.phone,tipe_pinjaman:p.type==='G2H'?'G2H-THT-PNS':'G7G-GRACE PERIOD-PNS',sumber_pembayaran:p.type==='G2H'?'THT':'PENSIUN',jenis_penawaran:'NEW',nominal_type:'POTENSI',tenor:'',plafond_gross:0,estimasi_angsuran:0,potensi_nett:0,outstanding:0,produk_pengajuan:p.type==='G2H'?'G2H-THT-PNS':'G7G-GRACE PERIOD-PNS'};
+  try{const a=JSON.parse(localStorage.getItem('analisaKredit_offerActivity_v1')||'[]');a.unshift(rec);localStorage.setItem('analisaKredit_offerActivity_v1',JSON.stringify(a.slice(0,500)))}catch(e){}
+  if(window.pushCentralActivity){try{await window.pushCentralActivity(rec,'PENAWARAN_WA')}catch(e){console.warn('Activity potensi WA:',e)}}
+  window.location.href='https://wa.me/'+p.phone+'?text='+encodeURIComponent(msg);
+}
+
+function v203OpenPotentialPage(type){
+  type=String(type||'').toUpperCase();
+  if(type!=='G2H'&&type!=='G7G') return;
+  window.v9SpecialPotentialType=type;
+  window.v200SelectedPotential=null;
+  window.v200PotentialRows=[];
+  window.v9Selected=null;
+  window.v9SelectedOfferType='';
+  selectedLoanId='';
+  window.v16DebtorOffset=0;
+  go('debitur');
+  renderPotentialDebtorsV203(type);
+}
+
+window.v203OpenPotentialPage=v203OpenPotentialPage;
+
+function renderPotentialDebtorsV203(type){
+  const list=document.getElementById('v9DebtorList');
+  if(!list) return;
+  type=String(type||window.v9SpecialPotentialType||'').toUpperCase();
+  if(type!=='G2H'&&type!=='G7G') return;
+
+  // Potensi KPPB hanya memakai 2 parameter bisnis sederhana:
+  // 1) debitur eligible berdasarkan aturan usia/masa kerja produk;
+  // 2) CIF belum memiliki fasilitas produk yang sedang dicari.
+  // Tidak membaca THT / estimasi pensiun dan tidak menghitung plafond.
+  const rows=Object.values(cifDatabase||{})
+    .filter(d=>v200EligibleDebtor(d,type))
+    .map(d=>({deb:d,type,phone:v200Phone(d.no_hp),monthsWork:v18RemainingWorkMonths(d)}))
+    .sort((a,b)=>String(a.deb.nama||'').localeCompare(String(b.deb.nama||''),'id'));
+
+  window.v203PotentialRows=rows;
+  window.v200PotentialRows=rows;
+  window.v200SelectedPotential=null;
+  window.v9Selected=null;
+  window.v9SelectedOfferType='NEW';
+  selectedLoanId='';
+
+  list.innerHTML='';
+  const summary=document.createElement('div');
+  summary.className='v16-debtor-summary';
+  summary.innerHTML=`<span>Potensi <b>${type}</b> • <b>${rows.length.toLocaleString('id-ID')}</b> debitur eligible</span><button type="button" id="v203PotentialBack" class="v16-load-more" style="margin:0;padding:6px 10px">Kembali</button>`;
+  list.appendChild(summary);
+  summary.querySelector('#v203PotentialBack')?.addEventListener('click',()=>{
+    window.v9SpecialPotentialType='';
+    renderDebtors();
+  });
+
+  if(!rows.length){
+    const empty=document.createElement('div');
+    empty.className='v9-empty';
+    empty.innerHTML=`Tidak ada debitur yang memenuhi kriteria Potensi ${escapeHtml(type)}.`;
+    list.appendChild(empty);
+    return;
+  }
+
+  // Gunakan pola kartu Debitur standar: identitas + kriteria + aksi.
+  const cards=document.createElement('div');
+  cards.className='v16-debtor-cards';
+  rows.forEach((p,i)=>{
+    const d=p.deb;
+    const nama=String(d.nama||'Debitur');
+    const age=typeof simAge==='function'?simAge(d.tgl_lahir):'-';
+    const initial=escapeHtml((nama.trim().charAt(0)||'D').toUpperCase());
+    const phone=String(p.phone||'');
+    const card=document.createElement('article');
+    card.className='v16-debtor-card';
+    card.dataset.v203PotentialIndex=String(i);
+    card.innerHTML=`
+      <div class="v16-card-main">
+        <div class="v16-avatar new">${initial}</div>
+        <div class="v16-card-identity">
+          <div class="v16-name-row"><h3>${escapeHtml(nama)}</h3><span class="v16-offer-tag new">POTENSI ${escapeHtml(type)}</span></div>
+          <div class="v16-employee"><b>${escapeHtml(d.status_pegawai||'PNS')}</b><span>|</span><b>${escapeHtml(d.dinas||'-')}</b></div>
+          <div class="v16-ao">CIF ${escapeHtml(d.cif||'-')}</div>
+        </div>
+      </div>
+      <div class="v16-card-finance">
+        <div><small>Usia</small><strong>${escapeHtml(String(age))} Tahun</strong></div>
+        <div class="pencairan"><small>Status Potensi</small><strong class="nett">Eligible</strong></div>
+      </div>
+      <div class="v16-card-footer">
+        <div class="v16-fact"><i class="fa-regular fa-calendar"></i><span>${escapeHtml(String(age))} Tahun</span></div>
+        <div class="v16-fact"><i class="fa-solid fa-check-circle"></i><span>Belum ${escapeHtml(type)}</span></div>
+        <button type="button" class="v16-detail-btn" data-v203-potential-index="${i}"><i class="fa-regular fa-file-lines"></i><span>Pilih</span></button>
+        <button type="button" class="v16-card-wa" data-v203-potential-wa="${i}" ${phone?'':'disabled style="opacity:.45;cursor:not-allowed"'} title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+      </div>`;
+    cards.appendChild(card);
+  });
+  list.appendChild(cards);
+
+  cards.addEventListener('click',e=>{
+    const wa=e.target.closest('[data-v203-potential-wa]');
+    const pick=e.target.closest('[data-v203-potential-index]');
+    if(wa){
+      e.stopPropagation();
+      const row=rows[Number(wa.dataset.v203PotentialWa)];
+      if(row) v200OpenWaPotential(row);
+      return;
+    }
+    if(!pick) return;
+    const idx=Number(pick.dataset.v203PotentialIndex);
+    const row=rows[idx];
+    if(!row) return;
+    window.v200SelectedPotential=row;
+    window.v9Selected=row;
+    window.v9SelectedOfferType='NEW';
+    selectedLoanId='';
+    cards.querySelectorAll('.v16-debtor-card').forEach(x=>x.classList.remove('selected'));
+    pick.closest('.v16-debtor-card')?.classList.add('selected');
+  });
+}
+
+// V207: legacy Potensi overlay removed. Potensi G2H/G7G always uses the Debitur page.
+function v18OpenSpecial(k){
+  simOpen();
+  setTimeout(()=>{
+    v18AddProducts();
+    const e=document.getElementById('v17SimProduct');
+    if(!e) return;
+    e.value=k;
+    e.dispatchEvent(new Event('change',{bubbles:true}));
+  },0);
+}
 function v18BindMoney(el,cb){if(!el||el.dataset.money)return;el.dataset.money='1';el.addEventListener('input',()=>{const n=v18Num(el.value);el.value=n?v18Fmt(n):'';cb&&cb()})}
 
 function g2cApplyOfferRule(){
@@ -14597,6 +14850,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 window.v17OpenSimulation=simOpen;
+window.v200OpenWaPotential=v200OpenWaPotential;
 })();
 </script>
 
