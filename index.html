@@ -11028,6 +11028,13 @@ let v9QuickIncomeSource = '';
 // V190: shortcut KGB PISAN = gabungan produk G6K/G6L/G6M/G6N.
 let v9QuickKgbPisan = false;
 const V190_KGB_PISAN_PRODUCTS = new Set(['G6K','G6L','G6M','G6N']);
+// V210: satu sumber kebenaran untuk minimum plafond gross KGB PISAN.
+// Nilai kosong/0 juga dianggap TIDAK eligible.
+function v210KgbPisanGrossEligible(o){
+  const product=normFilterValue(val(o,['tipe_pinjaman','produk','PRODUK','TIPE_PINJAMAN']));
+  if(!V190_KGB_PISAN_PRODUCTS.has(product)) return true;
+  return Number(o?.plafonGrossNew || 0) >= V191_KGB_PISAN_MIN_GROSS;
+}
 // V166: urutan kartu Debitur berdasarkan status flagging (bukan filter).
 let v166DebtorFlagSortMode = 'UNFLAGGED_FIRST';
 
@@ -11245,7 +11252,10 @@ function getFilteredLoans(){
       );
       if(!productOk) return false;
       const status=getEmployeeStatus(o);
-      return status==='PNS' || status==='PPPK';
+      if(status!=='PNS' && status!=='PPPK') return false;
+      // V210: jangan pernah masukkan KGB PISAN dengan gross < Rp5 juta,
+      // termasuk nilai 0/undefined dari record lama.
+      return v210KgbPisanGrossEligible(o);
     });
   }
 
@@ -11368,7 +11378,11 @@ function renderDebtors(){
   const list=document.getElementById('v9DebtorList');
   if(!list) return;
 
-  const filteredRows=getFilteredLoans();
+  let filteredRows=getFilteredLoans();
+  // V210 hard guard pada jalur kartu mobile.
+  if(v9QuickKgbPisan){
+    filteredRows=filteredRows.filter(v210KgbPisanGrossEligible);
+  }
   const allRows=window.v109SortOffers ? window.v109SortOffers(filteredRows,v166DebtorFlagSortMode) : filteredRows;
   const pageSize=40;
   const offset=Number(window.v16DebtorOffset||0);
@@ -11433,6 +11447,8 @@ function renderDebtors(){
   cards.className='v16-debtor-cards';
 
   rows.forEach((o,index)=>{
+    // V210 final defensive gate: gross 0/kosong/< Rp5 juta tidak dibuat menjadi kartu.
+    if(v9QuickKgbPisan && !v210KgbPisanGrossEligible(o)) return;
     const id=String(val(o,['loan_id','LOAN_ID','no_pinjaman','NO_PINJAMAN'])||'');
     const offerType=String(o.__offerType||'').toUpperCase();
     const nama=String(o?.cifRef?.nama||val(o,['nama','NAMA'])||'Debitur');
