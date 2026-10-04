@@ -15851,8 +15851,9 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   function flagKey(obj,explicitOffer){
     const p=dataParts(obj,explicitOffer);
-    // V216: khusus KGB PISAN, identitas flag wajib CIF + produk + loan_id.
-    // Tidak menggunakan no_pinjaman generik "KGB PISAN (GAJI)".
+    // V217: identitas kanonik KGB tetap CIF + produk + loan_id.
+    // Flag juga dibuat dengan alias server-compatible berbasis loan_id unik,
+    // karena endpoint getMonthlyOfferFlags lama membaca client_key Activity.
     if(p.isKgbPisan){
       if(p.cif&&p.product&&p.loan) return 'KGB|'+p.cif+'|'+p.product+'|'+p.loan;
       return '';
@@ -15860,6 +15861,16 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     if(p.loan) return 'FACILITY|'+p.loan;
     if(p.cif) return 'NEW|'+p.cif+'|'+(p.product||p.offer||'NEW');
     return '';
+  }
+
+  function flagKeysForLookup(obj,explicitOffer){
+    const p=dataParts(obj,explicitOffer), keys=[];
+    const canonical=flagKey(obj,explicitOffer);
+    if(canonical) keys.push(canonical);
+    // V217: jangan gunakan no_pinjaman KGB. Gunakan hanya loan_id unik sebagai
+    // kompatibilitas dengan flag server lama yang bersumber dari Activity.client_key.
+    if(p.isKgbPisan && p.loan) keys.push('FACILITY|'+p.loan);
+    return [...new Set(keys)];
   }
 
   function currentUser(){ return window.currentUser||{}; }
@@ -15893,19 +15904,19 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   }
 
   window.isMonthlyOffered=function(obj,offer){
-    const key=flagKey(obj,offer);
-    return !!key&&state.flags.has(key);
+    return flagKeysForLookup(obj,offer).some(k=>state.flags.has(k));
   };
 
   window.v109OfferTimestamp=function(obj){
-    const flag=state.flags.get(flagKey(obj));
+    const key=flagKeysForLookup(obj);
+    const flag=key.map(k=>state.flags.get(k)).find(Boolean);
     const value=flag ? new Date(flag.timestamp||flag.waktu||0).getTime() : 0;
     return Number.isFinite(value)?value:0;
   };
 
   window.monthlyOfferFlagMarkup=function(obj,offer){
-    const key=flagKey(obj,offer);
-    const flag=key?state.flags.get(key):null;
+    const keys=flagKeysForLookup(obj,offer);
+    const flag=keys.map(k=>state.flags.get(k)).find(Boolean)||null;
     if(!flag) return '';
     let when='aktif';
     const d=new Date(flag.timestamp||flag.waktu||0);
@@ -15920,7 +15931,16 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     ensurePeriod();
     const key=flagKey(record,record?.jenis_penawaran||record?.jenis_pengajuan);
     if(!key) return;
-    state.flags.set(key,{key,timestamp:new Date().toISOString(),activityType:type});
+    const timestamp=new Date().toISOString();
+    state.flags.set(key,{key,timestamp,activityType:type});
+    // V217: simpan alias yang sama dengan bentuk flag server lama, tetapi hanya
+    // jika loan_id KGB unik. Ini membuat flag langsung terlihat dan tetap cocok
+    // setelah sync server, tanpa kembali memakai no_pinjaman generik.
+    const parts=dataParts(record,record?.jenis_penawaran||record?.jenis_pengajuan);
+    if(parts.isKgbPisan && parts.loan){
+      const alias='FACILITY|'+parts.loan;
+      state.flags.set(alias,{key:alias,timestamp,activityType:type,canonicalKey:key});
+    }
     persist();
     emit();
   };
