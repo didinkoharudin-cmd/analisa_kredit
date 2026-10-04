@@ -15835,16 +15835,28 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   function dataParts(obj,explicitOffer){
     const facility=obj?.facilityRef||obj?.facility||{};
-    let loan=norm(obj?.no_pinjaman||obj?.NO_PINJAMAN||facility?.no_pinjaman||obj?.loan_id||'');
     const cif=normalizeCif(obj?.cif||obj?.CIF||obj?.cifRef?.cif||obj?.deb?.cif||'');
     const offer=norm(explicitOffer||obj?.jenis_penawaran||obj?.jenis_pengajuan||obj?.__offerType||obj?.offerType||'NEW');
     const product=norm(obj?.tipe_pinjaman||obj?.produk||obj?.PRODUK||obj?.product||offer||'NEW');
+    // V216: KGB PISAN harus memakai loan_id sintetis yang unik per CIF.
+    // Sebelumnya no_pinjaman = "KGB PISAN (GAJI)" sama untuk semua kartu,
+    // sehingga satu penawaran dapat menandai seluruh kartu KGB PISAN.
+    const isKgbPisan=['G6K','G6L','G6M','G6N'].includes(product);
+    let loan=isKgbPisan
+      ? norm(obj?.loan_id||facility?.loan_id||obj?.no_pinjaman||obj?.NO_PINJAMAN||facility?.no_pinjaman||'')
+      : norm(obj?.no_pinjaman||obj?.NO_PINJAMAN||facility?.no_pinjaman||obj?.loan_id||'');
     if(/_NEW$/.test(loan)||/^NEW[_-]/.test(loan)||(/^NEW/.test(loan)&&/TANPAPINJAMAN/.test(loan))) loan='';
-    return {loan,cif,offer,product};
+    return {loan,cif,offer,product,isKgbPisan};
   }
 
   function flagKey(obj,explicitOffer){
     const p=dataParts(obj,explicitOffer);
+    // V216: khusus KGB PISAN, identitas flag wajib CIF + produk + loan_id.
+    // Tidak menggunakan no_pinjaman generik "KGB PISAN (GAJI)".
+    if(p.isKgbPisan){
+      if(p.cif&&p.product&&p.loan) return 'KGB|'+p.cif+'|'+p.product+'|'+p.loan;
+      return '';
+    }
     if(p.loan) return 'FACILITY|'+p.loan;
     if(p.cif) return 'NEW|'+p.cif+'|'+(p.product||p.offer||'NEW');
     return '';
