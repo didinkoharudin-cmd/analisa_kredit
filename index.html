@@ -15845,9 +15845,21 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   function flagKey(obj,explicitOffer){
     const p=dataParts(obj,explicitOffer);
-    if(p.loan) return 'FACILITY|'+p.loan;
+    // V213: flag wajib terikat ke DEBITUR + PRODUK + fasilitas.
+    // Sebelumnya key hanya memakai loan_id sehingga jika sumber data/synthetic
+    // KGB PISAN mengulang loan_id, flag satu debitur dapat terbaca pada debitur lain.
+    // CIF menjadi identitas utama, loan/product sebagai pembeda fasilitas.
+    if(p.cif && p.loan) return 'FACILITY|'+p.cif+'|'+p.product+'|'+p.loan;
     if(p.cif) return 'NEW|'+p.cif+'|'+(p.product||p.offer||'NEW');
+    if(p.loan) return 'LEGACY_FACILITY|'+p.loan;
     return '';
+  }
+
+  function legacyFlagKeys(obj,explicitOffer){
+    const p=dataParts(obj,explicitOffer), out=[];
+    if(p.loan) out.push('FACILITY|'+p.loan);
+    if(p.cif) out.push('NEW|'+p.cif+'|'+(p.product||p.offer||'NEW'));
+    return out;
   }
 
   function currentUser(){ return window.currentUser||{}; }
@@ -15882,7 +15894,8 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   window.isMonthlyOffered=function(obj,offer){
     const key=flagKey(obj,offer);
-    return !!key&&state.flags.has(key);
+    if(key && state.flags.has(key)) return true;
+    return legacyFlagKeys(obj,offer).some(k=>state.flags.has(k));
   };
 
   window.v109OfferTimestamp=function(obj){
@@ -15893,7 +15906,11 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   window.monthlyOfferFlagMarkup=function(obj,offer){
     const key=flagKey(obj,offer);
-    const flag=key?state.flags.get(key):null;
+    let flag=key?state.flags.get(key):null;
+    if(!flag){
+      const legacy=legacyFlagKeys(obj,offer).find(k=>state.flags.has(k));
+      if(legacy) flag=state.flags.get(legacy);
+    }
     if(!flag) return '';
     let when='aktif';
     const d=new Date(flag.timestamp||flag.waktu||0);
