@@ -15240,20 +15240,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       if(!window.googleCredential && typeof googleCredential!=='undefined' && googleCredential) window.googleCredential=googleCredential;
       const cred=window.googleCredential || (typeof googleCredential!=='undefined'?googleCredential:'');
       if(!cred || !record || typeof window.callApi!=='function') return Promise.resolve({success:false,skipped:true});
-      const payload=Object.assign({},record,{activityType:activityType||record.activityType||'ACTIVITY',source:'PWA_V18.3.11.214'});
-      // V214: kirim identitas flag secara eksplisit ke backend. clientKey juga
-      // diarahkan ke key kanonik agar jalur server tidak kembali memakai loan_id saja.
-      try{
-        const fk=window.__scoreBuildMonthlyFlagKey?window.__scoreBuildMonthlyFlagKey(payload):'';
-        if(fk){
-          payload.flagKey=fk;
-          payload.flagIdentity=fk;
-          payload.clientKey=fk;
-          payload.flagCif=normalizeCif(payload.cif||payload.CIF||'');
-          payload.flagProduct=norm(payload.tipe_pinjaman||payload.produk||payload.PRODUK||'');
-          payload.flagLoanId=norm(payload.loan_id||payload.LOAN_ID||'');
-        }
-      }catch(e){ console.warn('V214 flag identity payload:',e); }
+      const payload=Object.assign({},record,{activityType:activityType||record.activityType||'ACTIVITY',source:'PWA_V18.3.11.53'});
       return window.callApi('logActivity',cred,{activity:payload}).then(function(r){
         if(!r||!r.success) console.warn('Activity Log server ditolak:',r&&r.error);
         return r;
@@ -15848,26 +15835,20 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   function dataParts(obj,explicitOffer){
     const facility=obj?.facilityRef||obj?.facility||{};
-    // V214: identitas flag HARUS memakai loan_id asli. no_pinjaman bukan
-    // pengganti loan_id karena KGB PISAN memakai label yang sama untuk banyak CIF.
-    const loan=norm(obj?.loan_id||obj?.LOAN_ID||facility?.loan_id||facility?.LOAN_ID||'');
-    const cif=normalizeCif(obj?.cif||obj?.CIF||obj?.cifRef?.cif||obj?.deb?.cif||facility?.cif||'');
+    let loan=norm(obj?.no_pinjaman||obj?.NO_PINJAMAN||facility?.no_pinjaman||obj?.loan_id||'');
+    const cif=normalizeCif(obj?.cif||obj?.CIF||obj?.cifRef?.cif||obj?.deb?.cif||'');
     const offer=norm(explicitOffer||obj?.jenis_penawaran||obj?.jenis_pengajuan||obj?.__offerType||obj?.offerType||'NEW');
-    const product=norm(obj?.tipe_pinjaman||obj?.produk||obj?.PRODUK||obj?.product||facility?.tipe_pinjaman||facility?.produk||'');
+    const product=norm(obj?.tipe_pinjaman||obj?.produk||obj?.PRODUK||obj?.product||offer||'NEW');
+    if(/_NEW$/.test(loan)||/^NEW[_-]/.test(loan)||(/^NEW/.test(loan)&&/TANPAPINJAMAN/.test(loan))) loan='';
     return {loan,cif,offer,product};
   }
 
   function flagKey(obj,explicitOffer){
     const p=dataParts(obj,explicitOffer);
-    // V214: SATU-SATUNYA identitas flag: CIF + PRODUK + LOAN ID.
-    // Tidak ada fallback ke no_pinjaman, CIF saja, atau loan_id saja.
-    if(!p.cif || !p.product || !p.loan) return '';
-    return 'FLAG|'+p.cif+'|'+p.product+'|'+p.loan;
+    if(p.loan) return 'FACILITY|'+p.loan;
+    if(p.cif) return 'NEW|'+p.cif+'|'+(p.product||p.offer||'NEW');
+    return '';
   }
-
-  // V214 sengaja tidak membaca key legacy. Key lama berpotensi menjadi sumber
-  // cross-flagging jika loan_id/no_pinjaman pernah dipakai bersama oleh beberapa CIF.
-  function legacyFlagKeys(){ return []; }
 
   function currentUser(){ return window.currentUser||{}; }
   function accountKey(){
@@ -15899,12 +15880,9 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     window.dispatchEvent(new CustomEvent('monthly-offer-flags-updated',{detail:{month:state.month,total:state.flags.size,periodStart:state.periodStart,mode:'PERSISTENT'}}));
   }
 
-  window.__scoreBuildMonthlyFlagKey=function(obj,offer){ return flagKey(obj,offer); };
-
   window.isMonthlyOffered=function(obj,offer){
     const key=flagKey(obj,offer);
-    if(key && state.flags.has(key)) return true;
-    return legacyFlagKeys(obj,offer).some(k=>state.flags.has(k));
+    return !!key&&state.flags.has(key);
   };
 
   window.v109OfferTimestamp=function(obj){
@@ -15915,11 +15893,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   window.monthlyOfferFlagMarkup=function(obj,offer){
     const key=flagKey(obj,offer);
-    let flag=key?state.flags.get(key):null;
-    if(!flag){
-      const legacy=legacyFlagKeys(obj,offer).find(k=>state.flags.has(k));
-      if(legacy) flag=state.flags.get(legacy);
-    }
+    const flag=key?state.flags.get(key):null;
     if(!flag) return '';
     let when='aktif';
     const d=new Date(flag.timestamp||flag.waktu||0);
@@ -15934,16 +15908,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     ensurePeriod();
     const key=flagKey(record,record?.jenis_penawaran||record?.jenis_pengajuan);
     if(!key) return;
-    const p=dataParts(record,record?.jenis_penawaran||record?.jenis_pengajuan);
-    state.flags.set(key,{
-      key,
-      flagIdentity:key,
-      cif:p.cif,
-      product:p.product,
-      loanId:p.loan,
-      timestamp:new Date().toISOString(),
-      activityType:type
-    });
+    state.flags.set(key,{key,timestamp:new Date().toISOString(),activityType:type});
     persist();
     emit();
   };
