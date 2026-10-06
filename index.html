@@ -3884,7 +3884,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Simulasi Kredit Konsumer
+                Analisis Kredit Presisi
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
@@ -6661,7 +6661,11 @@ Terima kasih.`
                       const kgbFees=calculateCreditFees(kgbGross,kgbTr.tenorEfektif,kgbPisanProduct,deb.status_pegawai,kgbTr.usiaAsuransi||kgbTr.usiaTahun,0,kgbAng,0,0,'NEW');
                       if(Number(kgbGross)>=V191_KGB_PISAN_MIN_GROSS){
                         loanDatabase.push({
-                          loan_id:deb.cif+'_KGB_PISAN_NEW',no_pinjaman:'KGB PISAN (GAJI)',
+                          // KGB PISAN hanyalah wrapper untuk G6K/G6L/G6M/G6N.
+                          // Jangan isi no_pinjaman dengan label bersama; generic flag flow
+                          // memakai loan_id bila no_pinjaman tidak ada, sehingga setiap CIF
+                          // tetap memiliki identitas penawaran yang unik tanpa flag khusus KGB.
+                          loan_id:deb.cif+'_KGB_PISAN_NEW',
                           tipe_pinjaman:kgbPisanProduct,sumber_penghasilan:'GAJI',cif:deb.cif,nama:deb.nama,dinas:deb.dinas,kode_ao:deb.kode_ao,no_hp:deb.no_hp,
                           baki_debet:0,bunga_berjalan:0,musisi_asuransi:0,angsuran_eksisting:0,maxAngsuranTopUp:0,maxAngsuranNew:kgbMaxRpc,
                           selectedTenor:kgbTr.tenorEfektif,maxAllowedTenor:kgbTr.tenorEfektif,potensiPlafonTopUp:0,plafonGrossTopUp:0,pctBerjalan:0,isEligibleMengulang:false,
