@@ -3884,7 +3884,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             </div>
 
             <h1 id="googleAuthTitle" class="text-2xl font-black text-slate-800">
-                Simulasi Kredit Konsumer
+                Analisis Kredit Presisi
             </h1>
 
             <p class="text-sm text-slate-500 mt-2 mb-6">
@@ -4767,6 +4767,34 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     </div>
                 </div>
 
+                <div class="rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 space-y-3">
+                    <div>
+                        <h4 class="font-black text-indigo-900 text-sm flex items-center gap-2"><i class="fa-solid fa-file-signature"></i> Surat Penawaran PDF</h4>
+                        <p class="text-[10px] text-indigo-800 mt-1">Atur master surat penawaran dan penandatangan per kantor unit. PDF otomatis menyisakan ruang kosong di bagian atas untuk kop surat.</p>
+                    </div>
+                    <div class="rounded-xl bg-white border border-indigo-200 p-3 text-[9px] leading-relaxed text-slate-600">
+                      <b class="text-indigo-900">Variabel:</b> <code>{nama_debitur}</code>, <code>{nama_ao}</code>, <code>{cif}</code>, <code>{produk}</code>, <code>{jenis_penawaran}</code>, <code>{plafond_gross}</code>, <code>{nett}</code>, <code>{angsuran}</code>, <code>{tenor}</code>, <code>{bunga}</code>, <code>{kantor}</code>, <code>{nama_penandatangan}</code>, <code>{jabatan}</code>, <code>{tanggal}</code>.
+                    </div>
+                    <label class="text-[10px] font-bold text-slate-600 block">Master / Template Surat Penawaran
+                      <textarea id="cfgOfferLetterTemplate" rows="14" maxlength="12000" class="mt-1 w-full p-3 border border-indigo-200 rounded-xl bg-white text-xs leading-relaxed" placeholder="Tulis isi surat penawaran..."></textarea>
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <label class="text-[10px] font-bold text-slate-600 block">Kantor Unit
+                        <select id="cfgOfferLetterOffice" onchange="loadOfferLetterSignatoryEditor()" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white font-black"></select>
+                      </label>
+                      <label class="text-[10px] font-bold text-slate-600 block">Nama Penandatangan
+                        <input id="cfgOfferLetterSigner" maxlength="120" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white text-xs" placeholder="Nama pejabat penandatangan">
+                      </label>
+                      <label class="text-[10px] font-bold text-slate-600 block">Jabatan
+                        <input id="cfgOfferLetterTitle" maxlength="120" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white text-xs" placeholder="Contoh: Pemimpin KCP">
+                      </label>
+                    </div>
+                    <div class="flex flex-wrap gap-2 justify-end">
+                      <button type="button" onclick="resetOfferLetterTemplate()" class="bg-white border border-indigo-200 text-indigo-800 text-xs px-3 py-2 rounded-xl font-bold">Reset Template</button>
+                      <button type="button" onclick="saveOfferLetterSettings()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs px-4 py-2 rounded-xl font-black shadow"><i class="fa-solid fa-floppy-disk"></i> Simpan Surat Penawaran</button>
+                    </div>
+                </div>
+
                 <div class="rounded-2xl border border-green-200 bg-green-50/60 p-4 space-y-3">
                     <div>
                         <h4 class="font-black text-green-900 text-sm flex items-center gap-2"><i class="fa-brands fa-whatsapp"></i> Isi Pesan WhatsApp Dinamis</h4>
@@ -5385,6 +5413,35 @@ Terima kasih.`
         let waMessageTemplates = JSON.parse(JSON.stringify(DEFAULT_WA_MESSAGE_TEMPLATES));
         let waMessageTemplateRules = { sources:{}, products:{} };
         const WA_TEMPLATE_SOURCES = ['GAJI','TPP','SERTIFIKASI','GAJI/PENSIUN'];
+
+        // V220 — Surat Penawaran PDF. Tersimpan pada parameter terpusat cabang.
+        const DEFAULT_OFFER_LETTER_TEMPLATE = `Dengan hormat,
+
+Sehubungan dengan fasilitas kredit Bank bjb, bersama ini kami menyampaikan penawaran kepada Bapak/Ibu {nama_debitur} untuk produk {produk} dengan jenis penawaran {jenis_penawaran}.
+
+Plafond Gross : {plafond_gross}
+Estimasi Nett : {nett}
+Angsuran : {angsuran}
+Tenor : {tenor} bulan
+Suku Bunga : {bunga}
+
+Penawaran ini merupakan simulasi awal dan tetap mengikuti hasil analisa, ketentuan kredit, serta persetujuan Bank yang berlaku.
+
+Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.`;
+        let offerLetterTemplate = DEFAULT_OFFER_LETTER_TEMPLATE;
+        let offerLetterSignatories = {};
+
+        function normalizeOfferLetterTemplate(value){
+          const text=String(value||'').replace(/\r\n/g,'\n').trim();
+          if(!text) throw new Error('Template surat penawaran tidak boleh kosong.');
+          if(text.length>12000) throw new Error('Template surat penawaran maksimal 12.000 karakter.');
+          return text;
+        }
+        function normalizeOfferLetterSignatories(value){
+          const src=value&&typeof value==='object'?value:{}; const out={};
+          Object.keys(src).forEach(k=>{const office=String(k||'').trim();if(!office)return;const row=src[k]||{};out[office]={name:String(row.name||row.nama||'').trim(),title:String(row.title||row.jabatan||'').trim()};});
+          return out;
+        }
 
         function normalizeWaTemplate(value) {
             const text = String(value || '').replace(/\r\n/g,'\n').trim();
@@ -8640,6 +8697,10 @@ function updateWaPreview() {
                 try { waMessageTemplates = Object.assign({}, JSON.parse(JSON.stringify(DEFAULT_WA_MESSAGE_TEMPLATES)), JSON.parse(savedWaTemplates)); }
                 catch (e) { console.error(e); waMessageTemplates = JSON.parse(JSON.stringify(DEFAULT_WA_MESSAGE_TEMPLATES)); }
             }
+            const savedOfferLetterTemplate = safeLocalStorageGet('offerLetterTemplate_v1');
+            if(savedOfferLetterTemplate){ try{ offerLetterTemplate=normalizeOfferLetterTemplate(savedOfferLetterTemplate); }catch(e){} }
+            const savedOfferLetterSignatories = safeLocalStorageGet('offerLetterSignatories_v1');
+            if(savedOfferLetterSignatories){ try{ offerLetterSignatories=normalizeOfferLetterSignatories(JSON.parse(savedOfferLetterSignatories)); }catch(e){} }
             const savedWaTemplateRules = safeLocalStorageGet('waMessageTemplateRules_v2');
             if (savedWaTemplateRules) {
                 try { waMessageTemplateRules = normalizeWaTemplateRules(JSON.parse(savedWaTemplateRules)); }
@@ -9338,6 +9399,64 @@ function updateWaPreview() {
   else setTimeout(restoreActiveSession,80);
 
   // =========================================================
+  // V220 — SURAT PENAWARAN PDF
+  // =========================================================
+  function v220OfficeLabel(v){return String(v||'').trim().replace(/\s+/g,' ');}
+  function v220OfficeOptions(){
+    const out=[]; const add=v=>{v=v220OfficeLabel(v);if(v&&!out.some(x=>x.toUpperCase()===v.toUpperCase()))out.push(v);};
+    try{[window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor,window.currentUser?.branch?.name].forEach(add);}catch(e){}
+    try{getLoans().forEach(o=>[o?.kantor,o?.office,o?.nama_kantor,o?.cifRef?.kantor,o?.cifRef?.office].forEach(add));}catch(e){}
+    try{document.querySelectorAll('#v87UsersBody tr').forEach(tr=>{const td=tr.querySelectorAll('td');if(td.length>=5)add(td[4].textContent);});}catch(e){}
+    Object.keys(offerLetterSignatories||{}).forEach(add);
+    return out.sort((a,b)=>a.localeCompare(b,'id'));
+  }
+  function v220ResolveOffice(item){
+    const candidates=[item?.kantor,item?.office,item?.nama_kantor,item?.cifRef?.kantor,item?.cifRef?.office,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];
+    return v220OfficeLabel(candidates.find(Boolean)||'');
+  }
+  function renderOfferLetterAdminEditor(){
+    const tpl=document.getElementById('cfgOfferLetterTemplate'),sel=document.getElementById('cfgOfferLetterOffice');
+    if(tpl)tpl.value=offerLetterTemplate||DEFAULT_OFFER_LETTER_TEMPLATE;
+    if(sel){const prev=sel.value;const offices=v220OfficeOptions();sel.innerHTML=offices.length?offices.map(x=>'<option value="'+escapeHtml(x)+'">'+escapeHtml(x)+'</option>').join(''):'<option value="">Kantor belum tersedia</option>';if(prev&&offices.includes(prev))sel.value=prev;loadOfferLetterSignatoryEditor();}
+  }
+  window.renderOfferLetterAdminEditor=renderOfferLetterAdminEditor;
+  function loadOfferLetterSignatoryEditor(){
+    const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value),row=offerLetterSignatories?.[office]||{};
+    const n=document.getElementById('cfgOfferLetterSigner'),t=document.getElementById('cfgOfferLetterTitle');if(n)n.value=row.name||'';if(t)t.value=row.title||'';
+  }
+  window.loadOfferLetterSignatoryEditor=loadOfferLetterSignatoryEditor;
+  window.resetOfferLetterTemplate=function(){const el=document.getElementById('cfgOfferLetterTemplate');if(el)el.value=DEFAULT_OFFER_LETTER_TEMPLATE;};
+  window.saveOfferLetterSettings=async function(){
+    try{
+      const tpl=normalizeOfferLetterTemplate(document.getElementById('cfgOfferLetterTemplate')?.value||'');
+      const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value);if(!office)throw new Error('Pilih kantor unit.');
+      const name=String(document.getElementById('cfgOfferLetterSigner')?.value||'').trim(),title=String(document.getElementById('cfgOfferLetterTitle')?.value||'').trim();
+      if(!name)throw new Error('Nama penandatangan wajib diisi.');if(!title)throw new Error('Jabatan wajib diisi.');
+      offerLetterTemplate=tpl;offerLetterSignatories=Object.assign({},offerLetterSignatories,{[office]:{name,title}});await saveCentralParameters();renderOfferLetterAdminEditor();alert('Template surat dan penandatangan '+office+' berhasil disimpan.');
+    }catch(e){alert('Gagal menyimpan surat penawaran: '+(e.message||e));}
+  };
+  function v220LetterVars(item,offer){
+    const type=String(offer||item?.__offerType||'NEW').toUpperCase(); const nama=String(item?.cifRef?.nama||val(item,['nama','NAMA'])||'Debitur');
+    const gross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
+    const nettVal=type==='NEW'?Number(item?.potensiNew||0):type==='MENGULANG'?Number(item?.potensiMengulang||0):Number(item?.potensiPlafonTopUp||0);
+    const tenor=Number(item?.selectedTenor||item?.tenor||0);const product=String(item?.tipe_pinjaman||item?.product||'-');const rate=Number(getInterestRate(product,normalizeWaOfferType(type||'TOPUP'),item)||0);const office=v220ResolveOffice(item);const sign=offerLetterSignatories?.[office]||{};
+    const installment=Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
+    return {nama_debitur:nama,nama_ao:String(window.currentUser?.name||window.currentUser?.nama||item?.cifRef?.nama_ao||'-'),cif:String(item?.cifRef?.cif||item?.cif||'-'),produk:product,jenis_penawaran:type==='TOP-UP'?'TOP-UP':type,plafond_gross:money(gross),nett:money(nettVal),angsuran:installment?money(installment):'-',tenor:tenor||'-',bunga:rate?(rate*100).toFixed(2).replace('.',',')+'% p.a.':'-',kantor:office||'-',nama_penandatangan:sign.name||'',jabatan:sign.title||'',tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})};
+  }
+  window.downloadOfferLetterPdf=function(item,offer){
+    try{
+      if(!item)throw new Error('Pilih debitur terlebih dahulu.');if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
+      const vars=v220LetterVars(item,offer),office=vars.kantor,sign=offerLetterSignatories?.[office]||{};if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia.');if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
+      const body=renderWaTemplate(offerLetterTemplate||DEFAULT_OFFER_LETTER_TEMPLATE,vars);const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const left=24,right=22,width=210-left-right;
+      // 45 mm pertama sengaja kosong untuk kop surat fisik/digital.
+      let y=48;doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.text(vars.kantor+', '+vars.tanggal,210-right,y,{align:'right'});y+=8;doc.setFont('helvetica','bold');doc.text('SURAT PENAWARAN KREDIT',105,y,{align:'center'});y+=9;doc.setFont('helvetica','normal');doc.setFontSize(10.5);
+      const lines=doc.splitTextToSize(body,width);lines.forEach(line=>{if(y>245){doc.addPage();y=25;}doc.text(line,left,y);y+=5.4;});
+      y=Math.max(y+12,220);if(y>245){doc.addPage();y=35;}doc.text('Hormat kami,',210-right,y,{align:'right'});y+=6;doc.text('Bank bjb',210-right,y,{align:'right'});y+=22;doc.setFont('helvetica','bold');doc.text(sign.name,210-right,y,{align:'right'});y+=5;doc.setFont('helvetica','normal');doc.text(sign.title,210-right,y,{align:'right'});
+      const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);doc.save('Surat_Penawaran_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf');
+    }catch(e){alert('Gagal membuat surat penawaran: '+(e.message||e));}
+  };
+
+  // =========================================================
   // V18.3.10 — PARAMETER TERPUSAT (SERVER + CACHE LOKAL)
   // Server menjadi sumber utama. localStorage hanya cache/fallback.
   // =========================================================
@@ -9353,6 +9472,8 @@ function updateWaPreview() {
       localStorage.setItem('productRequirementParams_v1', JSON.stringify(productRequirementParams));
       localStorage.setItem('waMessageTemplates_v1', JSON.stringify(waMessageTemplates));
       localStorage.setItem('waMessageTemplateRules_v2', JSON.stringify(waMessageTemplateRules));
+      localStorage.setItem('offerLetterTemplate_v1', String(offerLetterTemplate||''));
+      localStorage.setItem('offerLetterSignatories_v1', JSON.stringify(offerLetterSignatories||{}));
     }catch(e){ console.warn('Cache parameter lokal gagal:', e); }
   }
   window.cacheActiveParameters = cacheActiveParameters;
@@ -9399,6 +9520,8 @@ function updateWaPreview() {
       waMessageTemplateRules = normalizeWaTemplateRules(payload.waMessageTemplateRules);
       changed=true;
     }
+    if(payload.offerLetterTemplate){ try{ offerLetterTemplate=normalizeOfferLetterTemplate(payload.offerLetterTemplate); changed=true; }catch(e){} }
+    if(payload.offerLetterSignatories && typeof payload.offerLetterSignatories === 'object'){ offerLetterSignatories=normalizeOfferLetterSignatories(payload.offerLetterSignatories); changed=true; }
     if(changed){
       cacheActiveParameters();
       try{ renderAdminProductParamTable(); }catch(e){}
@@ -9409,6 +9532,7 @@ function updateWaPreview() {
       try{ window.applyBannerTransitionMode?.(); }catch(e){}
       try{ renderProductRequirementSelector(); }catch(e){}
       try{ loadWaTemplateEditor(); }catch(e){}
+      try{ renderOfferLetterAdminEditor(); }catch(e){}
       try{ processBothData(); }catch(e){}
     }
     return changed;
@@ -9469,7 +9593,9 @@ function updateWaPreview() {
       productRequirementParams: productRequirementParams,
       waMessageTemplates: waMessageTemplates,
       waMessageTemplateRules: waMessageTemplateRules,
-      schemaVersion: '18.3.11.73'
+      offerLetterTemplate: offerLetterTemplate,
+      offerLetterSignatories: offerLetterSignatories,
+      schemaVersion: '18.3.11.220'
     };
     const result=await callApi('saveParameters', googleCredential, {parameters:payload});
     if(!result || !result.success) throw new Error((result&&result.error)||'Gagal menyimpan parameter ke server.');
@@ -11530,6 +11656,11 @@ function renderDebtors(){
           data-action-offer-type="${escapeHtml(offerType)}">
           <i class="fa-regular fa-file-lines"></i><span>Rincian</span>
         </button>
+        <button type="button" class="v16-detail-btn v220-offer-letter-btn"
+          data-offer-letter-loan-id="${escapeHtml(id)}"
+          data-offer-letter-offer-type="${escapeHtml(offerType)}" title="Download Surat Penawaran PDF">
+          <i class="fa-solid fa-file-pdf"></i><span>Surat</span>
+        </button>
         <button type="button" class="v16-card-wa"
           data-card-wa-loan-id="${escapeHtml(id)}"
           data-card-wa-offer-type="${escapeHtml(offerType)}"
@@ -12051,12 +12182,13 @@ function bind(){
       return;
     }
     const waBtn=e.target.closest('[data-card-wa-loan-id]');
+    const letterBtn=e.target.closest('[data-offer-letter-loan-id]');
     const action=e.target.closest('[data-action-loan-id]');
     const row=e.target.closest('tr[data-loan-id], article[data-loan-id]');
-    if(!row && !waBtn && !action) return;
+    if(!row && !waBtn && !letterBtn && !action) return;
 
-    const id=waBtn?.dataset.cardWaLoanId || action?.dataset.actionLoanId || row?.dataset.loanId;
-    const offer=waBtn?.dataset.cardWaOfferType || action?.dataset.actionOfferType || row?.dataset.offerType || '';
+    const id=waBtn?.dataset.cardWaLoanId || letterBtn?.dataset.offerLetterLoanId || action?.dataset.actionLoanId || row?.dataset.loanId;
+    const offer=waBtn?.dataset.cardWaOfferType || letterBtn?.dataset.offerLetterOfferType || action?.dataset.actionOfferType || row?.dataset.offerType || '';
 
     selectedLoanId=id;
     window.v200SelectedPotential=null;
@@ -12072,6 +12204,10 @@ function bind(){
 
     if(waBtn){
       openWhatsapp();
+      return;
+    }
+    if(letterBtn){
+      window.downloadOfferLetterPdf?.(window.v9Selected, window.v9SelectedOfferType);
       return;
     }
 
