@@ -10700,10 +10700,10 @@ function updateWaPreview() {
 
 
 
-  // V235: expose a narrow, read-only bridge for the fast offer-letter renderer.
+  // V236: expose a narrow, read-only bridge for the fast offer-letter renderer.
   // The offer-letter implementation lives inside this IIFE, so external patch
   // scripts must use this bridge instead of referencing private identifiers.
-  window.__scoreOfferLetterBridgeV235={
+  window.__scoreOfferLetterBridgeV236={
     normalizeOfferType:v223NormalizeOfferType,
     letterVars:v223LetterVars,
     getSignatory:v221GetSignatory,
@@ -16094,7 +16094,14 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       if(!cred || !record || typeof window.callApi!=='function') return Promise.resolve({success:false,skipped:true});
       const payload=Object.assign({},record,{activityType:activityType||record.activityType||'ACTIVITY',source:'PWA_V18.3.11.53'});
       return window.callApi('logActivity',cred,{activity:payload}).then(function(r){
-        if(!r||!r.success) console.warn('Activity Log server ditolak:',r&&r.error);
+        if(!r||!r.success){
+          console.warn('Activity Log server ditolak:',r&&r.error);
+        }else{
+          try{ window.confirmMonthlyOfferedWrite?.(record,activityType); }catch(e){}
+          // Beri waktu backend read-model mengejar write, lalu validasi ulang.
+          setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),1500);
+          setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),6000);
+        }
         return r;
       }).catch(function(err){ console.warn('Activity Log server gagal (aktivitas AO tetap dilanjutkan):',err); return {success:false,error:String(err&&err.message||err)}; });
     }catch(e){ console.warn('Activity Log:',e); return Promise.resolve({success:false}); }
@@ -16668,8 +16675,11 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 (function(){
   'use strict';
 
-  // Nama API lama dipertahankan untuk kompatibilitas, tetapi V65 tidak lagi
-  // mereset flag berdasarkan pergantian bulan. Flag aktif sampai reset manual.
+  // V236 — persistent offer flag with write-ack protection.
+  // Bug fixed: saat kembali dari WhatsApp, refresh server dapat terjadi sebelum
+  // getMonthlyOfferFlags membaca Activity Log terbaru. Flag lokal yang baru
+  // ditulis tidak boleh dihapus hanya karena read-after-write belum konsisten.
+  const PENDING_GRACE_MS=120000;
   const state={month:'',account:'',flags:new Map(),serverLoaded:false,inFlight:false,lastSync:0,resetAt:'',periodStart:''};
 
   function monthKey(){
@@ -16678,13 +16688,8 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     const month=parts.find(x=>x.type==='month')?.value||String(new Date().getMonth()+1).padStart(2,'0');
     return year+'-'+month;
   }
-
-  function norm(value){
-    return String(value??'').trim().toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9_-]/g,'');
-  }
-
-  function normalizeCif(value){ return norm(value).replace(/^'+/,'').replace(/^0+(?=\d)/,''); }
-
+  function norm(value){return String(value??'').trim().toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9_-]/g,'');}
+  function normalizeCif(value){return norm(value).replace(/^'+/,'').replace(/^0+(?=\d)/,'');}
   function dataParts(obj,explicitOffer){
     const facility=obj?.facilityRef||obj?.facility||{};
     let loan=norm(obj?.no_pinjaman||obj?.NO_PINJAMAN||facility?.no_pinjaman||obj?.loan_id||'');
@@ -16694,121 +16699,90 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     if(/_NEW$/.test(loan)||/^NEW[_-]/.test(loan)||(/^NEW/.test(loan)&&/TANPAPINJAMAN/.test(loan))) loan='';
     return {loan,cif,offer,product};
   }
-
   function flagKey(obj,explicitOffer){
     const p=dataParts(obj,explicitOffer);
     if(p.loan) return 'FACILITY|'+p.loan;
     if(p.cif) return 'NEW|'+p.cif+'|'+(p.product||p.offer||'NEW');
     return '';
   }
-
-  function currentUser(){ return window.currentUser||{}; }
-  function accountKey(){
-    const u=currentUser();
-    return norm(u.email||u.EMAIL||u.kodeAO||u.kode_ao||u.KODE_AO||'');
-  }
-
-  // Key tidak lagi mengandung yyyy-MM agar flag lokal tidak hilang pada tanggal 1.
-  function storageKey(){ return 'analisaKredit_offerFlags_persistent_v65_'+accountKey(); }
-
-  function persist(){
-    try{ localStorage.setItem(storageKey(),JSON.stringify([...state.flags.values()])); }catch(e){}
-  }
-
+  function currentUser(){return window.currentUser||{};}
+  function accountKey(){const u=currentUser();return norm(u.email||u.EMAIL||u.kodeAO||u.kode_ao||u.KODE_AO||'');}
+  function storageKey(){return 'analisaKredit_offerFlags_persistent_v236_'+accountKey();}
+  function legacyStorageKeys(){return ['analisaKredit_offerFlags_persistent_v65_'+accountKey(),'analisaKredit_monthlyOfferFlags_v2_'+accountKey()+'_'+monthKey()];}
+  function persist(){try{localStorage.setItem(storageKey(),JSON.stringify([...state.flags.values()]));}catch(e){}}
   function restoreLocal(){
     try{
-      let raw=localStorage.getItem(storageKey());
-      // Migrasi cache lokal V64 bulan berjalan jika V65 belum pernah disimpan.
-      if(!raw){
-        const legacy='analisaKredit_monthlyOfferFlags_v2_'+accountKey()+'_'+monthKey();
-        raw=localStorage.getItem(legacy)||'';
-      }
+      let raw=localStorage.getItem(storageKey())||'';
+      if(!raw){for(const k of legacyStorageKeys()){raw=localStorage.getItem(k)||'';if(raw)break;}}
       const rows=JSON.parse(raw||'[]');
-      if(Array.isArray(rows)) rows.forEach(x=>{ if(x?.key) state.flags.set(x.key,x); });
-    }catch(e){ console.warn('Persistent offer flag local:',e); }
+      if(Array.isArray(rows)) rows.forEach(x=>{if(x?.key)state.flags.set(String(x.key),x);});
+    }catch(e){console.warn('Persistent offer flag local:',e);}
   }
+  function emit(){window.dispatchEvent(new CustomEvent('monthly-offer-flags-updated',{detail:{month:state.month,total:state.flags.size,periodStart:state.periodStart,mode:'PERSISTENT_V236'}}));}
+  function parseTime(value){const t=new Date(value||0).getTime();return Number.isFinite(t)?t:0;}
+  function afterReset(flag,resetMs){if(!resetMs)return true;return parseTime(flag?.timestamp||flag?.waktu)>resetMs;}
 
-  function emit(){
-    window.dispatchEvent(new CustomEvent('monthly-offer-flags-updated',{detail:{month:state.month,total:state.flags.size,periodStart:state.periodStart,mode:'PERSISTENT'}}));
-  }
-
-  window.isMonthlyOffered=function(obj,offer){
-    const key=flagKey(obj,offer);
-    return !!key&&state.flags.has(key);
-  };
-
-  window.v109OfferTimestamp=function(obj){
-    const flag=state.flags.get(flagKey(obj));
-    const value=flag ? new Date(flag.timestamp||flag.waktu||0).getTime() : 0;
-    return Number.isFinite(value)?value:0;
-  };
-
+  window.isMonthlyOffered=function(obj,offer){const key=flagKey(obj,offer);return !!key&&state.flags.has(key);};
+  window.v109OfferTimestamp=function(obj){const flag=state.flags.get(flagKey(obj));const value=flag?parseTime(flag.timestamp||flag.waktu):0;return Number.isFinite(value)?value:0;};
   window.monthlyOfferFlagMarkup=function(obj,offer){
-    const key=flagKey(obj,offer);
-    const flag=key?state.flags.get(key):null;
-    if(!flag) return '';
-    let when='aktif';
-    const d=new Date(flag.timestamp||flag.waktu||0);
-    if(!isNaN(d)) when=d.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'2-digit'});
+    const key=flagKey(obj,offer),flag=key?state.flags.get(key):null;if(!flag)return '';
+    let when='aktif';const d=new Date(flag.timestamp||flag.waktu||0);if(!isNaN(d))when=d.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'2-digit'});
     return '<span class="monthly-offer-flag" title="Fasilitas sudah diberi penawaran dan tetap ter-flag sampai reset manual Admin"><i class="fa-solid fa-flag"></i> Sudah ditawarkan • '+when+'</span>';
   };
 
   window.markMonthlyOffered=function(record,activityType){
     const allowed=['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI'];
-    const type=String(activityType||record?.activityType||'').toUpperCase();
-    if(!allowed.includes(type)) return;
-    ensurePeriod();
-    const key=flagKey(record,record?.jenis_penawaran||record?.jenis_pengajuan);
-    if(!key) return;
-    state.flags.set(key,{key,timestamp:new Date().toISOString(),activityType:type});
-    persist();
-    emit();
+    const type=String(activityType||record?.activityType||'').toUpperCase();if(!allowed.includes(type))return;
+    ensurePeriod();const key=flagKey(record,record?.jenis_penawaran||record?.jenis_pengajuan);if(!key)return;
+    const now=new Date().toISOString();
+    state.flags.set(key,{key,timestamp:now,activityType:type,pending:true,pendingAt:Date.now(),serverWriteAccepted:false});
+    persist();emit();
+  };
+
+  // Dipanggil oleh pushCentralActivity setelah logActivity sukses diterima server.
+  window.confirmMonthlyOfferedWrite=function(record,activityType){
+    const allowed=['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI'];
+    const type=String(activityType||record?.activityType||'').toUpperCase();if(!allowed.includes(type))return;
+    ensurePeriod();const key=flagKey(record,record?.jenis_penawaran||record?.jenis_pengajuan);if(!key)return;
+    const old=state.flags.get(key)||{};
+    state.flags.set(key,Object.assign({},old,{key,timestamp:old.timestamp||new Date().toISOString(),activityType:type,pending:false,serverWriteAccepted:true,serverAcceptedAt:Date.now()}));
+    persist();emit();
   };
 
   function ensurePeriod(){
     const m=monthKey(),a=accountKey();
-    // Pergantian bulan hanya memperbarui label bulan; flag tidak dihapus.
-    if(state.account===a){ if(state.month!==m){state.month=m;emit();} return; }
-    state.month=m; state.account=a; state.flags.clear(); state.serverLoaded=false; state.inFlight=false; state.lastSync=0; state.resetAt=''; state.periodStart='';
-    restoreLocal();
-    emit();
+    if(state.account===a){if(state.month!==m){state.month=m;emit();}return;}
+    state.month=m;state.account=a;state.flags.clear();state.serverLoaded=false;state.inFlight=false;state.lastSync=0;state.resetAt='';state.periodStart='';restoreLocal();emit();
   }
 
   async function syncServer(force){
-    ensurePeriod();
-    if(!state.account||state.inFlight) return;
-    if(!force&&state.lastSync&&Date.now()-state.lastSync<30000) return;
-    const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'');
-    if(!cred||typeof window.callApi!=='function') return;
+    ensurePeriod();if(!state.account||state.inFlight)return;if(!force&&state.lastSync&&Date.now()-state.lastSync<30000)return;
+    const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'');if(!cred||typeof window.callApi!=='function')return;
     state.inFlight=true;
     try{
+      const localBefore=[...state.flags.values()];
       const result=await window.callApi('getMonthlyOfferFlags',cred,{});
-      if(!result?.success) throw new Error(result?.error||'Gagal mengambil flag penawaran.');
-      // Server authoritative: reset manual Admin langsung membersihkan cache AO.
-      state.flags.clear();
-      state.month=monthKey();
-      state.resetAt=String(result.resetAt||'');
-      state.periodStart=String(result.periodStart||result.resetAt||'');
-      (Array.isArray(result.flags)?result.flags:[]).forEach(x=>{ if(x?.key) state.flags.set(x.key,x); });
-      state.serverLoaded=true;
-      state.lastSync=Date.now();
-      persist();
-      emit();
-    }catch(err){
-      state.serverLoaded=false;
-      console.warn('Persistent offer flags server:',err);
-    }finally{
-      state.inFlight=false;
-    }
+      if(!result?.success)throw new Error(result?.error||'Gagal mengambil flag penawaran.');
+      const resetAt=String(result.resetAt||'');const resetMs=parseTime(resetAt);const incoming=new Map();
+      (Array.isArray(result.flags)?result.flags:[]).forEach(x=>{if(x?.key)incoming.set(String(x.key),Object.assign({},x,{pending:false,serverWriteAccepted:true}));});
+
+      // Read-after-write guard: jangan hapus flag yang baru dibuat hanya karena
+      // endpoint flag belum melihat Activity Log yang baru saja sukses ditulis.
+      const now=Date.now();
+      for(const flag of localBefore){
+        const key=String(flag?.key||'');if(!key||incoming.has(key)||!afterReset(flag,resetMs))continue;
+        const pendingFresh=!!flag.pending && (now-Number(flag.pendingAt||0)<PENDING_GRACE_MS);
+        const writeAccepted=!!flag.serverWriteAccepted;
+        if(pendingFresh||writeAccepted)incoming.set(key,flag);
+      }
+
+      state.flags=incoming;state.month=monthKey();state.resetAt=resetAt;state.periodStart=String(result.periodStart||result.resetAt||'');state.serverLoaded=true;state.lastSync=Date.now();persist();emit();
+    }catch(err){state.serverLoaded=false;console.warn('Persistent offer flags server:',err);}finally{state.inFlight=false;}
   }
 
-  window.refreshMonthlyOfferFlags=function(force){ state.serverLoaded=false; state.lastSync=0; return syncServer(force!==false); };
-
-  document.addEventListener('DOMContentLoaded',()=>{
-    ensurePeriod();
-    setTimeout(syncServer,500);
-  });
-  setInterval(()=>{ ensurePeriod(); syncServer(false); },30000);
+  window.refreshMonthlyOfferFlags=function(force){state.serverLoaded=false;state.lastSync=0;return syncServer(force!==false);};
+  document.addEventListener('DOMContentLoaded',()=>{ensurePeriod();setTimeout(syncServer,500);});
+  setInterval(()=>{ensurePeriod();syncServer(false);},30000);
 })();
 </script>
 
@@ -19200,10 +19174,10 @@ document.addEventListener('visibilitychange',()=>{
 <script id="v18311235-fast-direct-letter-renderer">
 (function(){
   'use strict';
-  // V235 — FAST DIRECT RENDER + private-helper bridge hotfix.
+  // V236 — FAST DIRECT RENDER + private-helper bridge hotfix.
   // Menggambar Surat Penawaran langsung ke canvas A4 berukuran hampir sama dengan
   // canvas Simulasi Interaktif, tanpa DOM screenshot/html2canvas pada jalur normal.
-  const bridge=window.__scoreOfferLetterBridgeV235||null;
+  const bridge=window.__scoreOfferLetterBridgeV236||null;
   const W=1080, H=Math.round(W*297/210), MM=W/210;
   const mm=v=>Number(v||0)*MM;
   const pt=v=>Number(v||0)*MM*(25.4/72);
@@ -19334,7 +19308,7 @@ document.addEventListener('visibilitychange',()=>{
     const started=performance.now();let mode='direct';
     try{
       if(!item)throw new Error('Pilih debitur terlebih dahulu.');
-      if(!bridge){console.warn('[V235] Bridge Surat Penawaran belum tersedia; gunakan renderer V233.');return await window.v233DownloadOfferLetterPdf?.(item,offer,override);}
+      if(!bridge){console.warn('[V236] Bridge Surat Penawaran belum tersedia; gunakan renderer V233.');return await window.v233DownloadOfferLetterPdf?.(item,offer,override);}
       if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
       if(!googleCredential)throw new Error('Sesi login tidak tersedia. Silakan login kembali.');
       // Biasanya sudah diprefetch saat Rincian dibuka; bila cache masih valid, ini langsung return.
@@ -19352,7 +19326,7 @@ document.addEventListener('visibilitychange',()=>{
       const issued=await bridge.issueNumber(office);const afterNumber=performance.now();
       const vars=bridge.letterVars(item,type,Object.assign({},override,{letterNumber:issued.number,letterYear:issued.year}));
       let canvas;
-      try{canvas=makeCanvas(template,vars);}catch(err){console.warn('[V235] Direct renderer fallback:',err);mode='html2canvas-fallback';canvas=await fallbackRender(template,vars);}
+      try{canvas=makeCanvas(template,vars);}catch(err){console.warn('[V236] Direct renderer fallback:',err);mode='html2canvas-fallback';canvas=await fallbackRender(template,vars);}
       const afterRender=performance.now();
       const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
       doc.addImage(canvas,'JPEG',0,0,210,297,undefined,'FAST');
@@ -19362,7 +19336,7 @@ document.addEventListener('visibilitychange',()=>{
       const afterSave=performance.now();
       bridge.logDownloaded(bridge.activityRecord(item,type,override,issued,vars,office,letterCode),type);
       window.v235LastLetterTiming={mode,runtimeMs:Math.round(afterRuntime-started),numberMs:Math.round(afterNumber-afterRuntime),renderMs:Math.round(afterRender-afterNumber),pdfMs:Math.round(afterSave-afterRender),totalMs:Math.round(afterSave-started)};
-      console.info('[V235] Surat Penawaran timing',window.v235LastLetterTiming);
+      console.info('[V236] Surat Penawaran timing',window.v235LastLetterTiming);
     }catch(e){alert('Gagal membuat surat penawaran: '+(e.message||e));}
   };
 })();
@@ -19374,5 +19348,5 @@ document.addEventListener('visibilitychange',()=>{
 <!-- V18.3.11.232 ADDRESS STRICT MIDPAGE WRAP -->
 
 <!-- V18.3.11.233: Address line fixed 78mm, wraps before midpoint, normal weight (not bold). -->
-<!-- V18.3.11.235: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback.
-<!-- V18.3.11.235: Fast renderer helper-scope bridge hotfix; Safari/iOS safe. --> -->
+<!-- V18.3.11.236: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback.
+<!-- V18.3.11.236: Fast renderer helper-scope bridge hotfix; Safari/iOS safe. --> -->
