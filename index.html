@@ -2829,6 +2829,8 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
 <style id="v1831114-monthly-offer-flag-style">
   .monthly-offer-flag{display:inline-flex;align-items:center;gap:5px;margin-top:5px;padding:4px 8px;border-radius:999px;background:#dcfce7;color:#166534;border:1px solid #86efac;font-size:9px;font-weight:800;line-height:1.1;white-space:nowrap}
   .monthly-offer-flag i{font-size:10px}
+  .letter-download-flag{display:inline-flex;align-items:center;gap:5px;margin-top:5px;margin-left:4px;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-size:9px;font-weight:800;line-height:1.1;white-space:nowrap}
+  .letter-download-flag i{font-size:10px}
   .v16-debtor-card.monthly-offered{border-color:#4ade80!important;box-shadow:0 8px 24px rgba(22,163,74,.13)!important}
   tr.monthly-offered>td:first-child{box-shadow:inset 4px 0 0 #22c55e}
   .v17-sim-multi-facility-list{display:grid;gap:7px;max-height:230px;overflow:auto;padding:2px}
@@ -4357,7 +4359,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                 <label class="text-[10px] font-bold text-slate-500">Dari Tanggal<input id="adminActivityDateFrom" type="date" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-xs"></label>
                 <label class="text-[10px] font-bold text-slate-500">Sampai Tanggal<input id="adminActivityDateTo" type="date" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-xs"></label>
                 <label class="text-[10px] font-bold text-slate-500">Kode AO<select id="adminActivityAO" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-xs"><option value="">Semua AO</option></select></label>
-                <label class="text-[10px] font-bold text-slate-500">Aktivitas<select id="adminActivityType" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-xs"><option value="">Semua Aktivitas</option><option value="PENAWARAN_WA">Penawaran WhatsApp</option><option value="SIMULASI_WA">Simulasi WhatsApp</option><option value="DOWNLOAD_SIMULASI">Download/Share Simulasi</option><option value="FOTO_AKTIVITAS">Foto Aktivitas AO</option></select></label>
+                <label class="text-[10px] font-bold text-slate-500">Aktivitas<select id="adminActivityType" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-xs"><option value="">Semua Aktivitas</option><option value="PENAWARAN_WA">Penawaran WhatsApp</option><option value="SIMULASI_WA">Simulasi WhatsApp</option><option value="DOWNLOAD_SIMULASI">Download/Share Simulasi</option><option value="DOWNLOAD_SURAT_PENAWARAN">Download Surat Penawaran</option><option value="FOTO_AKTIVITAS">Foto Aktivitas AO</option></select></label>
                 <label class="text-[10px] font-bold text-slate-500">Cari<input id="adminActivitySearch" type="search" placeholder="Nama / CIF / pinjaman" class="mt-1 w-full p-2 border border-slate-300 rounded-lg text-xs"></label>
               </div>
               <div class="flex items-center justify-between gap-2 mb-2"><div id="adminActivityStatus" class="text-[10px] text-slate-500">Belum dimuat.</div><div id="adminActivityCount" class="text-[10px] font-bold text-indigo-700">0 aktivitas</div></div>
@@ -7998,6 +8000,7 @@ CABANG KARAWANG
                         </button>
                         <div class="font-mono text-[10px] text-slate-400">CIF: ${item.cif} | ${item.dinas}</div>
                         ${window.monthlyOfferFlagMarkup ? window.monthlyOfferFlagMarkup(item) : ''}
+                        ${window.letterDownloadFlagMarkup ? window.letterDownloadFlagMarkup(item) : ''}
                         <div class="mt-0.5 text-[10px]">${noHpDisplay}</div>
                     </td>
                     <td class="p-2.5 text-center">
@@ -8913,6 +8916,7 @@ function updateWaPreview() {
     'logActivity',
     'getActivityLogs',
     'getExecutiveActivityLogs',
+    'getOfferLetterFlags',
     'uploadActivityPhoto'
   ]);
 
@@ -9078,6 +9082,7 @@ function updateWaPreview() {
     'getSuperAdminDashboard',
     'getUsageTraffic',
     'getActivityLogs',
+    'getOfferLetterFlags',
     'getAoMonitoringStatus',
     'getAoMonitoringUserData',
     'getAoMonitoringAdminData'
@@ -9967,6 +9972,41 @@ function updateWaPreview() {
     return result;
   }
 
+  function v227LetterActivityRecord(item,type,override,issued,vars,office,letterCode){
+    const deb=item?.cifRef||{};
+    const baseGross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
+    const baseNet=type==='NEW'?Number(item?.potensiNew||0):type==='MENGULANG'?Number(item?.potensiMengulang||0):Number(item?.potensiPlafonTopUp||0);
+    const gross=Number(override?.gross)>0?Number(override.gross):baseGross;
+    const net=Number.isFinite(Number(override?.net))?Number(override.net):baseNet;
+    const tenor=Math.max(0,Number(override?.tenor||item?.selectedTenor||item?.tenor||0));
+    const installment=Number.isFinite(Number(override?.installment))?Number(override.installment):Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
+    const timestamp=new Date().toISOString();
+    const noPinjaman=String(item?.no_pinjaman||item?.facilityRef?.no_pinjaman||'').trim();
+    const cif=String(deb?.cif||item?.cif||'').trim();
+    return {
+      key:'LETTERPDF|'+String(issued?.year||'')+'|'+String(issued?.number||'')+'|'+String(noPinjaman||cif||Date.now()),
+      timestamp,waktu:timestamp,loan_id:String(item?.loan_id||''),no_pinjaman:noPinjaman,cif,
+      nama:String(deb?.nama||item?.nama||vars?.nama_debitur||'Debitur'),kode_ao:String(item?.kode_ao||item?.kodeAO||deb?.kode_ao||deb?.kodeAO||''),
+      no_hp:String(deb?.no_hp||item?.no_hp||''),tipe_pinjaman:String(item?.tipe_pinjaman||item?.product||vars?.produk||''),produk:String(item?.tipe_pinjaman||item?.product||vars?.produk||''),
+      jenis_penawaran:type,jenis_pengajuan:type,tenor,plafond_gross:gross,estimasi_angsuran:installment,angsuran:installment,potensi_nett:net,nett:net,
+      nomor_surat:String(issued?.number||''),tahun_surat:String(issued?.year||''),kode_surat:String(letterCode||''),kantor_unit:String(office||''),
+      source:'SURAT_PENAWARAN_PDF_V228'
+    };
+  }
+  function v227LogLetterDownloaded(record,type){
+    try{
+      if(window.markLetterDownloaded)window.markLetterDownloaded(record,type);
+      let rows=[];try{rows=JSON.parse(localStorage.getItem('analisaKredit_offerActivity_v1')||'[]');if(!Array.isArray(rows))rows=[];}catch(e){rows=[];}
+      rows.unshift(Object.assign({},record,{activityType:'DOWNLOAD_SURAT_PENAWARAN',waktuDisplay:new Date(record.timestamp||Date.now()).toLocaleString('id-ID')}));
+      try{localStorage.setItem('analisaKredit_offerActivity_v1',JSON.stringify(rows.slice(0,1000)));window.renderV9Activity?.();}catch(e){}
+      if(window.pushCentralActivity){
+        Promise.resolve(window.pushCentralActivity(record,'DOWNLOAD_SURAT_PENAWARAN')).then(r=>{
+          if(r?.success)setTimeout(()=>window.refreshLetterDownloadFlags?.(true),700);
+        }).catch(e=>console.warn('Activity Surat Penawaran:',e));
+      }
+    }catch(e){console.warn('Flag Surat Penawaran:',e);}
+  }
+
   window.downloadOfferLetterPdf=async function(item,offer,override={}){
     let sheet=null;
     try{
@@ -10003,6 +10043,9 @@ function updateWaPreview() {
       doc.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297,undefined,'FAST');
       const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);
       doc.save('Surat_Penawaran_'+String(issued.number)+'_'+type+'_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf');
+      // V227: flag baru hanya dibuat setelah perintah download PDF berhasil dijalankan.
+      // Aktivitas ini TIDAK masuk ke markMonthlyOffered sehingga terpisah dari WA/Simulasi.
+      v227LogLetterDownloaded(v227LetterActivityRecord(item,type,override,issued,vars,office,letterCode),type);
     }catch(e){alert('Gagal membuat surat penawaran: '+(e.message||e));}
     finally{try{sheet?.remove();}catch(e){}}
   };
@@ -12218,6 +12261,7 @@ function renderDebtors(){
           <div class="v16-employee"><b>${escapeHtml(status)}</b><span>|</span><b>${escapeHtml(source)}</b></div>
           <div class="v16-ao">${escapeHtml(ao)}</div>
           ${window.monthlyOfferFlagMarkup ? window.monthlyOfferFlagMarkup(o) : ''}
+          ${window.letterDownloadFlagMarkup ? window.letterDownloadFlagMarkup(o) : ''}
         </div>
       </div>
 
@@ -12710,6 +12754,11 @@ function bind(){
     window.addEventListener('monthly-offer-flags-updated',()=>{
       const page=document.getElementById('v9PageDebitur');
       if(page?.classList.contains('active')) renderDebtors();
+    });
+    window.addEventListener('letter-download-flags-updated',()=>{
+      const page=document.getElementById('v9PageDebitur');
+      if(page?.classList.contains('active')) renderDebtors();
+      try{if(!window.isAppMobileViewport?.()&&typeof filterData==='function')filterData();}catch(e){}
     });
   }
 
@@ -15938,7 +15987,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function esc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function rp(v){ return 'Rp '+Number(v||0).toLocaleString('id-ID'); }
   function activityLabel(v){
-    return ({PENAWARAN_WA:'Penawaran WhatsApp',SIMULASI_WA:'Simulasi WhatsApp',DOWNLOAD_SIMULASI:'Download/Share Simulasi',FOTO_AKTIVITAS:'Foto Aktivitas AO',RESET_FLAGGING_ALL:'Reset Semua Flagging'})[String(v||'').toUpperCase()] || String(v||'-');
+    return ({PENAWARAN_WA:'Penawaran WhatsApp',SIMULASI_WA:'Simulasi WhatsApp',DOWNLOAD_SIMULASI:'Download/Share Simulasi',DOWNLOAD_SURAT_PENAWARAN:'Download Surat Penawaran',FOTO_AKTIVITAS:'Foto Aktivitas AO',RESET_FLAGGING_ALL:'Reset Semua Flagging'})[String(v||'').toUpperCase()] || String(v||'-');
   }
 
   window.pushCentralActivity=function(record,activityType){
@@ -16667,6 +16716,141 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 })();
 </script>
 
+<script id="v1831128-letter-download-flag-controller">
+(function(){
+  'use strict';
+
+  // V228 — Flag Surat Penawaran server-authoritative.
+  // Sumber kebenaran: backend getOfferLetterFlags yang mereduksi Activity Log
+  // DOWNLOAD_SURAT_PENAWARAN menjadi 1 flag terbaru per kartu/fasilitas.
+  // localStorage hanya cache cepat/offline + pending grace setelah download.
+  const ACTIVITY_TYPE='DOWNLOAD_SURAT_PENAWARAN';
+  const CACHE_VERSION='v228';
+  const PENDING_GRACE_MS=45000;
+  const state={account:'',flags:new Map(),inFlight:false,lastSync:0,serverLoaded:false,source:'cache'};
+
+  function norm(value){return String(value??'').trim().toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9_-]/g,'');}
+  function normalizeCif(value){return norm(value).replace(/^'+/,'').replace(/^0+(?=\d)/,'');}
+  function normalizeOffer(value){
+    const t=String(value||'').trim().toUpperCase().replace(/[\s_-]+/g,'');
+    if(t==='MENGULANG'||t==='RENEWAL')return 'MENGULANG';
+    if(t==='TOPUP')return 'TOPUP';
+    if(t==='NEW'||t==='BARU')return 'NEW';
+    return t||'';
+  }
+  function parts(obj,explicitOffer){
+    const facility=obj?.facilityRef||obj?.facility||{};
+    let loan=norm(obj?.no_pinjaman||obj?.NO_PINJAMAN||facility?.no_pinjaman||obj?.loan_id||'');
+    const cif=normalizeCif(obj?.cif||obj?.CIF||obj?.cifRef?.cif||obj?.deb?.cif||'');
+    const offer=normalizeOffer(explicitOffer||obj?.jenis_penawaran||obj?.jenis_pengajuan||obj?.__offerType||obj?.offerType||'');
+    const product=norm(obj?.tipe_pinjaman||obj?.produk||obj?.PRODUK||obj?.product||'');
+    if(/_NEW$/.test(loan)||/^NEW[_-]/.test(loan)||(/^NEW/.test(loan)&&/TANPAPINJAMAN/.test(loan)))loan='';
+    return {loan,cif,offer,product};
+  }
+  function exactKey(obj,explicitOffer){
+    const p=parts(obj,explicitOffer);
+    if(p.loan)return 'LETTER|FACILITY|'+p.loan+'|'+(p.offer||'ANY');
+    if(p.cif)return 'LETTER|NEW|'+p.cif+'|'+(p.product||'PRODUCT')+'|'+(p.offer||'NEW');
+    return '';
+  }
+  function findFlag(obj,explicitOffer){
+    const p=parts(obj,explicitOffer),exact=exactKey(obj,explicitOffer);
+    if(exact&&state.flags.has(exact))return state.flags.get(exact);
+    if(!p.offer&&p.loan){const prefix='LETTER|FACILITY|'+p.loan+'|';for(const [key,value] of state.flags){if(key.startsWith(prefix))return value;}}
+    if(!p.offer&&p.cif){const prefix='LETTER|NEW|'+p.cif+'|'+(p.product||'PRODUCT')+'|';for(const [key,value] of state.flags){if(key.startsWith(prefix))return value;}}
+    return null;
+  }
+  function currentUser(){return window.currentUser||{};}
+  function accountKey(){const u=currentUser();return norm(u.email||u.EMAIL||u.kodeAO||u.kode_ao||u.KODE_AO||'');}
+  function storageKey(){return 'analisaKredit_letterDownloadFlags_'+CACHE_VERSION+'_'+accountKey();}
+  function legacyStorageKey(){return 'analisaKredit_letterDownloadFlags_v227_'+accountKey();}
+  function persist(){try{localStorage.setItem(storageKey(),JSON.stringify([...state.flags.values()]));}catch(e){}}
+  function restore(){
+    try{
+      let raw=localStorage.getItem(storageKey());
+      if(!raw)raw=localStorage.getItem(legacyStorageKey());
+      const rows=JSON.parse(raw||'[]');
+      if(Array.isArray(rows))rows.forEach(x=>{if(x?.key)state.flags.set(x.key,x);});
+    }catch(e){console.warn('Letter download flag cache:',e);}
+  }
+  function ensureAccount(){
+    const a=accountKey();if(state.account===a)return;
+    state.account=a;state.flags.clear();state.inFlight=false;state.lastSync=0;state.serverLoaded=false;state.source='cache';restore();emit();
+  }
+  function emit(){window.dispatchEvent(new CustomEvent('letter-download-flags-updated',{detail:{total:state.flags.size,mode:'SERVER_AUTHORITATIVE',source:state.source}}));}
+
+  window.isLetterDownloaded=function(obj,offer){ensureAccount();return !!findFlag(obj,offer);};
+  window.letterDownloadFlagMarkup=function(obj,offer){
+    ensureAccount();const flag=findFlag(obj,offer);if(!flag)return '';
+    let when='';const d=new Date(flag.timestamp||flag.waktu||0);
+    if(!isNaN(d))when=d.toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'2-digit'});
+    const suffix=when?(' • '+when):'';
+    return '<span class="letter-download-flag" title="Surat Penawaran untuk kartu ini sudah pernah di-download dan tersinkron ke server. Flag ini terpisah dari Penawaran WA dan Simulasi."><i class="fa-solid fa-file-circle-check"></i> Surat diunduh'+suffix+'</span>';
+  };
+  window.markLetterDownloaded=function(record,offer){
+    ensureAccount();const key=exactKey(record,offer||record?.jenis_penawaran||record?.jenis_pengajuan);if(!key)return;
+    const now=String(record?.timestamp||record?.waktu||new Date().toISOString());
+    state.flags.set(key,{key,timestamp:now,activityType:ACTIVITY_TYPE,letterNumber:String(record?.nomor_surat||record?.letterNumber||''),pending:true,pendingAt:Date.now()});
+    state.source='local-pending';persist();emit();
+  };
+
+  async function loadLegacyFlags(cred){
+    const rows=[],seenIds=new Set();let offset=0;
+    for(let page=0;page<20&&rows.length<5000;page++){
+      const result=await window.callApi('getActivityLogs',cred,{activityType:ACTIVITY_TYPE,pageSize:250,offset});
+      if(!result?.success)throw new Error(result?.error||'Gagal mengambil flag Surat Penawaran dari Activity Log.');
+      const batch=Array.isArray(result.activities)?result.activities:[];let added=0;
+      for(const x of batch){const id=String(x?.id||x?.activityId||x?.clientKey||x?.key||'')+'|'+String(x?.timestamp||'');if(seenIds.has(id))continue;seenIds.add(id);rows.push(x);added++;}
+      if(!batch.length||added===0||result.hasMore===false||batch.length<250)break;
+      const next=Number(result.nextOffset);offset=Number.isFinite(next)&&next>offset?next:offset+batch.length;
+    }
+    const flags=[],seen=new Set();
+    for(const x of rows){const key=exactKey(x,x?.jenis_penawaran||x?.jenis_pengajuan);if(key&&!seen.has(key)){seen.add(key);flags.push({key,timestamp:x?.timestamp||x?.waktu||'',activityType:ACTIVITY_TYPE,letterNumber:String(x?.nomor_surat||x?.letterNumber||'')});}}
+    return {success:true,flags,source:'legacy-activity-log',complete:rows.length<5000};
+  }
+
+  async function fetchServerFlags(cred){
+    try{
+      const result=await window.callApi('getOfferLetterFlags',cred,{});
+      if(result?.success&&Array.isArray(result.flags))return result;
+      const msg=String(result?.error||'');
+      if(msg&&!/Action|didukung|diizinkan|not found|404/i.test(msg))throw new Error(msg);
+    }catch(err){
+      const msg=String(err?.message||err||'');
+      if(!/Action|didukung|diizinkan|not found|404|Failed to fetch|network/i.test(msg))throw err;
+    }
+    // Rollout-safe fallback jika frontend V228 lebih dulu daripada Worker V228.
+    return loadLegacyFlags(cred);
+  }
+
+  async function syncServer(force){
+    ensureAccount();if(!state.account||state.inFlight)return;
+    if(!force&&state.lastSync&&Date.now()-state.lastSync<45000)return;
+    const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'');
+    if(!cred||typeof window.callApi!=='function')return;
+    state.inFlight=true;
+    try{
+      const pending=[...state.flags.values()].filter(x=>x?.pending&&Date.now()-Number(x.pendingAt||0)<PENDING_GRACE_MS);
+      const result=await fetchServerFlags(cred);
+      if(!result?.success)throw new Error(result?.error||'Gagal mengambil flag Surat Penawaran.');
+      const incoming=Array.isArray(result.flags)?result.flags:[];
+      state.flags.clear();
+      incoming.forEach(x=>{if(x?.key)state.flags.set(String(x.key),Object.assign({},x,{pending:false}));});
+      // Grace hanya untuk download yang baru saja terjadi dan belum terbaca server.
+      pending.forEach(x=>{if(x?.key&&!state.flags.has(x.key))state.flags.set(x.key,x);});
+      state.serverLoaded=true;state.lastSync=Date.now();state.source=String(result.source||result.backend||'server');persist();emit();
+    }catch(err){
+      state.serverLoaded=false;state.source='cache-fallback';console.warn('Letter download flags server:',err);
+    }finally{state.inFlight=false;}
+  }
+  window.refreshLetterDownloadFlags=function(force){state.lastSync=0;return syncServer(force!==false);};
+  document.addEventListener('DOMContentLoaded',()=>{ensureAccount();setTimeout(()=>syncServer(true),2200);});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncServer(true);});
+  window.addEventListener('focus',()=>syncServer(false));
+  setInterval(()=>syncServer(false),45000);
+})();
+</script>
+
 <script id="v1831120-activity-photo-controller">
 (function(){
   'use strict';
@@ -16842,7 +17026,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       waktu:when.toISOString(),waktuDisplay:when.toLocaleString('id-ID'),loan_id:inferredLoanId,
       cif:x.cif||'',nama:x.nama||x.objectName||(type==='FOTO_AKTIVITAS'?'Aktivitas AO':'Debitur'),
       objectName:x.nama||x.objectName||'',kode_ao:x.kodeAO||'',no_pinjaman:x.no_pinjaman||'',
-      tipe_pinjaman:x.produk||'',produk_pengajuan:x.produk||'',jenis_penawaran:x.jenis_pengajuan||type,
+      tipe_pinjaman:x.produk||'',produk_pengajuan:x.produk||'',jenis_penawaran:x.jenis_penawaran||x.jenis_pengajuan||type,
       tenor:Number(x.tenor||0),plafond_gross:Number(x.plafond_gross||0),estimasi_angsuran:Number(x.angsuran||0),
       potensi_nett:Number(x.nett||0),outstanding:Number(x.outstanding||0),no_hp:x.no_hp||'',
       photoCategory:x.photoCategory||'',photoNote:x.photoNote||'',photoFileId:x.photoFileId||'',photoActivityId:x.photoActivityId||'',
@@ -16895,7 +17079,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
         offset=Number(result.nextOffset??(offset+batch.length));
       }
       let local=[];try{local=JSON.parse(localStorage.getItem(LOCAL_ACTIVITY_KEY)||'[]');if(!Array.isArray(local))local=[];}catch(e){local=[];}
-      const allowed=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI','FOTO_AKTIVITAS']);
+      const allowed=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI','DOWNLOAD_SURAT_PENAWARAN','FOTO_AKTIVITAS']);
       const server=serverRaw.filter(x=>allowed.has(String(x.activityType||'').toUpperCase())).map(serverActivityToLocal);
       const serverKeys=new Set(server.map(x=>String(x.key||x.clientKey||'')));
       const serverPhotoIds=new Set(server.filter(x=>String(x.activityType||'').toUpperCase()==='FOTO_AKTIVITAS'&&x.photoFileId).map(x=>String(x.photoFileId)));
@@ -17345,7 +17529,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 (function(){
   'use strict';
   const OFFER_TYPES=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI']);
-  const REPORT_TYPES=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI','FOTO_AKTIVITAS']);
+  const REPORT_TYPES=new Set(['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI','DOWNLOAD_SURAT_PENAWARAN','FOTO_AKTIVITAS']);
   const state={activities:[],report:null,truncated:false};
 
   function role(){const u=window.currentUser||{};return String(u.role||u.ROLE||'').trim().toUpperCase();}
@@ -17361,7 +17545,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function dateTime(v){const d=new Date(v);return isNaN(d)?'-':d.toLocaleString('id-ID',{timeZone:'Asia/Jakarta'});}
   function dateID(v){if(!v)return '-';const d=new Date(v+'T12:00:00+07:00');return isNaN(d)?v:d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric',timeZone:'Asia/Jakarta'});}
   function offerType(v){const x=norm(v);if(x.includes('TOP'))return 'TOP-UP';if(x.includes('MENGULANG')||x.includes('RENEW')||x.includes('PEMBARUAN')||x==='OB')return 'MENGULANG';if(x.includes('NEW')||x.includes('BARU'))return 'NEW';return x||'-';}
-  function activityLabel(v){return ({PENAWARAN_WA:'Penawaran WhatsApp',SIMULASI_WA:'Simulasi WhatsApp',DOWNLOAD_SIMULASI:'Download/Share Simulasi',FOTO_AKTIVITAS:'Foto Aktivitas AO'})[norm(v)]||String(v||'-');}
+  function activityLabel(v){return ({PENAWARAN_WA:'Penawaran WhatsApp',SIMULASI_WA:'Simulasi WhatsApp',DOWNLOAD_SIMULASI:'Download/Share Simulasi',DOWNLOAD_SURAT_PENAWARAN:'Download Surat Penawaran',FOTO_AKTIVITAS:'Foto Aktivitas AO'})[norm(v)]||String(v||'-');}
   function getLoans(){try{return Array.isArray(loanDatabase)?loanDatabase:(Array.isArray(window.loanDatabase)?window.loanDatabase:[]);}catch(e){return Array.isArray(window.loanDatabase)?window.loanDatabase:[];}}
   function loanAO(l){return norm(l?.kode_ao||l?.kodeAO||l?.cifRef?.kode_ao||l?.cifRef?.kodeAO||'-')||'-';}
   function loanCif(l){return cif(l?.cif||l?.cifRef?.cif||'');}
