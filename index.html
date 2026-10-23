@@ -4620,11 +4620,12 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     <select id="v87UserOffice" class="border rounded-lg p-2 text-xs"><option value="">Pilih Kantor Unit</option></select>
                     <input id="v87UserGrade" type="number" min="0" class="border rounded-lg p-2 text-xs" placeholder="Grade">
                     <input id="v87UserTarget" inputmode="numeric" class="border rounded-lg p-2 text-xs" placeholder="Target Booking / Bulan">
+                    <input id="v87UserPhone" inputmode="tel" maxlength="24" class="border rounded-lg p-2 text-xs col-span-2" placeholder="No. HP / WhatsApp AO (contoh: 081234567890)">
                     <select id="v87UserStatus" class="border rounded-lg p-2 text-xs"><option>AKTIF</option><option>NONAKTIF</option></select>
                     <button type="button" onclick="v87ResetUserForm()" class="border rounded-lg p-2 text-xs font-bold">Baru</button>
                   </div>
                   <button type="button" onclick="v87SaveUser()" class="w-full bg-indigo-600 text-white rounded-lg p-2 text-xs font-black"><i class="fa-solid fa-floppy-disk mr-1"></i>Simpan User</button>
-                  <div class="overflow-auto max-h-72 border rounded-xl"><table class="w-full text-[10px] min-w-[620px]"><thead class="bg-slate-50"><tr><th class="p-2 text-left">Nama</th><th>Email</th><th>Role</th><th>Kode AO</th><th>Kantor</th><th>Status</th></tr></thead><tbody id="v87UsersBody"></tbody></table></div>
+                  <div class="overflow-auto max-h-72 border rounded-xl"><table class="w-full text-[10px] min-w-[620px]"><thead class="bg-slate-50"><tr><th class="p-2 text-left">Nama</th><th>Email</th><th>Role</th><th>Kode AO</th><th>Kantor</th><th>No. HP</th><th>Status</th></tr></thead><tbody id="v87UsersBody"></tbody></table></div>
                 </div>
                 <div class="rounded-xl border border-slate-200 p-4 space-y-3">
                   <div class="font-black text-xs text-slate-700">Update Database Cabang</div>
@@ -5262,6 +5263,22 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     </div>
                 </div>
 
+                <!-- V224: nilai surat dapat disesuaikan dari halaman rincian sebelum PDF dibuat -->
+                <div class="rounded-xl border border-indigo-200 bg-indigo-50/60 p-3 space-y-2">
+                    <div class="font-black text-[11px] text-indigo-900"><i class="fa-solid fa-sliders mr-1"></i>Sesuaikan Penawaran Surat</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="text-[10px] font-bold text-slate-600">Plafond Penawaran
+                            <div class="mt-1 flex items-center rounded-lg border border-indigo-200 bg-white overflow-hidden"><span class="px-2 text-slate-500 font-bold">Rp</span><input id="v224DetailGross" type="number" inputmode="numeric" min="1" step="100000" class="min-w-0 flex-1 p-2 text-xs font-black text-indigo-900 outline-none" value="0"></div>
+                            <small id="v224DetailGrossMax" class="block mt-1 text-[9px] text-slate-500">Maksimum: Rp 0</small>
+                        </label>
+                        <label class="text-[10px] font-bold text-slate-600">Jangka Waktu
+                            <div class="mt-1 flex items-center rounded-lg border border-indigo-200 bg-white overflow-hidden"><input id="v224DetailTenor" type="number" inputmode="numeric" min="1" step="1" class="min-w-0 flex-1 p-2 text-xs font-black text-indigo-900 outline-none" value="1"><span class="px-2 text-slate-500 font-bold">Bulan</span></div>
+                            <small id="v224DetailTenorMax" class="block mt-1 text-[9px] text-slate-500">Maksimum: 0 bulan</small>
+                        </label>
+                    </div>
+                    <p class="text-[9px] text-indigo-700">Angsuran, biaya, nett, dan Surat Penawaran otomatis mengikuti nilai di atas.</p>
+                </div>
+
                 <!-- Breakdown Plafon & Biaya -->
                 <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div class="bg-slate-100 p-2.5 font-bold text-slate-700 text-xs flex justify-between items-center">
@@ -5331,6 +5348,9 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             <!-- Footer -->
             <div class="bg-slate-100 p-3.5 flex justify-end gap-2 border-t">
                 <button onclick="closeMengulangDetailModal()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold">Tutup</button>
+                <button type="button" id="btnV224DownloadOfferLetter" class="px-4 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white rounded-lg font-bold flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-file-pdf"></i> Download Surat Penawaran
+                </button>
                 <button type="button" id="btnMengulangOpenWa" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold flex items-center gap-1.5 shadow">
                     <i class="fa-brands fa-whatsapp"></i> Buka WA Penawaran
                 </button>
@@ -5501,6 +5521,11 @@ CABANG KARAWANG
         };
         let offerLetterTemplates = JSON.parse(JSON.stringify(DEFAULT_OFFER_LETTER_TEMPLATES));
         let offerLetterSignatories = {};
+        // V224 — direktori ringan user per cabang untuk kebutuhan Surat Penawaran.
+        // Menyimpan assignment Kantor Unit + No. HP AO di parameter pusat agar tersedia
+        // di device AO tanpa harus membuka/refresh halaman Administrasi Cabang terlebih dahulu.
+        let offerLetterUserDirectory = {};
+        let offerLetterCurrentUserProfile = {};
         // V221 — Master Unit Kantor disimpan per cabang agar dropdown Surat Penawaran
         // dan data user tidak lagi bergantung pada hasil tebakan dari database debitur.
         let branchOfficeUnitsByBranch = {};
@@ -5541,6 +5566,30 @@ CABANG KARAWANG
           const src=value&&typeof value==='object'?value:{}; const out={};
           Object.keys(src).forEach(k=>{const office=String(k||'').trim();if(!office)return;const row=src[k]||{};out[office]={name:String(row.name||row.nama||'').trim(),title:String(row.title||row.jabatan||'').trim()};});
           return out;
+        }
+
+        function v224NormalizePhone(value){
+          let s=String(value||'').trim().replace(/[^0-9+]/g,'');
+          if(s.startsWith('+')) s='+'+s.slice(1).replace(/\D/g,''); else s=s.replace(/\D/g,'');
+          return s.slice(0,24);
+        }
+        function v224DirectoryKey(email,kodeAO){
+          const e=String(email||'').trim().toLowerCase();
+          if(e)return 'EMAIL:'+e;
+          const k=String(kodeAO||'').trim().toUpperCase().replace(/\s+/g,'');
+          return k?'KODE:'+k:'';
+        }
+        function normalizeOfferLetterUserDirectory(value){
+          const src=value&&typeof value==='object'&&!Array.isArray(value)?value:{};const out={};
+          Object.keys(src).forEach(raw=>{const r=src[raw]||{};const email=String(r.email||'').trim().toLowerCase();const kodeAO=String(r.kodeAO||r.kode_ao||'').trim().toUpperCase();const key=v224DirectoryKey(email,kodeAO)||String(raw||'').trim();if(!key)return;out[key]={email,kodeAO,name:String(r.name||r.nama||'').trim(),office:String(r.office||r.kantor||'').trim().replace(/\s+/g,' '),phone:v224NormalizePhone(r.phone||r.noHp||r.no_hp||r.hp||r.noWA)};});
+          return out;
+        }
+        function v224FindUserProfile(value){
+          const r=value||{};const email=String(r.email||r.email_ao||r.emailAO||'').trim().toLowerCase();const kode=String(r.kodeAO||r.kode_ao||'').trim().toUpperCase();
+          const keys=[v224DirectoryKey(email,''),v224DirectoryKey('',kode)].filter(Boolean);
+          for(const k of keys){if(offerLetterUserDirectory?.[k])return offerLetterUserDirectory[k];}
+          const rows=Object.values(offerLetterUserDirectory||{});
+          return rows.find(x=>(email&&String(x.email||'').toLowerCase()===email)||(kode&&String(x.kodeAO||'').toUpperCase()===kode))||{};
         }
 
         function normalizeWaTemplate(value) {
@@ -8018,44 +8067,24 @@ CABANG KARAWANG
             const isTopUp = mode === 'TOPUP';
             const isNew = mode === 'NEW';
 
-            let plafonGross =
+            let initialGross =
                 isNew ? Number(item.plafonGrossNew || 0) :
                 isMengulang ? Number(item.plafonGrossMengulang || 0) :
                 Number(item.plafonGrossTopUp || 0);
 
-            if (!plafonGross || plafonGross <= 0) {
-                plafonGross =
+            if (!initialGross || initialGross <= 0) {
+                initialGross =
                     Number(item.plafonGrossTopUp || 0) ||
                     Number(item.plafonGrossNew || 0) ||
                     Number(item.plafonGrossMengulang || 0);
             }
 
+            const maxGross = Math.max(1, Math.round(Number(initialGross || 0)));
+            const initialTenor = Math.max(1, Math.round(Number(item.selectedTenor || item.maxAllowedTenor || item.tenor || 1)));
+            const maxTenor = Math.max(initialTenor, Math.round(Number(item.maxAllowedTenor || initialTenor || 1)));
             const ratePct = getInterestRate(item.tipe_pinjaman, mode, item);
             const renewalRatePromoActive = isRenewalRatePromoEligible(item.tipe_pinjaman, mode, item);
-            const tenor = Number(item.selectedTenor || item.maxAllowedTenor || 1);
-            const angsuranBaru = calculateInstallmentFromPlafon(
-                plafonGross, tenor, item.tipe_pinjaman, mode, item
-            );
-
-            const bakiDebet = isMengulang ? Number(item.baki_debet || 0) : 0;
-            const bungaBerjalan = isMengulang ? Number(item.bunga_berjalan || 0) : 0;
-            const musisiAsuransi = isMengulang ? Number(item.musisi_asuransi || 0) : 0;
-
             const usia = Number(item.cifRef?.tenorRules?.usiaAsuransi || item.cifRef?.tenorRules?.usiaTahun || 0);
-
-            const fees = calculateCreditFees(
-                plafonGross,
-                tenor,
-                item.tipe_pinjaman,
-                item.cifRef?.status_pegawai || '',
-                usia,
-                bakiDebet,
-                angsuranBaru,
-                bungaBerjalan,
-                musisiAsuransi,
-                mode,
-                item
-            );
 
             const headerEl = document.getElementById('modalDetailHeader');
             const titleEl = document.getElementById('modalDetailTitle');
@@ -8075,74 +8104,81 @@ CABANG KARAWANG
                 boxNetEl.className = "flex justify-between items-center pt-3 bg-emerald-50 p-3 rounded-lg border border-emerald-300 text-emerald-900 font-extrabold text-sm";
             }
 
-            // Pelunasan hanya untuk MENGULANG.
             ['rowPelunasanBakiDebet','rowPelunasanBungaBerjalan','rowBiayaMusisiAsuransi'].forEach(id=>{
                 document.getElementById(id)?.classList.toggle('hidden', !isMengulang);
             });
 
-            const noPinjamanLabel = isNew
-                ? (item.no_pinjaman || item.loan_id || 'NEW')
-                : (item.no_pinjaman || item.loan_id || '-');
+            const noPinjamanLabel = isNew ? (item.no_pinjaman || item.loan_id || 'NEW') : (item.no_pinjaman || item.loan_id || '-');
+            document.getElementById('mNoPinjamanTitle').innerText = `No. Pinjaman: ${noPinjamanLabel} | Penawaran: ${isTopUp ? 'TOP-UP' : mode}`;
+            document.getElementById('mNamaDebitur').innerText = `${item.nama || item.cifRef?.nama || '-'} (${item.cifRef?.status_pegawai || '-'})`;
+            document.getElementById('mProduk').innerText = `${item.tipe_pinjaman || '-'} (${isNew ? 'NEW' : isTopUp ? 'TOP-UP' : 'MENGULANG'})`;
+            document.getElementById('mBungaRate').innerText = `${(Number(ratePct || 0) * 100).toFixed(2)}% p.a. (Anuitas)${renewalRatePromoActive ? ' • PROMO MENGULANG' : ''}`;
 
-            document.getElementById('mNoPinjamanTitle').innerText =
-                `No. Pinjaman: ${noPinjamanLabel} | Penawaran: ${isTopUp ? 'TOP-UP' : mode}`;
+            const grossInput = document.getElementById('v224DetailGross');
+            const tenorInput = document.getElementById('v224DetailTenor');
+            const grossMaxLabel = document.getElementById('v224DetailGrossMax');
+            const tenorMaxLabel = document.getElementById('v224DetailTenorMax');
+            if (grossInput) { grossInput.max=String(maxGross); grossInput.value=String(maxGross); }
+            if (tenorInput) { tenorInput.max=String(maxTenor); tenorInput.value=String(Math.min(initialTenor,maxTenor)); }
+            if (grossMaxLabel) grossMaxLabel.textContent='Maksimum sesuai potensi: Rp '+maxGross.toLocaleString('id-ID');
+            if (tenorMaxLabel) tenorMaxLabel.textContent='Maksimum: '+maxTenor.toLocaleString('id-ID')+' bulan';
 
-            document.getElementById('mNamaDebitur').innerText =
-                `${item.nama || item.cifRef?.nama || '-'} (${item.cifRef?.status_pegawai || '-'})`;
+            const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+            const recalc=()=>{
+                const gross=clamp(Math.round(Number(grossInput?.value||maxGross)||maxGross),1,maxGross);
+                const tenor=clamp(Math.round(Number(tenorInput?.value||initialTenor)||initialTenor),1,maxTenor);
+                const angsuranBaru = calculateInstallmentFromPlafon(gross, tenor, item.tipe_pinjaman, mode, item);
+                const bakiDebet = isMengulang ? Number(item.baki_debet || 0) : 0;
+                const bungaBerjalan = isMengulang ? Number(item.bunga_berjalan || 0) : 0;
+                const musisiAsuransi = isMengulang ? Number(item.musisi_asuransi || 0) : 0;
+                const fees = calculateCreditFees(
+                    gross, tenor, item.tipe_pinjaman, item.cifRef?.status_pegawai || '', usia,
+                    bakiDebet, angsuranBaru, bungaBerjalan, musisiAsuransi, mode, item
+                );
 
-            document.getElementById('mProduk').innerText =
-                `${item.tipe_pinjaman || '-'} (${isNew ? 'NEW' : isTopUp ? 'TOP-UP' : 'MENGULANG'})`;
+                document.getElementById('mTenorBulan').innerText = `${tenor} Bulan (${fees.jangkaWaktuTahun} Thn)`;
+                document.getElementById('mPlafonGross').innerText = 'Rp ' + Math.round(gross).toLocaleString('id-ID');
+                document.getElementById('mAngsuranBaru').innerText = 'Rp ' + Math.round(angsuranBaru).toLocaleString('id-ID');
+                document.getElementById('lblBiayaProvisi').innerText = `• Biaya Provisi (${(fees.tarifProvisi * 100).toFixed(2)}%)`;
+                document.getElementById('mBiayaProvisi').innerText = 'Rp ' + Math.round(fees.biayaProvisi || 0).toLocaleString('id-ID');
+                document.getElementById('lblBiayaAdmin').innerText = `• Biaya Administrasi`;
+                document.getElementById('mBiayaAdmin').innerText = 'Rp ' + Math.round(fees.biayaAdmin || 0).toLocaleString('id-ID');
+                document.getElementById('lblBiayaAsuransi').innerText = `• Biaya Asuransi (Usia Asuransi ${usia || '-'} Thn, Tarif ${(fees.tarifAsuransi * 100).toFixed(3)}%)`;
+                document.getElementById('mBiayaAsuransi').innerText = 'Rp ' + Math.round(fees.biayaAsuransi || 0).toLocaleString('id-ID');
+                document.getElementById('lblTabunganWajib').innerText = `• Tabungan Wajib (${fees.multiplierTabWajib}x Angsuran)`;
+                document.getElementById('mTabunganWajib').innerText = 'Rp ' + Math.round(fees.tabunganWajib || 0).toLocaleString('id-ID');
+                document.getElementById('mPelunasanBakiDebet').innerText = 'Rp ' + Math.round(fees.pelunasanBakiDebet || 0).toLocaleString('id-ID');
+                document.getElementById('mPelunasanBungaBerjalan').innerText = 'Rp ' + Math.round(fees.bungaBerjalan || 0).toLocaleString('id-ID');
+                document.getElementById('mBiayaMusisiAsuransi').innerText = 'Rp ' + Math.round(fees.biayaMusisiAsuransi || 0).toLocaleString('id-ID');
+                document.getElementById('mTotalPotongan').innerText = 'Rp ' + Math.round(fees.totalPotongan || 0).toLocaleString('id-ID');
+                const netEl = document.getElementById('mNetPencairan');
+                netEl.innerText = 'Rp ' + Math.round(fees.netPencairan || 0).toLocaleString('id-ID');
+                netEl.className = isNew ? 'font-mono text-base text-blue-700' : isTopUp ? 'font-mono text-base text-amber-800' : 'font-mono text-base text-emerald-700';
+                window.v224DetailOfferOverride={loanId:String(item.loan_id||loanId),mode,gross,tenor,installment:Number(angsuranBaru||0),net:Number(fees.netPencairan||0),fees};
+                return window.v224DetailOfferOverride;
+            };
 
-            document.getElementById('mBungaRate').innerText =
-                `${(Number(ratePct || 0) * 100).toFixed(2)}% p.a. (Anuitas)${renewalRatePromoActive ? ' • PROMO MENGULANG' : ''}`;
+            const normalizeInputs=()=>{
+                if(grossInput)grossInput.value=String(clamp(Math.round(Number(grossInput.value||maxGross)||maxGross),1,maxGross));
+                if(tenorInput)tenorInput.value=String(clamp(Math.round(Number(tenorInput.value||initialTenor)||initialTenor),1,maxTenor));
+                recalc();
+            };
+            if(grossInput){grossInput.oninput=recalc;grossInput.onchange=normalizeInputs;}
+            if(tenorInput){tenorInput.oninput=recalc;tenorInput.onchange=normalizeInputs;}
+            recalc();
 
-            document.getElementById('mTenorBulan').innerText =
-                `${tenor} Bulan (${fees.jangkaWaktuTahun} Thn)`;
+            const btnLetter=document.getElementById('btnV224DownloadOfferLetter');
+            if(btnLetter){
+                btnLetter.onclick=async function(event){
+                    event?.preventDefault();event?.stopPropagation();
+                    const o=recalc();
+                    btnLetter.disabled=true;
+                    const old=btnLetter.innerHTML;
+                    btnLetter.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Membuat Surat...';
+                    try{await window.downloadOfferLetterPdf?.(item,mode,o);}finally{btnLetter.disabled=false;btnLetter.innerHTML=old;}
+                };
+            }
 
-            document.getElementById('mPlafonGross').innerText =
-                'Rp ' + Math.round(plafonGross).toLocaleString('id-ID');
-
-            document.getElementById('mAngsuranBaru').innerText =
-                'Rp ' + Math.round(angsuranBaru).toLocaleString('id-ID');
-
-            document.getElementById('lblBiayaProvisi').innerText =
-                `• Biaya Provisi (${(fees.tarifProvisi * 100).toFixed(2)}%)`;
-            document.getElementById('mBiayaProvisi').innerText =
-                'Rp ' + Math.round(fees.biayaProvisi || 0).toLocaleString('id-ID');
-
-            document.getElementById('lblBiayaAdmin').innerText = `• Biaya Administrasi`;
-            document.getElementById('mBiayaAdmin').innerText =
-                'Rp ' + Math.round(fees.biayaAdmin || 0).toLocaleString('id-ID');
-
-            document.getElementById('lblBiayaAsuransi').innerText =
-                `• Biaya Asuransi (Usia Asuransi ${usia || '-'} Thn, Tarif ${(fees.tarifAsuransi * 100).toFixed(3)}%)`;
-            document.getElementById('mBiayaAsuransi').innerText =
-                'Rp ' + Math.round(fees.biayaAsuransi || 0).toLocaleString('id-ID');
-
-            document.getElementById('lblTabunganWajib').innerText =
-                `• Tabungan Wajib (${fees.multiplierTabWajib}x Angsuran)`;
-            document.getElementById('mTabunganWajib').innerText =
-                'Rp ' + Math.round(fees.tabunganWajib || 0).toLocaleString('id-ID');
-
-            document.getElementById('mPelunasanBakiDebet').innerText =
-                'Rp ' + Math.round(fees.pelunasanBakiDebet || 0).toLocaleString('id-ID');
-            document.getElementById('mPelunasanBungaBerjalan').innerText =
-                'Rp ' + Math.round(fees.bungaBerjalan || 0).toLocaleString('id-ID');
-            document.getElementById('mBiayaMusisiAsuransi').innerText =
-                'Rp ' + Math.round(fees.biayaMusisiAsuransi || 0).toLocaleString('id-ID');
-
-            document.getElementById('mTotalPotongan').innerText =
-                'Rp ' + Math.round(fees.totalPotongan || 0).toLocaleString('id-ID');
-
-            const netEl = document.getElementById('mNetPencairan');
-            netEl.innerText =
-                'Rp ' + Math.round(fees.netPencairan || 0).toLocaleString('id-ID');
-            netEl.className =
-                isNew ? 'font-mono text-base text-blue-700' :
-                isTopUp ? 'font-mono text-base text-amber-800' :
-                'font-mono text-base text-emerald-700';
-
-            // Tombol WA dari rincian tetap memakai jenis penawaran yang sama.
             const btnWa = document.getElementById('btnMengulangOpenWa');
             if (btnWa) {
                 btnWa.onclick = function(event) {
@@ -8163,6 +8199,7 @@ CABANG KARAWANG
         }
 
         function closeMengulangDetailModal() {
+            window.v224DetailOfferOverride=null;
             document.getElementById('mengulangDetailModal').classList.add('hidden');
         }
 
@@ -8815,6 +8852,10 @@ function updateWaPreview() {
             }
             const savedOfferLetterSignatories = safeLocalStorageGet('offerLetterSignatories_v1');
             if(savedOfferLetterSignatories){ try{ offerLetterSignatories=normalizeOfferLetterSignatories(JSON.parse(savedOfferLetterSignatories)); }catch(e){} }
+            const savedOfferLetterUserDirectory = safeLocalStorageGet('offerLetterUserDirectory_v1');
+            if(savedOfferLetterUserDirectory){ try{ offerLetterUserDirectory=normalizeOfferLetterUserDirectory(JSON.parse(savedOfferLetterUserDirectory)); }catch(e){} }
+            const savedOfferLetterCurrentUserProfile = safeLocalStorageGet('offerLetterCurrentUserProfile_v1');
+            if(savedOfferLetterCurrentUserProfile){ try{ offerLetterCurrentUserProfile=JSON.parse(savedOfferLetterCurrentUserProfile)||{}; }catch(e){} }
             const savedBranchOfficeUnits = safeLocalStorageGet('branchOfficeUnitsByBranch_v1');
             if(savedBranchOfficeUnits){ try{ branchOfficeUnitsByBranch=normalizeBranchOfficeUnitsByBranch(JSON.parse(savedBranchOfficeUnits)); }catch(e){} }
             const savedWaTemplateRules = safeLocalStorageGet('waMessageTemplateRules_v2');
@@ -9519,6 +9560,8 @@ function updateWaPreview() {
   // =========================================================
   function v220OfficeLabel(v){return String(v||'').trim().replace(/\s+/g,' ');}
   function v221BranchKey(){
+    const resolved=String(window.centralResolvedBranchKey||'').trim();
+    if(resolved)return resolved.toUpperCase();
     const u=window.currentUser||{};
     return String(u.branchId||u._BRANCH_ID||u.branch_id||u.branch?.id||u.branchName||u.branch?.name||'DEFAULT').trim().toUpperCase()||'DEFAULT';
   }
@@ -9538,7 +9581,7 @@ function updateWaPreview() {
     offerLetterSignatories=Object.assign({},offerLetterSignatories,{[v221SignatoryKey(office)]:{name:String(row?.name||'').trim(),title:String(row?.title||'').trim()}});
   }
   function v221Money(v){
-    const n=Number(v)||0;
+    const n=Math.round(Number(v)||0);
     return 'Rp '+n.toLocaleString('id-ID');
   }
   function v221EscapeHtml(v){
@@ -9565,6 +9608,22 @@ function updateWaPreview() {
     }
   }
   window.v221PopulateUserOfficeSelect=v221PopulateUserOfficeSelect;
+  async function v224SaveOfferLetterBranchSettings(){
+    if(!googleCredential)throw new Error('Sesi login Google tidak tersedia.');
+    const payload={
+      offerLetterTemplates:offerLetterTemplates,
+      offerLetterTemplate:offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP,
+      offerLetterSignatories:offerLetterSignatories,
+      branchOfficeUnitsByBranch:branchOfficeUnitsByBranch,
+      offerLetterUserDirectory:offerLetterUserDirectory,
+      schemaVersion:'18.3.11.224'
+    };
+    const result=await callApi('saveParameters',googleCredential,{parameters:payload,branchKey:v221BranchKey(),scope:'LETTER_ONLY'});
+    if(!result||!result.success)throw new Error((result&&result.error)||'Gagal menyimpan konfigurasi Surat Penawaran.');
+    if(result.meta?.branchKey)window.centralResolvedBranchKey=String(result.meta.branchKey).toUpperCase();
+    cacheActiveParameters();updateCentralParamStatus('saved',result.meta||{});return result;
+  }
+  window.v224SaveOfferLetterBranchSettings=v224SaveOfferLetterBranchSettings;
   window.v221AddOfficeUnit=async function(){
     try{
       const inp=document.getElementById('v221OfficeUnitInput');const name=v220OfficeLabel(inp?.value);
@@ -9572,7 +9631,7 @@ function updateWaPreview() {
       const key=v221BranchKey(),rows=v221GetBranchOfficeUnits();
       if(rows.some(x=>x.toUpperCase()===name.toUpperCase()))throw new Error('Unit kantor sudah tersedia.');
       branchOfficeUnitsByBranch=Object.assign({},branchOfficeUnitsByBranch,{[key]:rows.concat(name).sort((a,b)=>a.localeCompare(b,'id'))});
-      await saveCentralParameters();
+      await v224SaveOfferLetterBranchSettings();
       if(inp)inp.value='';v221RenderOfficeUnitAdmin();v221PopulateUserOfficeSelect();renderOfferLetterAdminEditor();
       alert('Unit kantor '+name+' berhasil ditambahkan untuk cabang ini.');
     }catch(e){alert('Gagal menambah unit kantor: '+(e.message||e));}
@@ -9584,7 +9643,7 @@ function updateWaPreview() {
       const key=v221BranchKey(),rows=v221GetBranchOfficeUnits().filter(x=>x.toUpperCase()!==name.toUpperCase());
       branchOfficeUnitsByBranch=Object.assign({},branchOfficeUnitsByBranch,{[key]:rows});
       const copy=Object.assign({},offerLetterSignatories);delete copy[v221SignatoryKey(name)];offerLetterSignatories=copy;
-      await saveCentralParameters();
+      await v224SaveOfferLetterBranchSettings();
       v221RenderOfficeUnitAdmin();v221PopulateUserOfficeSelect();renderOfferLetterAdminEditor();
     }catch(e){alert('Gagal menghapus unit kantor: '+(e.message||e));}
   };
@@ -9606,7 +9665,8 @@ function updateWaPreview() {
       const owner=users.find(u=>(kode&&String(u?.kodeAO||u?.kode_ao||'').trim().toUpperCase()===kode)||(email&&String(u?.email||'').trim().toLowerCase()===email));
       ownerOffice=v220OfficeLabel(owner?.office||owner?.kantor||'');
     }catch(e){}
-    const candidates=[item?.kantor,item?.office,item?.nama_kantor,item?.unit,item?.kantor_unit,item?.kantor_booking,item?.kantor_realisasi,item?.cifRef?.kantor,item?.cifRef?.office,item?.cifRef?.nama_kantor,ownerOffice,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];
+    const profile=v224FindUserProfile({email:item?.email_ao||item?.emailAO||item?.cifRef?.email_ao||window.currentUser?.email,kodeAO:item?.kode_ao||item?.kodeAO||item?.cifRef?.kode_ao||window.currentUser?.kodeAO});
+    const candidates=[item?.kantor,item?.office,item?.nama_kantor,item?.unit,item?.kantor_unit,item?.kantor_booking,item?.kantor_realisasi,item?.cifRef?.kantor,item?.cifRef?.office,item?.cifRef?.nama_kantor,profile?.office,offerLetterCurrentUserProfile?.office,ownerOffice,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];
     const raw=v220OfficeLabel(candidates.find(Boolean)||'');if(!raw)return '';
     const master=v221GetBranchOfficeUnits();return master.find(x=>x.toUpperCase()===raw.toUpperCase())||raw;
   }
@@ -9639,7 +9699,7 @@ function updateWaPreview() {
       const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value);if(!office)throw new Error('Pilih kantor unit. Tambahkan unit terlebih dahulu pada Administrasi Cabang jika daftar masih kosong.');
       const name=String(document.getElementById('cfgOfferLetterSigner')?.value||'').trim(),title=String(document.getElementById('cfgOfferLetterTitle')?.value||'').trim();
       if(!name)throw new Error('Nama penandatangan wajib diisi.');if(!title)throw new Error('Jabatan wajib diisi.');
-      offerLetterTemplates={MENGULANG:renewal,NEW_TOPUP:newTopup};v221SetSignatory(office,{name,title});await saveCentralParameters();renderOfferLetterAdminEditor();alert('Template Mengulang, Baru/Top Up, dan penandatangan '+office+' berhasil disimpan.');
+      offerLetterTemplates={MENGULANG:renewal,NEW_TOPUP:newTopup};v221SetSignatory(office,{name,title});await v224SaveOfferLetterBranchSettings();renderOfferLetterAdminEditor();alert('Template Mengulang, Baru/Top Up, dan penandatangan '+office+' berhasil disimpan.');
     }catch(e){alert('Gagal menyimpan surat penawaran: '+(e.message||e));}
   };
   function v223NormalizeOfferType(value){
@@ -9669,15 +9729,18 @@ function updateWaPreview() {
     const email=String(item?.email_ao||item?.emailAO||deb?.email_ao||deb?.emailAO||'').trim().toLowerCase();
     const users=Array.isArray(window.v87AdminState?.users)?window.v87AdminState.users:[];
     let owner=users.find(u=>(kode&&String(u?.kodeAO||u?.kode_ao||'').trim().toUpperCase()===kode)||(email&&String(u?.email||'').trim().toLowerCase()===email));
+    const centralProfile=v224FindUserProfile({email,kodeAO:kode});
     const cu=window.currentUser||{};
     const cuKode=String(cu?.kodeAO||cu?.kode_ao||'').trim().toUpperCase();
     const cuEmail=String(cu?.email||'').trim().toLowerCase();
-    if(!owner&&((kode&&cuKode===kode)||(email&&cuEmail===email)||(!kode&&!email)))owner=cu;
-    return owner||{};
+    if(!owner&&Object.keys(centralProfile||{}).length)owner=centralProfile;
+    if(!owner&&((kode&&cuKode===kode)||(email&&cuEmail===email)||(!kode&&!email)))owner=Object.assign({},cu,offerLetterCurrentUserProfile||{});
+    return Object.assign({},owner||{},centralProfile||{});
   }
   function v223OwnerPhone(owner,item){
     const deb=item?.cifRef||{};
-    return String(v221FirstValue(owner,['noWA','noWa','nomorWA','no_hp','phone','hp','HP_AO'])||v221FirstValue(deb,['hp_ao','HP_AO','no_hp_ao','noWA_ao'])||'-').trim()||'-';
+    const profile=v224FindUserProfile(owner||{});
+    return String(v221FirstValue(profile,['phone','noHp','no_hp','hp'])||v221FirstValue(owner,['noWA','noWa','nomorWA','no_hp','phone','hp','HP_AO'])||v221FirstValue(deb,['hp_ao','HP_AO','no_hp_ao','noWA_ao'])||'-').trim()||'-';
   }
   function v223SourceLabel(item){
     try{if(typeof sourceProfile==='function'){const s=sourceProfile(item);if(s?.label)return String(s.label);}}catch(e){}
@@ -9687,17 +9750,19 @@ function updateWaPreview() {
     const direct=v221FirstValue(item,['nomor_surat','nomorSurat','offer_letter_number','offerLetterNumber']);
     return String(direct||'').trim()||'____';
   }
-  function v223LetterVars(item,offer){
+  function v223LetterVars(item,offer,override={}){
     const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW');
     const deb=item?.cifRef||{};
     const nama=String(deb?.nama||v221FirstValue(item,['nama','NAMA'])||'Debitur');
-    const gross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
-    const nettVal=type==='NEW'?Number(item?.potensiNew||0):type==='MENGULANG'?Number(item?.potensiMengulang||0):Number(item?.potensiPlafonTopUp||0);
-    const tenor=Math.max(0,Number(item?.selectedTenor||item?.tenor||0));
+    const baseGross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
+    const baseNett=type==='NEW'?Number(item?.potensiNew||0):type==='MENGULANG'?Number(item?.potensiMengulang||0):Number(item?.potensiPlafonTopUp||0);
+    const gross=Number(override?.gross)>0?Number(override.gross):baseGross;
+    const nettVal=Number.isFinite(Number(override?.net))?Number(override.net):baseNett;
+    const tenor=Math.max(0,Number(override?.tenor||item?.selectedTenor||item?.tenor||0));
     const product=String(item?.tipe_pinjaman||item?.product||'-');
     const office=v220ResolveOffice(item),sign=v221GetSignatory(office),owner=v223ResolveOwnerUser(item);
-    let installment=Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
-    try{if(gross>0&&tenor>0&&typeof calculateInstallmentFromPlafon==='function')installment=Number(calculateInstallmentFromPlafon(gross,tenor,product,type,item)||installment||0);}catch(e){}
+    let installment=Number.isFinite(Number(override?.installment))?Number(override.installment):Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
+    try{if(!Number.isFinite(Number(override?.installment))&&gross>0&&tenor>0&&typeof calculateInstallmentFromPlafon==='function')installment=Number(calculateInstallmentFromPlafon(gross,tenor,product,type,item)||installment||0);}catch(e){}
     const source=v223SourceLabel(item);
     const remaining=Math.max(0,Number(item?.sisaBulanFasilitas||item?.facilityRef?.sisaBulanFasilitas||item?.sisa_tenor||0));
     const ownerName=String(owner?.name||owner?.nama||owner?.namaAO||owner?.nama_ao||deb?.nama_ao||deb?.namaAO||'-').trim()||'-';
@@ -9736,7 +9801,8 @@ function updateWaPreview() {
   function v223Esc(v){return v221EscapeHtml(String(v??''));}
   function v223MakeLetterSheet(template,vars){
     const sheet=document.createElement('div');sheet.setAttribute('aria-hidden','true');
-    sheet.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;height:297mm;box-sizing:border-box;background:#fff;color:#111;padding:29mm 21.1mm 12.7mm 25.2mm;font-family:"Myriad Pro",Arial,Helvetica,sans-serif;font-size:11pt;font-weight:400;line-height:1.15;overflow:hidden;z-index:-1;';
+    // V224: beri ruang sekitar 3 baris di bawah kop surat agar isi tidak menimpa header/kop.
+    sheet.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;height:297mm;box-sizing:border-box;background:#fff;color:#111;padding:42mm 21.1mm 12.7mm 25.2mm;font-family:"Myriad Pro",Arial,Helvetica,sans-serif;font-size:11pt;font-weight:400;line-height:1.15;overflow:hidden;z-index:-1;';
     const blocks=String(template||'').replace(/\r\n/g,'\n').trim().split(/\n\s*\n+/);
     const add=(html,css='')=>{const d=document.createElement('div');d.style.cssText=css;d.innerHTML=html;sheet.appendChild(d);};
     for(const rawBlock of blocks){
@@ -9771,13 +9837,16 @@ function updateWaPreview() {
     }
     document.body.appendChild(sheet);return sheet;
   }
-  window.downloadOfferLetterPdf=async function(item,offer){
+  window.downloadOfferLetterPdf=async function(item,offer,override={}){
     let sheet=null;
     try{
       if(!item)throw new Error('Pilih debitur terlebih dahulu.');
       if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
       if(typeof window.html2canvas!=='function')throw new Error('Library render surat belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
-      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW'),vars=v223LetterVars(item,type),office=vars.kantor,sign=v221GetSignatory(office);
+      // Ambil parameter terbaru setiap kali surat akan dibuat agar perubahan Admin langsung
+      // berlaku di device AO lain tanpa harus membuka menu Admin/refresh manual.
+      try{if(typeof window.loadCentralParameters==='function')await window.loadCentralParameters({throwOnError:false});}catch(e){console.warn('Refresh parameter surat:',e);}
+      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW'),vars=v223LetterVars(item,type,override),office=vars.kantor,sign=v221GetSignatory(office);
       if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia. Atur Kantor Unit user pada Administrasi Cabang.');
       if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
       const template=type==='MENGULANG'?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG):(offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
@@ -9810,6 +9879,8 @@ function updateWaPreview() {
       localStorage.setItem('offerLetterTemplates_v2', JSON.stringify(offerLetterTemplates||DEFAULT_OFFER_LETTER_TEMPLATES));
       localStorage.setItem('offerLetterTemplate_v1', String(offerLetterTemplates?.NEW_TOPUP||''));
       localStorage.setItem('offerLetterSignatories_v1', JSON.stringify(offerLetterSignatories||{}));
+      localStorage.setItem('offerLetterUserDirectory_v1', JSON.stringify(offerLetterUserDirectory||{}));
+      localStorage.setItem('offerLetterCurrentUserProfile_v1', JSON.stringify(offerLetterCurrentUserProfile||{}));
       localStorage.setItem('branchOfficeUnitsByBranch_v1', JSON.stringify(branchOfficeUnitsByBranch||{}));
     }catch(e){ console.warn('Cache parameter lokal gagal:', e); }
   }
@@ -9863,6 +9934,18 @@ function updateWaPreview() {
       try{ const legacy=normalizeOfferLetterTemplate(payload.offerLetterTemplate);offerLetterTemplates={MENGULANG:legacy,NEW_TOPUP:legacy};changed=true; }catch(e){}
     }
     if(payload.offerLetterSignatories && typeof payload.offerLetterSignatories === 'object'){ offerLetterSignatories=normalizeOfferLetterSignatories(payload.offerLetterSignatories); changed=true; }
+    if(payload.offerLetterUserDirectory && typeof payload.offerLetterUserDirectory === 'object'){ offerLetterUserDirectory=normalizeOfferLetterUserDirectory(payload.offerLetterUserDirectory); changed=true; }
+    if(payload.offerLetterCurrentUserProfile && typeof payload.offerLetterCurrentUserProfile === 'object'){
+      const p=payload.offerLetterCurrentUserProfile||{};
+      offerLetterCurrentUserProfile={
+        email:String(p.email||'').trim().toLowerCase(),
+        kodeAO:String(p.kodeAO||p.kode_ao||'').trim().toUpperCase(),
+        name:String(p.name||p.nama||'').trim(),
+        office:String(p.office||p.kantor||'').trim().replace(/\s+/g,' '),
+        phone:v224NormalizePhone(p.phone||p.noHp||p.no_hp||p.hp||p.noWA)
+      };
+      changed=true;
+    }
     if(payload.branchOfficeUnitsByBranch && typeof payload.branchOfficeUnitsByBranch === 'object'){ branchOfficeUnitsByBranch=normalizeBranchOfficeUnitsByBranch(payload.branchOfficeUnitsByBranch); changed=true; }
     if(changed){
       cacheActiveParameters();
@@ -9910,6 +9993,7 @@ function updateWaPreview() {
     try{
       const result=await callApi('getParameters', googleCredential, {branchKey:(typeof v221BranchKey==='function'?v221BranchKey():'DEFAULT')});
       if(!result || !result.success) throw new Error((result&&result.error)||'Gagal mengambil parameter server.');
+      if(result.meta?.branchKey)window.centralResolvedBranchKey=String(result.meta.branchKey).toUpperCase();
       if(result.parameters){
         applyCentralParameters(result.parameters);
         updateCentralParamStatus('server', result.meta||{});
@@ -9940,8 +10024,9 @@ function updateWaPreview() {
       // legacy fallback agar backend parameter lama tetap dapat membaca template Baru/Top Up.
       offerLetterTemplate: offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP,
       offerLetterSignatories: offerLetterSignatories,
+      offerLetterUserDirectory: offerLetterUserDirectory,
       branchOfficeUnitsByBranch: branchOfficeUnitsByBranch,
-      schemaVersion: '18.3.11.223'
+      schemaVersion: '18.3.11.224'
     };
     const result=await callApi('saveParameters', googleCredential, {parameters:payload, branchKey:(typeof v221BranchKey==='function'?v221BranchKey():'DEFAULT')});
     if(!result || !result.success) throw new Error((result&&result.error)||'Gagal menyimpan parameter ke server.');
@@ -12002,11 +12087,6 @@ function renderDebtors(){
           data-action-offer-type="${escapeHtml(offerType)}">
           <i class="fa-regular fa-file-lines"></i><span>Rincian</span>
         </button>
-        <button type="button" class="v16-detail-btn v220-offer-letter-btn"
-          data-offer-letter-loan-id="${escapeHtml(id)}"
-          data-offer-letter-offer-type="${escapeHtml(offerType)}" title="Download Surat Penawaran PDF">
-          <i class="fa-solid fa-file-pdf"></i><span>Surat</span>
-        </button>
         <button type="button" class="v16-card-wa"
           data-card-wa-loan-id="${escapeHtml(id)}"
           data-card-wa-offer-type="${escapeHtml(offerType)}"
@@ -12528,13 +12608,12 @@ function bind(){
       return;
     }
     const waBtn=e.target.closest('[data-card-wa-loan-id]');
-    const letterBtn=e.target.closest('[data-offer-letter-loan-id]');
     const action=e.target.closest('[data-action-loan-id]');
     const row=e.target.closest('tr[data-loan-id], article[data-loan-id]');
-    if(!row && !waBtn && !letterBtn && !action) return;
+    if(!row && !waBtn && !action) return;
 
-    const id=waBtn?.dataset.cardWaLoanId || letterBtn?.dataset.offerLetterLoanId || action?.dataset.actionLoanId || row?.dataset.loanId;
-    const offer=waBtn?.dataset.cardWaOfferType || letterBtn?.dataset.offerLetterOfferType || action?.dataset.actionOfferType || row?.dataset.offerType || '';
+    const id=waBtn?.dataset.cardWaLoanId || action?.dataset.actionLoanId || row?.dataset.loanId;
+    const offer=waBtn?.dataset.cardWaOfferType || action?.dataset.actionOfferType || row?.dataset.offerType || '';
 
     selectedLoanId=id;
     window.v200SelectedPotential=null;
@@ -12552,11 +12631,6 @@ function bind(){
       openWhatsapp();
       return;
     }
-    if(letterBtn){
-      window.downloadOfferLetterPdf?.(window.v9Selected, window.v9SelectedOfferType);
-      return;
-    }
-
     if(action){
       openSelected({dataset:{loanId:id}});
     }
@@ -18147,7 +18221,12 @@ async function v87LoadBranchAdmin(){
     const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'')||'';
     if(!cred) throw new Error('Sesi Google belum tersedia.');
     const r=await callApi('getBranchAdminData',cred,{}); if(!r.success) throw new Error(r.error||'Gagal memuat');
-    v87AdminState.users=r.users||[];
+    v87AdminState.users=(r.users||[]).map(u=>{
+      const centralProfile=v224FindUserProfile(u);
+      return Object.assign({},u,{
+        phone:v224NormalizePhone(u.phone||u.noHp||u.no_hp||u.hp||u.noWA||centralProfile.phone||'')
+      });
+    });
     const mode=String(r.data?.mode||'').toUpperCase();
     document.getElementById('v87BranchInfo').textContent='Cabang aktif: '+(r.branch?.name||r.branch?.id||'-')+(mode?' • Database: '+mode:'');
     document.getElementById('v87KreditRows').textContent=(r.data?.kreditRows===null||r.data?.kreditRows===undefined)?'-':Number(r.data.kreditRows||0).toLocaleString('id-ID');
@@ -18155,14 +18234,65 @@ async function v87LoadBranchAdmin(){
     const imp=document.getElementById('v87ImportStatus');
     if(imp && r.data?.migrationRequired){imp.textContent='Cabang ini masih memakai database legacy. Kelola user tetap aktif. Untuk migrasi aman, jalankan prepareDefaultBranchDataMigrationV871() di Apps Script, lalu Refresh dan upload DATA_KREDIT serta DATA_PENGHASILAN.';}
     else if(imp && r.data?.error){imp.textContent=r.data.error;}
-    document.getElementById('v87UsersBody').innerHTML=v87AdminState.users.map((u,i)=>`<tr class="border-t cursor-pointer hover:bg-indigo-50" onclick="v87EditUser(${i})"><td class="p-2 font-bold">${String(u.name||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</td><td class="p-2">${u.email}</td><td class="p-2">${u.role}</td><td class="p-2">${u.kodeAO||'-'}</td><td class="p-2">${u.office||'-'}</td><td class="p-2"><b class="${u.status==='AKTIF'?'text-emerald-600':'text-rose-600'}">${u.status}</b></td></tr>`).join('')||'<tr><td colspan="6" class="p-4 text-center text-slate-400">Belum ada user.</td></tr>';
+    document.getElementById('v87UsersBody').innerHTML=v87AdminState.users.map((u,i)=>`<tr class="border-t cursor-pointer hover:bg-indigo-50" onclick="v87EditUser(${i})"><td class="p-2 font-bold">${String(u.name||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</td><td class="p-2">${u.email}</td><td class="p-2">${u.role}</td><td class="p-2">${u.kodeAO||'-'}</td><td class="p-2">${u.office||'-'}</td><td class="p-2 whitespace-nowrap">${u.phone||'-'}</td><td class="p-2"><b class="${u.status==='AKTIF'?'text-emerald-600':'text-rose-600'}">${u.status}</b></td></tr>`).join('')||'<tr><td colspan="7" class="p-4 text-center text-slate-400">Belum ada user.</td></tr>';
     window.v221RenderOfficeUnitAdmin?.();window.v221PopulateUserOfficeSelect?.();window.renderOfferLetterAdminEditor?.();
     if(typeof window.v88LoadBranchAdminStage2==='function') window.v88LoadBranchAdminStage2(true);
   }catch(e){document.getElementById('v87BranchInfo').textContent='Gagal: '+e.message;}
 }
-function v87EditUser(i){const u=v87AdminState.users[i]; if(!u)return; window.v221PopulateUserOfficeSelect?.(u.office); const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??''}; set('v87UserEmail',u.email);set('v87UserName',u.name);set('v87UserRole',u.role);set('v87UserKodeAO',u.kodeAO);set('v87UserDivision',u.division);set('v87UserOffice',u.office);set('v87UserGrade',u.grade||0);set('v87UserTarget',v87FmtRp(u.targetBooking));set('v87UserStatus',u.status||'AKTIF');}
-function v87ResetUserForm(){['v87UserEmail','v87UserName','v87UserKodeAO','v87UserOffice','v87UserGrade','v87UserTarget'].forEach(id=>document.getElementById(id).value='');document.getElementById('v87UserRole').value='AO';document.getElementById('v87UserDivision').value='';document.getElementById('v87UserStatus').value='AKTIF';}
-async function v87SaveUser(){try{const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'')||'';const user={email:document.getElementById('v87UserEmail').value,name:document.getElementById('v87UserName').value,role:document.getElementById('v87UserRole').value,kodeAO:document.getElementById('v87UserKodeAO').value,division:document.getElementById('v87UserDivision').value,office:document.getElementById('v87UserOffice').value,grade:Number(document.getElementById('v87UserGrade').value||0),targetBooking:v87Num(document.getElementById('v87UserTarget').value),status:document.getElementById('v87UserStatus').value};const r=await callApi('saveBranchUser',cred,{user});if(!r.success)throw new Error(r.error||'Gagal');alert('User berhasil disimpan.');await v87LoadBranchAdmin();}catch(e){alert(e.message)}}
+function v87EditUser(i){
+  const u=v87AdminState.users[i]; if(!u)return;
+  window.v221PopulateUserOfficeSelect?.(u.office);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??''};
+  set('v87UserEmail',u.email);set('v87UserName',u.name);set('v87UserRole',u.role);set('v87UserKodeAO',u.kodeAO);
+  set('v87UserDivision',u.division);set('v87UserOffice',u.office);set('v87UserGrade',u.grade||0);
+  set('v87UserTarget',v87FmtRp(u.targetBooking));set('v87UserPhone',u.phone||u.noHp||u.no_hp||u.hp||u.noWA||'');
+  set('v87UserStatus',u.status||'AKTIF');
+}
+function v87ResetUserForm(){
+  ['v87UserEmail','v87UserName','v87UserKodeAO','v87UserOffice','v87UserGrade','v87UserTarget','v87UserPhone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('v87UserRole').value='AO';document.getElementById('v87UserDivision').value='';document.getElementById('v87UserStatus').value='AKTIF';
+}
+async function v87SaveUser(){
+  try{
+    const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'')||'';
+    const user={
+      email:document.getElementById('v87UserEmail').value,
+      name:document.getElementById('v87UserName').value,
+      role:document.getElementById('v87UserRole').value,
+      kodeAO:document.getElementById('v87UserKodeAO').value,
+      division:document.getElementById('v87UserDivision').value,
+      office:document.getElementById('v87UserOffice').value,
+      phone:v224NormalizePhone(document.getElementById('v87UserPhone').value),
+      noHp:v224NormalizePhone(document.getElementById('v87UserPhone').value),
+      grade:Number(document.getElementById('v87UserGrade').value||0),
+      targetBooking:v87Num(document.getElementById('v87UserTarget').value),
+      status:document.getElementById('v87UserStatus').value
+    };
+    // Backend saveBranchUser lama tetap menerima struktur V87 apa adanya; No. HP
+    // disimpan pada direktori surat V224 agar tidak memerlukan perubahan route/handler user lama.
+    const branchUser=Object.assign({},user);delete branchUser.phone;delete branchUser.noHp;
+    const r=await callApi('saveBranchUser',cred,{user:branchUser});if(!r.success)throw new Error(r.error||'Gagal menyimpan user.');
+
+    // V224: simpan assignment kantor + No. HP ke parameter surat pusat. Data ringan ini
+    // dapat dibaca AO dari perangkat lain tanpa membuka halaman Administrasi Cabang.
+    const profile={
+      email:String(user.email||'').trim().toLowerCase(),
+      kodeAO:String(user.kodeAO||'').trim().toUpperCase(),
+      name:String(user.name||'').trim(),
+      office:String(user.office||'').trim().replace(/\s+/g,' '),
+      phone:v224NormalizePhone(user.phone)
+    };
+    const key=v224DirectoryKey(profile.email,profile.kodeAO);
+    if(key) offerLetterUserDirectory=Object.assign({},offerLetterUserDirectory,{[key]:profile});
+    const cuEmail=String(window.currentUser?.email||'').trim().toLowerCase();
+    const cuKode=String(window.currentUser?.kodeAO||window.currentUser?.kode_ao||'').trim().toUpperCase();
+    if((profile.email&&profile.email===cuEmail)||(profile.kodeAO&&profile.kodeAO===cuKode)) offerLetterCurrentUserProfile=Object.assign({},profile);
+    await v224SaveOfferLetterBranchSettings();
+    cacheActiveParameters();
+    alert('User berhasil disimpan. Kantor Unit dan No. HP sudah disinkronkan untuk perangkat AO lain.');
+    await v87LoadBranchAdmin();
+  }catch(e){alert(e.message)}
+}
 function v872NormHeader(v){return String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');}
 function v872NormCell(v){return v===null||v===undefined?'':String(v).trim().replace(/\s+/g,' ').toUpperCase();}
 function v872FindHeader(headers,aliases){const w=(aliases||[]).map(v872NormHeader);return headers.find(h=>w.includes(v872NormHeader(h)))||'';}
