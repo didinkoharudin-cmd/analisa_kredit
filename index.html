@@ -4596,6 +4596,18 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                 <button type="button" onclick="v87LoadBranchAdmin()" class="bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-rotate"></i> Refresh</button>
               </div>
               <div id="v87BranchInfo" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-xl p-3">Cabang: -</div>
+              <!-- V221 MASTER UNIT KANTOR CABANG -->
+              <div class="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-3">
+                <div>
+                  <div class="font-black text-xs text-indigo-900"><i class="fa-solid fa-building-circle-check mr-1"></i>Master Unit Kantor Cabang</div>
+                  <p class="text-[10px] text-indigo-700 mt-1">Tambahkan unit kantor yang berlaku untuk cabang login. Daftar ini menjadi sumber dropdown Kantor Unit pada user dan penandatangan Surat Penawaran PDF.</p>
+                </div>
+                <div class="grid grid-cols-[1fr_auto] gap-2">
+                  <input id="v221OfficeUnitInput" maxlength="100" class="border border-indigo-200 bg-white rounded-lg p-2 text-xs" placeholder="Contoh: KCP Klari / Kantor Pemda">
+                  <button type="button" onclick="v221AddOfficeUnit()" class="bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg px-4 py-2 text-xs font-black"><i class="fa-solid fa-plus mr-1"></i>Tambah Unit</button>
+                </div>
+                <div id="v221OfficeUnitList" class="flex flex-wrap gap-2"><span class="text-[10px] text-slate-400">Belum ada unit kantor.</span></div>
+              </div>
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div class="rounded-xl border border-slate-200 p-4 space-y-3">
                   <div class="font-black text-xs text-slate-700">Kelola User AO / Admin</div>
@@ -4605,7 +4617,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     <select id="v87UserRole" class="border rounded-lg p-2 text-xs"><option>AO</option><option>ADMIN</option><option>SUPERVISOR</option></select>
                     <input id="v87UserKodeAO" class="border rounded-lg p-2 text-xs" placeholder="Kode AO">
                     <select id="v87UserDivision" class="border rounded-lg p-2 text-xs"><option value="">Divisi</option><option>Konsumer</option><option>Ritel</option></select>
-                    <input id="v87UserOffice" class="border rounded-lg p-2 text-xs" placeholder="Nama Kantor">
+                    <select id="v87UserOffice" class="border rounded-lg p-2 text-xs"><option value="">Pilih Kantor Unit</option></select>
                     <input id="v87UserGrade" type="number" min="0" class="border rounded-lg p-2 text-xs" placeholder="Grade">
                     <input id="v87UserTarget" inputmode="numeric" class="border rounded-lg p-2 text-xs" placeholder="Target Booking / Bulan">
                     <select id="v87UserStatus" class="border rounded-lg p-2 text-xs"><option>AKTIF</option><option>NONAKTIF</option></select>
@@ -5414,7 +5426,7 @@ Terima kasih.`
         let waMessageTemplateRules = { sources:{}, products:{} };
         const WA_TEMPLATE_SOURCES = ['GAJI','TPP','SERTIFIKASI','GAJI/PENSIUN'];
 
-        // V220 — Surat Penawaran PDF. Tersimpan pada parameter terpusat cabang.
+        // V221 — Surat Penawaran PDF + master Unit Kantor cabang.
         const DEFAULT_OFFER_LETTER_TEMPLATE = `Dengan hormat,
 
 Sehubungan dengan fasilitas kredit Bank bjb, bersama ini kami menyampaikan penawaran kepada Bapak/Ibu {nama_debitur} untuk produk {produk} dengan jenis penawaran {jenis_penawaran}.
@@ -5430,6 +5442,29 @@ Penawaran ini merupakan simulasi awal dan tetap mengikuti hasil analisa, ketentu
 Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.`;
         let offerLetterTemplate = DEFAULT_OFFER_LETTER_TEMPLATE;
         let offerLetterSignatories = {};
+        // V221 — Master Unit Kantor disimpan per cabang agar dropdown Surat Penawaran
+        // dan data user tidak lagi bergantung pada hasil tebakan dari database debitur.
+        let branchOfficeUnitsByBranch = {};
+
+        function normalizeBranchOfficeUnitsByBranch(value){
+          const out={};
+          const cleanList=list=>{
+            const rows=[];
+            (Array.isArray(list)?list:[]).forEach(v=>{
+              const name=String(typeof v==='string'?v:(v?.name||v?.nama||v?.office||v?.kantor||v?.unit||'')).trim().replace(/\s+/g,' ');
+              if(name && !rows.some(x=>x.toUpperCase()===name.toUpperCase())) rows.push(name);
+            });
+            return rows.sort((a,b)=>a.localeCompare(b,'id'));
+          };
+          if(Array.isArray(value)){ out.DEFAULT=cleanList(value); return out; }
+          const src=value&&typeof value==='object'?value:{};
+          Object.keys(src).forEach(k=>{
+            const key=String(k||'').trim();
+            if(!key)return;
+            out[key]=cleanList(src[k]);
+          });
+          return out;
+        }
 
         function normalizeOfferLetterTemplate(value){
           const text=String(value||'').replace(/\r\n/g,'\n').trim();
@@ -8701,6 +8736,8 @@ function updateWaPreview() {
             if(savedOfferLetterTemplate){ try{ offerLetterTemplate=normalizeOfferLetterTemplate(savedOfferLetterTemplate); }catch(e){} }
             const savedOfferLetterSignatories = safeLocalStorageGet('offerLetterSignatories_v1');
             if(savedOfferLetterSignatories){ try{ offerLetterSignatories=normalizeOfferLetterSignatories(JSON.parse(savedOfferLetterSignatories)); }catch(e){} }
+            const savedBranchOfficeUnits = safeLocalStorageGet('branchOfficeUnitsByBranch_v1');
+            if(savedBranchOfficeUnits){ try{ branchOfficeUnitsByBranch=normalizeBranchOfficeUnitsByBranch(JSON.parse(savedBranchOfficeUnits)); }catch(e){} }
             const savedWaTemplateRules = safeLocalStorageGet('waMessageTemplateRules_v2');
             if (savedWaTemplateRules) {
                 try { waMessageTemplateRules = normalizeWaTemplateRules(JSON.parse(savedWaTemplateRules)); }
@@ -9399,29 +9436,110 @@ function updateWaPreview() {
   else setTimeout(restoreActiveSession,80);
 
   // =========================================================
-  // V220 — SURAT PENAWARAN PDF
+  // V221 — SURAT PENAWARAN PDF + MASTER UNIT KANTOR CABANG
   // =========================================================
   function v220OfficeLabel(v){return String(v||'').trim().replace(/\s+/g,' ');}
+  function v221BranchKey(){
+    const u=window.currentUser||{};
+    return String(u.branchId||u._BRANCH_ID||u.branch_id||u.branch?.id||u.branchName||u.branch?.name||'DEFAULT').trim().toUpperCase()||'DEFAULT';
+  }
+  function v221GetBranchOfficeUnits(){
+    const key=v221BranchKey();
+    const rows=Array.isArray(branchOfficeUnitsByBranch?.[key])?branchOfficeUnitsByBranch[key]:[];
+    return rows.map(v220OfficeLabel).filter(Boolean);
+  }
+  window.v221GetBranchOfficeUnits=v221GetBranchOfficeUnits;
+  function v221SignatoryKey(office){return v221BranchKey()+'||'+v220OfficeLabel(office);}
+  function v221GetSignatory(office){
+    office=v220OfficeLabel(office);if(!office)return {};
+    return offerLetterSignatories?.[v221SignatoryKey(office)]||offerLetterSignatories?.[office]||{};
+  }
+  function v221SetSignatory(office,row){
+    office=v220OfficeLabel(office);if(!office)return;
+    offerLetterSignatories=Object.assign({},offerLetterSignatories,{[v221SignatoryKey(office)]:{name:String(row?.name||'').trim(),title:String(row?.title||'').trim()}});
+  }
+  function v221Money(v){
+    const n=Number(v)||0;
+    return 'Rp '+n.toLocaleString('id-ID');
+  }
+  function v221EscapeHtml(v){
+    return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+  function v221FirstValue(obj,keys){
+    for(const k of (keys||[])){const v=obj?.[k];if(v!==undefined&&v!==null&&String(v).trim()!=='')return v;}
+    return '';
+  }
+  function v221RenderOfficeUnitAdmin(){
+    const box=document.getElementById('v221OfficeUnitList');if(!box)return;
+    const rows=v221GetBranchOfficeUnits();
+    box.innerHTML=rows.length?rows.map(name=>'<span class="inline-flex items-center gap-2 bg-white border border-indigo-200 rounded-full px-3 py-1 text-[10px] font-bold text-indigo-900">'+v221EscapeHtml(name)+'<button type="button" class="text-rose-600" title="Hapus unit" onclick="v221DeleteOfficeUnit('+JSON.stringify(name).replace(/"/g,'&quot;')+')"><i class="fa-solid fa-xmark"></i></button></span>').join(''):'<span class="text-[10px] text-slate-400">Belum ada unit kantor. Tambahkan unit terlebih dahulu.</span>';
+  }
+  window.v221RenderOfficeUnitAdmin=v221RenderOfficeUnitAdmin;
+  function v221PopulateUserOfficeSelect(preferred){
+    const sel=document.getElementById('v87UserOffice');if(!sel)return;
+    const old=v220OfficeLabel(preferred||sel.value);const rows=v221GetBranchOfficeUnits();
+    sel.innerHTML='<option value="">Pilih Kantor Unit</option>'+rows.map(x=>'<option value="'+v221EscapeHtml(x)+'">'+v221EscapeHtml(x)+'</option>').join('');
+    if(old){
+      const match=rows.find(x=>x.toUpperCase()===old.toUpperCase());
+      if(match)sel.value=match;
+      else{const o=document.createElement('option');o.value=old;o.textContent=old+' (legacy)';sel.appendChild(o);sel.value=old;}
+    }
+  }
+  window.v221PopulateUserOfficeSelect=v221PopulateUserOfficeSelect;
+  window.v221AddOfficeUnit=async function(){
+    try{
+      const inp=document.getElementById('v221OfficeUnitInput');const name=v220OfficeLabel(inp?.value);
+      if(!name)throw new Error('Nama unit kantor belum diisi.');
+      const key=v221BranchKey(),rows=v221GetBranchOfficeUnits();
+      if(rows.some(x=>x.toUpperCase()===name.toUpperCase()))throw new Error('Unit kantor sudah tersedia.');
+      branchOfficeUnitsByBranch=Object.assign({},branchOfficeUnitsByBranch,{[key]:rows.concat(name).sort((a,b)=>a.localeCompare(b,'id'))});
+      await saveCentralParameters();
+      if(inp)inp.value='';v221RenderOfficeUnitAdmin();v221PopulateUserOfficeSelect();renderOfferLetterAdminEditor();
+      alert('Unit kantor '+name+' berhasil ditambahkan untuk cabang ini.');
+    }catch(e){alert('Gagal menambah unit kantor: '+(e.message||e));}
+  };
+  window.v221DeleteOfficeUnit=async function(name){
+    try{
+      name=v220OfficeLabel(name);if(!name)return;
+      if(!confirm('Hapus unit kantor '+name+' dari master cabang?'))return;
+      const key=v221BranchKey(),rows=v221GetBranchOfficeUnits().filter(x=>x.toUpperCase()!==name.toUpperCase());
+      branchOfficeUnitsByBranch=Object.assign({},branchOfficeUnitsByBranch,{[key]:rows});
+      const copy=Object.assign({},offerLetterSignatories);delete copy[v221SignatoryKey(name)];offerLetterSignatories=copy;
+      await saveCentralParameters();
+      v221RenderOfficeUnitAdmin();v221PopulateUserOfficeSelect();renderOfferLetterAdminEditor();
+    }catch(e){alert('Gagal menghapus unit kantor: '+(e.message||e));}
+  };
   function v220OfficeOptions(){
-    const out=[]; const add=v=>{v=v220OfficeLabel(v);if(v&&!out.some(x=>x.toUpperCase()===v.toUpperCase()))out.push(v);};
-    try{[window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor,window.currentUser?.branch?.name].forEach(add);}catch(e){}
-    try{getLoans().forEach(o=>[o?.kantor,o?.office,o?.nama_kantor,o?.cifRef?.kantor,o?.cifRef?.office].forEach(add));}catch(e){}
+    const master=v221GetBranchOfficeUnits();
+    if(master.length)return master.slice().sort((a,b)=>a.localeCompare(b,'id'));
+    // Fallback kompatibilitas untuk cabang yang belum mengisi Master Unit Kantor.
+    const out=[];const add=v=>{v=v220OfficeLabel(v);if(v&&!out.some(x=>x.toUpperCase()===v.toUpperCase()))out.push(v);};
+    try{[window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor].forEach(add);}catch(e){}
     try{document.querySelectorAll('#v87UsersBody tr').forEach(tr=>{const td=tr.querySelectorAll('td');if(td.length>=5)add(td[4].textContent);});}catch(e){}
-    Object.keys(offerLetterSignatories||{}).forEach(add);
     return out.sort((a,b)=>a.localeCompare(b,'id'));
   }
   function v220ResolveOffice(item){
-    const candidates=[item?.kantor,item?.office,item?.nama_kantor,item?.cifRef?.kantor,item?.cifRef?.office,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];
-    return v220OfficeLabel(candidates.find(Boolean)||'');
+    let ownerOffice='';
+    try{
+      const kode=String(item?.kode_ao||item?.kodeAO||item?.cifRef?.kode_ao||item?.cifRef?.kodeAO||'').trim().toUpperCase();
+      const email=String(item?.email_ao||item?.emailAO||item?.cifRef?.email_ao||'').trim().toLowerCase();
+      const users=Array.isArray(window.v87AdminState?.users)?window.v87AdminState.users:[];
+      const owner=users.find(u=>(kode&&String(u?.kodeAO||u?.kode_ao||'').trim().toUpperCase()===kode)||(email&&String(u?.email||'').trim().toLowerCase()===email));
+      ownerOffice=v220OfficeLabel(owner?.office||owner?.kantor||'');
+    }catch(e){}
+    const candidates=[item?.kantor,item?.office,item?.nama_kantor,item?.unit,item?.kantor_unit,item?.kantor_booking,item?.kantor_realisasi,item?.cifRef?.kantor,item?.cifRef?.office,item?.cifRef?.nama_kantor,ownerOffice,window.currentUser?.kantor,window.currentUser?.office,window.currentUser?.namaKantor];
+    const raw=v220OfficeLabel(candidates.find(Boolean)||'');if(!raw)return '';
+    const master=v221GetBranchOfficeUnits();return master.find(x=>x.toUpperCase()===raw.toUpperCase())||raw;
   }
   function renderOfferLetterAdminEditor(){
     const tpl=document.getElementById('cfgOfferLetterTemplate'),sel=document.getElementById('cfgOfferLetterOffice');
     if(tpl)tpl.value=offerLetterTemplate||DEFAULT_OFFER_LETTER_TEMPLATE;
-    if(sel){const prev=sel.value;const offices=v220OfficeOptions();sel.innerHTML=offices.length?offices.map(x=>'<option value="'+escapeHtml(x)+'">'+escapeHtml(x)+'</option>').join(''):'<option value="">Kantor belum tersedia</option>';if(prev&&offices.includes(prev))sel.value=prev;loadOfferLetterSignatoryEditor();}
+    if(sel){const prev=sel.value;const offices=v220OfficeOptions();sel.innerHTML=offices.length?offices.map(x=>'<option value="'+v221EscapeHtml(x)+'">'+v221EscapeHtml(x)+'</option>').join(''):'<option value="">Tambahkan unit di Administrasi Cabang</option>';if(prev&&offices.includes(prev))sel.value=prev;loadOfferLetterSignatoryEditor();}
+    v221RenderOfficeUnitAdmin();v221PopulateUserOfficeSelect();
   }
   window.renderOfferLetterAdminEditor=renderOfferLetterAdminEditor;
   function loadOfferLetterSignatoryEditor(){
-    const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value),row=offerLetterSignatories?.[office]||{};
+    const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value),row=v221GetSignatory(office);
     const n=document.getElementById('cfgOfferLetterSigner'),t=document.getElementById('cfgOfferLetterTitle');if(n)n.value=row.name||'';if(t)t.value=row.title||'';
   }
   window.loadOfferLetterSignatoryEditor=loadOfferLetterSignatoryEditor;
@@ -9429,24 +9547,26 @@ function updateWaPreview() {
   window.saveOfferLetterSettings=async function(){
     try{
       const tpl=normalizeOfferLetterTemplate(document.getElementById('cfgOfferLetterTemplate')?.value||'');
-      const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value);if(!office)throw new Error('Pilih kantor unit.');
+      const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value);if(!office)throw new Error('Pilih kantor unit. Tambahkan unit terlebih dahulu pada Administrasi Cabang jika daftar masih kosong.');
       const name=String(document.getElementById('cfgOfferLetterSigner')?.value||'').trim(),title=String(document.getElementById('cfgOfferLetterTitle')?.value||'').trim();
       if(!name)throw new Error('Nama penandatangan wajib diisi.');if(!title)throw new Error('Jabatan wajib diisi.');
-      offerLetterTemplate=tpl;offerLetterSignatories=Object.assign({},offerLetterSignatories,{[office]:{name,title}});await saveCentralParameters();renderOfferLetterAdminEditor();alert('Template surat dan penandatangan '+office+' berhasil disimpan.');
+      offerLetterTemplate=tpl;v221SetSignatory(office,{name,title});await saveCentralParameters();renderOfferLetterAdminEditor();alert('Template surat dan penandatangan '+office+' berhasil disimpan.');
     }catch(e){alert('Gagal menyimpan surat penawaran: '+(e.message||e));}
   };
   function v220LetterVars(item,offer){
-    const type=String(offer||item?.__offerType||'NEW').toUpperCase(); const nama=String(item?.cifRef?.nama||val(item,['nama','NAMA'])||'Debitur');
+    const type=String(offer||item?.__offerType||'NEW').toUpperCase();
+    const nama=String(item?.cifRef?.nama||v221FirstValue(item,['nama','NAMA'])||'Debitur');
     const gross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
     const nettVal=type==='NEW'?Number(item?.potensiNew||0):type==='MENGULANG'?Number(item?.potensiMengulang||0):Number(item?.potensiPlafonTopUp||0);
-    const tenor=Number(item?.selectedTenor||item?.tenor||0);const product=String(item?.tipe_pinjaman||item?.product||'-');const rate=Number(getInterestRate(product,normalizeWaOfferType(type||'TOPUP'),item)||0);const office=v220ResolveOffice(item);const sign=offerLetterSignatories?.[office]||{};
+    const tenor=Number(item?.selectedTenor||item?.tenor||0),product=String(item?.tipe_pinjaman||item?.product||'-');
+    const rate=Number(getInterestRate(product,normalizeWaOfferType(type||'TOPUP'),item)||0),office=v220ResolveOffice(item),sign=v221GetSignatory(office);
     const installment=Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
-    return {nama_debitur:nama,nama_ao:String(window.currentUser?.name||window.currentUser?.nama||item?.cifRef?.nama_ao||'-'),cif:String(item?.cifRef?.cif||item?.cif||'-'),produk:product,jenis_penawaran:type==='TOP-UP'?'TOP-UP':type,plafond_gross:money(gross),nett:money(nettVal),angsuran:installment?money(installment):'-',tenor:tenor||'-',bunga:rate?(rate*100).toFixed(2).replace('.',',')+'% p.a.':'-',kantor:office||'-',nama_penandatangan:sign.name||'',jabatan:sign.title||'',tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})};
+    return {nama_debitur:nama,nama_ao:String(window.currentUser?.name||window.currentUser?.nama||item?.cifRef?.nama_ao||'-'),cif:String(item?.cifRef?.cif||item?.cif||'-'),produk:product,jenis_penawaran:type==='TOP-UP'?'TOP-UP':type,plafond_gross:v221Money(gross),nett:v221Money(nettVal),angsuran:installment?v221Money(installment):'-',tenor:tenor||'-',bunga:rate?(rate*100).toFixed(2).replace('.',',')+'% p.a.':'-',kantor:office||'-',nama_penandatangan:sign.name||'',jabatan:sign.title||'',tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})};
   }
   window.downloadOfferLetterPdf=function(item,offer){
     try{
       if(!item)throw new Error('Pilih debitur terlebih dahulu.');if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
-      const vars=v220LetterVars(item,offer),office=vars.kantor,sign=offerLetterSignatories?.[office]||{};if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia.');if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
+      const vars=v220LetterVars(item,offer),office=vars.kantor,sign=v221GetSignatory(office);if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia. Atur Kantor Unit user pada Administrasi Cabang.');if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
       const body=renderWaTemplate(offerLetterTemplate||DEFAULT_OFFER_LETTER_TEMPLATE,vars);const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const left=24,right=22,width=210-left-right;
       // 45 mm pertama sengaja kosong untuk kop surat fisik/digital.
       let y=48;doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.text(vars.kantor+', '+vars.tanggal,210-right,y,{align:'right'});y+=8;doc.setFont('helvetica','bold');doc.text('SURAT PENAWARAN KREDIT',105,y,{align:'center'});y+=9;doc.setFont('helvetica','normal');doc.setFontSize(10.5);
@@ -9474,6 +9594,7 @@ function updateWaPreview() {
       localStorage.setItem('waMessageTemplateRules_v2', JSON.stringify(waMessageTemplateRules));
       localStorage.setItem('offerLetterTemplate_v1', String(offerLetterTemplate||''));
       localStorage.setItem('offerLetterSignatories_v1', JSON.stringify(offerLetterSignatories||{}));
+      localStorage.setItem('branchOfficeUnitsByBranch_v1', JSON.stringify(branchOfficeUnitsByBranch||{}));
     }catch(e){ console.warn('Cache parameter lokal gagal:', e); }
   }
   window.cacheActiveParameters = cacheActiveParameters;
@@ -9522,6 +9643,7 @@ function updateWaPreview() {
     }
     if(payload.offerLetterTemplate){ try{ offerLetterTemplate=normalizeOfferLetterTemplate(payload.offerLetterTemplate); changed=true; }catch(e){} }
     if(payload.offerLetterSignatories && typeof payload.offerLetterSignatories === 'object'){ offerLetterSignatories=normalizeOfferLetterSignatories(payload.offerLetterSignatories); changed=true; }
+    if(payload.branchOfficeUnitsByBranch && typeof payload.branchOfficeUnitsByBranch === 'object'){ branchOfficeUnitsByBranch=normalizeBranchOfficeUnitsByBranch(payload.branchOfficeUnitsByBranch); changed=true; }
     if(changed){
       cacheActiveParameters();
       try{ renderAdminProductParamTable(); }catch(e){}
@@ -9533,6 +9655,7 @@ function updateWaPreview() {
       try{ renderProductRequirementSelector(); }catch(e){}
       try{ loadWaTemplateEditor(); }catch(e){}
       try{ renderOfferLetterAdminEditor(); }catch(e){}
+      try{ window.v221RenderOfficeUnitAdmin?.(); window.v221PopulateUserOfficeSelect?.(); }catch(e){}
       try{ processBothData(); }catch(e){}
     }
     return changed;
@@ -9595,7 +9718,8 @@ function updateWaPreview() {
       waMessageTemplateRules: waMessageTemplateRules,
       offerLetterTemplate: offerLetterTemplate,
       offerLetterSignatories: offerLetterSignatories,
-      schemaVersion: '18.3.11.220'
+      branchOfficeUnitsByBranch: branchOfficeUnitsByBranch,
+      schemaVersion: '18.3.11.221'
     };
     const result=await callApi('saveParameters', googleCredential, {parameters:payload});
     if(!result || !result.success) throw new Error((result&&result.error)||'Gagal menyimpan parameter ke server.');
@@ -17810,10 +17934,11 @@ async function v87LoadBranchAdmin(){
     if(imp && r.data?.migrationRequired){imp.textContent='Cabang ini masih memakai database legacy. Kelola user tetap aktif. Untuk migrasi aman, jalankan prepareDefaultBranchDataMigrationV871() di Apps Script, lalu Refresh dan upload DATA_KREDIT serta DATA_PENGHASILAN.';}
     else if(imp && r.data?.error){imp.textContent=r.data.error;}
     document.getElementById('v87UsersBody').innerHTML=v87AdminState.users.map((u,i)=>`<tr class="border-t cursor-pointer hover:bg-indigo-50" onclick="v87EditUser(${i})"><td class="p-2 font-bold">${String(u.name||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</td><td class="p-2">${u.email}</td><td class="p-2">${u.role}</td><td class="p-2">${u.kodeAO||'-'}</td><td class="p-2">${u.office||'-'}</td><td class="p-2"><b class="${u.status==='AKTIF'?'text-emerald-600':'text-rose-600'}">${u.status}</b></td></tr>`).join('')||'<tr><td colspan="6" class="p-4 text-center text-slate-400">Belum ada user.</td></tr>';
+    window.v221RenderOfficeUnitAdmin?.();window.v221PopulateUserOfficeSelect?.();window.renderOfferLetterAdminEditor?.();
     if(typeof window.v88LoadBranchAdminStage2==='function') window.v88LoadBranchAdminStage2(true);
   }catch(e){document.getElementById('v87BranchInfo').textContent='Gagal: '+e.message;}
 }
-function v87EditUser(i){const u=v87AdminState.users[i]; if(!u)return; const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??''}; set('v87UserEmail',u.email);set('v87UserName',u.name);set('v87UserRole',u.role);set('v87UserKodeAO',u.kodeAO);set('v87UserDivision',u.division);set('v87UserOffice',u.office);set('v87UserGrade',u.grade||0);set('v87UserTarget',v87FmtRp(u.targetBooking));set('v87UserStatus',u.status||'AKTIF');}
+function v87EditUser(i){const u=v87AdminState.users[i]; if(!u)return; window.v221PopulateUserOfficeSelect?.(u.office); const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v??''}; set('v87UserEmail',u.email);set('v87UserName',u.name);set('v87UserRole',u.role);set('v87UserKodeAO',u.kodeAO);set('v87UserDivision',u.division);set('v87UserOffice',u.office);set('v87UserGrade',u.grade||0);set('v87UserTarget',v87FmtRp(u.targetBooking));set('v87UserStatus',u.status||'AKTIF');}
 function v87ResetUserForm(){['v87UserEmail','v87UserName','v87UserKodeAO','v87UserOffice','v87UserGrade','v87UserTarget'].forEach(id=>document.getElementById(id).value='');document.getElementById('v87UserRole').value='AO';document.getElementById('v87UserDivision').value='';document.getElementById('v87UserStatus').value='AKTIF';}
 async function v87SaveUser(){try{const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'')||'';const user={email:document.getElementById('v87UserEmail').value,name:document.getElementById('v87UserName').value,role:document.getElementById('v87UserRole').value,kodeAO:document.getElementById('v87UserKodeAO').value,division:document.getElementById('v87UserDivision').value,office:document.getElementById('v87UserOffice').value,grade:Number(document.getElementById('v87UserGrade').value||0),targetBooking:v87Num(document.getElementById('v87UserTarget').value),status:document.getElementById('v87UserStatus').value};const r=await callApi('saveBranchUser',cred,{user});if(!r.success)throw new Error(r.error||'Gagal');alert('User berhasil disimpan.');await v87LoadBranchAdmin();}catch(e){alert(e.message)}}
 function v872NormHeader(v){return String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');}
