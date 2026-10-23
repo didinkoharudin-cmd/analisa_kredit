@@ -4782,13 +4782,18 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                 <div class="rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 space-y-3">
                     <div>
                         <h4 class="font-black text-indigo-900 text-sm flex items-center gap-2"><i class="fa-solid fa-file-signature"></i> Surat Penawaran PDF</h4>
-                        <p class="text-[10px] text-indigo-800 mt-1">Atur master surat penawaran dan penandatangan per kantor unit. PDF otomatis menyisakan ruang kosong di bagian atas untuk kop surat.</p>
+                        <p class="text-[10px] text-indigo-800 mt-1">Template <b>Mengulang</b> dan <b>Baru / Top Up</b> diatur terpisah mengikuti format surat resmi. Penandatangan tetap berbeda per Kantor Unit.</p>
                     </div>
                     <div class="rounded-xl bg-white border border-indigo-200 p-3 text-[9px] leading-relaxed text-slate-600">
-                      <b class="text-indigo-900">Variabel:</b> <code>{nama_debitur}</code>, <code>{nama_ao}</code>, <code>{cif}</code>, <code>{produk}</code>, <code>{jenis_penawaran}</code>, <code>{plafond_gross}</code>, <code>{nett}</code>, <code>{angsuran}</code>, <code>{tenor}</code>, <code>{bunga}</code>, <code>{kantor}</code>, <code>{nama_penandatangan}</code>, <code>{jabatan}</code>, <code>{tanggal}</code>.
+                      <b class="text-indigo-900">Variabel template:</b>
+                      <code>{tanggal}</code>, <code>{OTOMATIS}</code>, <code>{TAHUN}</code>, <code>{nama_debitur}</code>, <code>{alamat}</code>, <code>{kantor}</code>, <code>{sumber_pembayaran}</code>/<code>{sumber_Pembayaran}</code>, <code>{baki debet}</code>, <code>{sisa_tenor}</code>, <code>{plafond}</code>, <code>{angsuran}</code>, <code>{tenor}</code>, <code>{nett}</code>, <code>{nama_ao}</code>, <code>{HP_AO}</code>, <code>{Nama_Penandatangan}</code>, <code>{jabatan}</code>.
+                      <div class="mt-1 text-amber-700"><b>Alamat</b> dibaca dari kolom Alamat pada data Penghasilan. Variabel {OTOMATIS} siap digunakan untuk nomor surat; bila sumber nomor belum tersedia, ditampilkan sebagai garis isian.</div>
                     </div>
-                    <label class="text-[10px] font-bold text-slate-600 block">Master / Template Surat Penawaran
-                      <textarea id="cfgOfferLetterTemplate" rows="14" maxlength="12000" class="mt-1 w-full p-3 border border-indigo-200 rounded-xl bg-white text-xs leading-relaxed" placeholder="Tulis isi surat penawaran..."></textarea>
+                    <label class="text-[10px] font-bold text-slate-600 block">Template Mengulang
+                      <textarea id="cfgOfferLetterTemplateRenewal" rows="16" maxlength="16000" class="mt-1 w-full p-3 border border-indigo-200 rounded-xl bg-white text-xs leading-relaxed" placeholder="Template surat penawaran Mengulang..."></textarea>
+                    </label>
+                    <label class="text-[10px] font-bold text-slate-600 block">Template Baru / Top Up
+                      <textarea id="cfgOfferLetterTemplateNewTopup" rows="16" maxlength="16000" class="mt-1 w-full p-3 border border-indigo-200 rounded-xl bg-white text-xs leading-relaxed" placeholder="Template surat penawaran Baru / Top Up..."></textarea>
                     </label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <label class="text-[10px] font-bold text-slate-600 block">Kantor Unit
@@ -4802,7 +4807,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                       </label>
                     </div>
                     <div class="flex flex-wrap gap-2 justify-end">
-                      <button type="button" onclick="resetOfferLetterTemplate()" class="bg-white border border-indigo-200 text-indigo-800 text-xs px-3 py-2 rounded-xl font-bold">Reset Template</button>
+                      <button type="button" onclick="resetOfferLetterTemplates()" class="bg-white border border-indigo-200 text-indigo-800 text-xs px-3 py-2 rounded-xl font-bold">Reset Template Lampiran</button>
                       <button type="button" onclick="saveOfferLetterSettings()" class="bg-indigo-700 hover:bg-indigo-800 text-white text-xs px-4 py-2 rounded-xl font-black shadow"><i class="fa-solid fa-floppy-disk"></i> Simpan Surat Penawaran</button>
                     </div>
                 </div>
@@ -5426,21 +5431,75 @@ Terima kasih.`
         let waMessageTemplateRules = { sources:{}, products:{} };
         const WA_TEMPLATE_SOURCES = ['GAJI','TPP','SERTIFIKASI','GAJI/PENSIUN'];
 
-        // V221 — Surat Penawaran PDF + master Unit Kantor cabang.
-        const DEFAULT_OFFER_LETTER_TEMPLATE = `Dengan hormat,
+        // V223 — Surat Penawaran PDF: template Mengulang dan Baru/Top Up dipisahkan.
+        // Teks default mengikuti dua file DOCX master yang diberikan pengguna.
+        const DEFAULT_OFFER_LETTER_TEMPLATES = {
+          MENGULANG: `Karawang, {tanggal}
 
-Sehubungan dengan fasilitas kredit Bank bjb, bersama ini kami menyampaikan penawaran kepada Bapak/Ibu {nama_debitur} untuk produk {produk} dengan jenis penawaran {jenis_penawaran}.
+Nomor                    : {OTOMATIS}/KAR-KON/{TAHUN}
+Sifat                     : Biasa
+Lampiran                  : -
+Perihal                   : Penawaran Fasilitas Kredit
 
-Plafond Gross : {plafond_gross}
-Estimasi Nett : {nett}
-Angsuran : {angsuran}
-Tenor : {tenor} bulan
-Suku Bunga : {bunga}
+Kepada Yth :
+Bapak/Ibu {nama_debitur}
+{alamat}
+Karawang
 
-Penawaran ini merupakan simulasi awal dan tetap mengikuti hasil analisa, ketentuan kredit, serta persetujuan Bank yang berlaku.
+Dengan Hormat,
 
-Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.`;
-        let offerLetterTemplate = DEFAULT_OFFER_LETTER_TEMPLATE;
+Salam sejahtera bagi Bapak/Ibu dan semoga senantiasa sehat walafiat dalam mengerjakan aktifitas sehari-hari. Kami bank bjb {kantor} mengucapkan terima kasih atas kesetiaannya selama ini telah menjadi nasabah bank bjb.
+
+Dengan ini kami menyampaikan informasi saldo kredit {sumber_pembayaran} anda sebesar Rp {baki debet} dengan sisa jangka waktu {sisa_tenor} bulan. Sebagai bentuk apresiasi kepada Bapak/Ibu, bersama ini kami menyampaikan penawaran kredit mengulang dengan rincian sebagai berikut:
+
+1.   Jumlah Pinjaman       : {plafond}
+2.   Angsuran              : {angsuran}
+3.   Jangka Waktu          : {tenor}
+4.   Jumlah diterima bersih : {nett}
+
+Untuk Informasi lebih lanjut dapat menghubungi Petugas bank bjb {kantor} atas nama {nama_ao} No. HP. {HP_AO}.
+
+Demikian surat penawaran ini kami sampiakan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.
+
+PT. BANK PEMBANGUNAN DAERAH JAWA BARAT DAN BANTEN, Tbk.
+CABANG KARAWANG
+
+{Nama_Penandatangan}
+{jabatan}`,
+          NEW_TOPUP: `Karawang, {tanggal}
+
+Nomor                    : {OTOMATIS}/KAR-KON/{TAHUN}
+Sifat                     : Biasa
+Lampiran                  : -
+Perihal                   : Penawaran Fasilitas Kredit
+
+Kepada Yth :
+Bapak/Ibu {nama_debitur}
+{alamat}
+Karawang
+
+Dengan Hormat,
+
+Salam sejahtera bagi Bapak/Ibu dan semoga senantiasa sehat walafiat dalam mengerjakan aktifitas sehari-hari. Kami bank bjb {kantor} mengucapkan terima kasih atas kesetiaannya selama ini telah menjadi nasabah bank bjb.
+
+Sebagai bentuk apresiasi kepada Bapak/Ibu, bersama ini kami sampaikan penawaran kredit dari {sumber_Pembayaran} dengan rincian sebagai berikut:
+
+1.   Jumlah Pinjaman       : {plafond}
+2.   Angsuran              : {angsuran}
+3.   Jangka Waktu          : {tenor}
+4.   Jumlah diterima bersih : {nett}
+
+Untuk Informasi lebih lanjut dapat menghubungi Petugas bank bjb {kantor} atas nama {nama_ao} No. HP. {HP_AO}.
+
+Demikian surat penawaran ini kami sampiakan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.
+
+PT. BANK PEMBANGUNAN DAERAH JAWA BARAT DAN BANTEN, Tbk.
+CABANG KARAWANG
+
+{Nama_Penandatangan}
+{jabatan}`
+        };
+        let offerLetterTemplates = JSON.parse(JSON.stringify(DEFAULT_OFFER_LETTER_TEMPLATES));
         let offerLetterSignatories = {};
         // V221 — Master Unit Kantor disimpan per cabang agar dropdown Surat Penawaran
         // dan data user tidak lagi bergantung pada hasil tebakan dari database debitur.
@@ -5471,6 +5530,12 @@ Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapa
           if(!text) throw new Error('Template surat penawaran tidak boleh kosong.');
           if(text.length>12000) throw new Error('Template surat penawaran maksimal 12.000 karakter.');
           return text;
+        }
+        function normalizeOfferLetterTemplates(value){
+          const src=value&&typeof value==='object'?value:{};
+          const renewal=normalizeOfferLetterTemplate(src.MENGULANG||src.mengulang||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG);
+          const newTopup=normalizeOfferLetterTemplate(src.NEW_TOPUP||src.NEW||src.TOPUP||src.newTopup||src.new_topup||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
+          return {MENGULANG:renewal,NEW_TOPUP:newTopup};
         }
         function normalizeOfferLetterSignatories(value){
           const src=value&&typeof value==='object'?value:{}; const out={};
@@ -6121,6 +6186,7 @@ Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapa
                         if (norm.includes('cif')) m.cif = row[k];
                         else if (isAoColumn(norm)) m.kode_ao = row[k];
                         else if (norm.includes('nama')) m.nama = row[k];
+                        else if (norm.includes('alamat')) m.alamat = String(row[k] ?? '').trim();
                         else if (norm.includes('dinas') || norm.includes('instansi') || norm.includes('skpd') || norm.includes('unit')) m.dinas = row[k];
                         else if (isPhoneColumn(norm)) m.no_hp = row[k];
                         else if (norm.includes('gaji') || norm.includes('thp') || norm.includes('pokok')) m.gaji = parseNumber(row[k]);
@@ -6587,6 +6653,7 @@ Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapa
                         cif: cifKey,
                         kode_ao: (p.kode_ao || '-').toString().trim(),
                         nama: p.nama || 'Tanpa Nama',
+                        alamat: String(p.alamat || p.ALAMAT || '').trim(),
                         dinas: p.dinas || 'Dinas General',
                         no_hp: incomingPhone,
                         income: {
@@ -6608,6 +6675,7 @@ Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapa
                     if (incomingPhone) existingDebtor.no_hp = incomingPhone;
                     if (p.kode_ao) existingDebtor.kode_ao = p.kode_ao.toString().trim();
                     if (p.nama) existingDebtor.nama = p.nama;
+                    if (p.alamat || p.ALAMAT) existingDebtor.alamat = String(p.alamat || p.ALAMAT).trim();
                     if (p.dinas) existingDebtor.dinas = p.dinas;
                     if (p.gaji !== undefined) existingDebtor.income.GAJI = p.gaji || 0;
                     if (p.tpp !== undefined) existingDebtor.income.TPP = p.tpp || 0;
@@ -6637,6 +6705,7 @@ Demikian surat penawaran ini kami sampaikan. Atas perhatian dan kepercayaan Bapa
                         cif: cifKey,
                         kode_ao: '-',
                         nama: 'Debitur Existing',
+                        alamat: '',
                         dinas: 'Dinas General',
                         no_hp: formatPhoneForWA(k.no_hp),
                         income: { 'GAJI': 0, 'TPP': 0, 'SERTIFIKASI': 0, 'THT': 0, 'PENSIUN': 0 },
@@ -8732,8 +8801,18 @@ function updateWaPreview() {
                 try { waMessageTemplates = Object.assign({}, JSON.parse(JSON.stringify(DEFAULT_WA_MESSAGE_TEMPLATES)), JSON.parse(savedWaTemplates)); }
                 catch (e) { console.error(e); waMessageTemplates = JSON.parse(JSON.stringify(DEFAULT_WA_MESSAGE_TEMPLATES)); }
             }
-            const savedOfferLetterTemplate = safeLocalStorageGet('offerLetterTemplate_v1');
-            if(savedOfferLetterTemplate){ try{ offerLetterTemplate=normalizeOfferLetterTemplate(savedOfferLetterTemplate); }catch(e){} }
+            const savedOfferLetterTemplates = safeLocalStorageGet('offerLetterTemplates_v2');
+            if(savedOfferLetterTemplates){
+                try{ offerLetterTemplates=normalizeOfferLetterTemplates(JSON.parse(savedOfferLetterTemplates)); }catch(e){}
+            }else{
+                const savedOfferLetterTemplate = safeLocalStorageGet('offerLetterTemplate_v1');
+                if(savedOfferLetterTemplate){
+                    try{
+                        const legacy=normalizeOfferLetterTemplate(savedOfferLetterTemplate);
+                        offerLetterTemplates={MENGULANG:legacy,NEW_TOPUP:legacy};
+                    }catch(e){}
+                }
+            }
             const savedOfferLetterSignatories = safeLocalStorageGet('offerLetterSignatories_v1');
             if(savedOfferLetterSignatories){ try{ offerLetterSignatories=normalizeOfferLetterSignatories(JSON.parse(savedOfferLetterSignatories)); }catch(e){} }
             const savedBranchOfficeUnits = safeLocalStorageGet('branchOfficeUnitsByBranch_v1');
@@ -9436,7 +9515,7 @@ function updateWaPreview() {
   else setTimeout(restoreActiveSession,80);
 
   // =========================================================
-  // V221 — SURAT PENAWARAN PDF + MASTER UNIT KANTOR CABANG
+  // V223 — SURAT PENAWARAN PDF + TEMPLATE TERPISAH + FORMAT MASTER DOCX + PARAMETER TERPUSAT
   // =========================================================
   function v220OfficeLabel(v){return String(v||'').trim().replace(/\s+/g,' ');}
   function v221BranchKey(){
@@ -9532,8 +9611,11 @@ function updateWaPreview() {
     const master=v221GetBranchOfficeUnits();return master.find(x=>x.toUpperCase()===raw.toUpperCase())||raw;
   }
   function renderOfferLetterAdminEditor(){
-    const tpl=document.getElementById('cfgOfferLetterTemplate'),sel=document.getElementById('cfgOfferLetterOffice');
-    if(tpl)tpl.value=offerLetterTemplate||DEFAULT_OFFER_LETTER_TEMPLATE;
+    const renewal=document.getElementById('cfgOfferLetterTemplateRenewal');
+    const newTopup=document.getElementById('cfgOfferLetterTemplateNewTopup');
+    const sel=document.getElementById('cfgOfferLetterOffice');
+    if(renewal)renewal.value=offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG;
+    if(newTopup)newTopup.value=offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP;
     if(sel){const prev=sel.value;const offices=v220OfficeOptions();sel.innerHTML=offices.length?offices.map(x=>'<option value="'+v221EscapeHtml(x)+'">'+v221EscapeHtml(x)+'</option>').join(''):'<option value="">Tambahkan unit di Administrasi Cabang</option>';if(prev&&offices.includes(prev))sel.value=prev;loadOfferLetterSignatoryEditor();}
     v221RenderOfficeUnitAdmin();v221PopulateUserOfficeSelect();
   }
@@ -9543,37 +9625,170 @@ function updateWaPreview() {
     const n=document.getElementById('cfgOfferLetterSigner'),t=document.getElementById('cfgOfferLetterTitle');if(n)n.value=row.name||'';if(t)t.value=row.title||'';
   }
   window.loadOfferLetterSignatoryEditor=loadOfferLetterSignatoryEditor;
-  window.resetOfferLetterTemplate=function(){const el=document.getElementById('cfgOfferLetterTemplate');if(el)el.value=DEFAULT_OFFER_LETTER_TEMPLATE;};
+  window.resetOfferLetterTemplates=function(){
+    const a=document.getElementById('cfgOfferLetterTemplateRenewal'),b=document.getElementById('cfgOfferLetterTemplateNewTopup');
+    if(a)a.value=DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG;
+    if(b)b.value=DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP;
+  };
+  // Alias lama agar tombol/cache versi lama tidak memutus kompatibilitas.
+  window.resetOfferLetterTemplate=window.resetOfferLetterTemplates;
   window.saveOfferLetterSettings=async function(){
     try{
-      const tpl=normalizeOfferLetterTemplate(document.getElementById('cfgOfferLetterTemplate')?.value||'');
+      const renewal=normalizeOfferLetterTemplate(document.getElementById('cfgOfferLetterTemplateRenewal')?.value||'');
+      const newTopup=normalizeOfferLetterTemplate(document.getElementById('cfgOfferLetterTemplateNewTopup')?.value||'');
       const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value);if(!office)throw new Error('Pilih kantor unit. Tambahkan unit terlebih dahulu pada Administrasi Cabang jika daftar masih kosong.');
       const name=String(document.getElementById('cfgOfferLetterSigner')?.value||'').trim(),title=String(document.getElementById('cfgOfferLetterTitle')?.value||'').trim();
       if(!name)throw new Error('Nama penandatangan wajib diisi.');if(!title)throw new Error('Jabatan wajib diisi.');
-      offerLetterTemplate=tpl;v221SetSignatory(office,{name,title});await saveCentralParameters();renderOfferLetterAdminEditor();alert('Template surat dan penandatangan '+office+' berhasil disimpan.');
+      offerLetterTemplates={MENGULANG:renewal,NEW_TOPUP:newTopup};v221SetSignatory(office,{name,title});await saveCentralParameters();renderOfferLetterAdminEditor();alert('Template Mengulang, Baru/Top Up, dan penandatangan '+office+' berhasil disimpan.');
     }catch(e){alert('Gagal menyimpan surat penawaran: '+(e.message||e));}
   };
-  function v220LetterVars(item,offer){
-    const type=String(offer||item?.__offerType||'NEW').toUpperCase();
-    const nama=String(item?.cifRef?.nama||v221FirstValue(item,['nama','NAMA'])||'Debitur');
+  function v223NormalizeOfferType(value){
+    const t=String(value||'').trim().toUpperCase().replace(/\s+/g,'');
+    if(t==='MENGULANG'||t==='RENEWAL')return 'MENGULANG';
+    if(t==='NEW'||t==='BARU')return 'NEW';
+    return 'TOPUP';
+  }
+  function v223ResolveIncomeAddress(item){
+    const deb=item?.cifRef||{};
+    const direct=v221FirstValue(deb,['alamat','ALAMAT','address','ADDRESS'])||v221FirstValue(item,['alamat','ALAMAT','address','ADDRESS']);
+    if(String(direct||'').trim())return String(direct).trim();
+    const cif=String(deb?.cif||item?.cif||'').trim();
+    if(cif&&Array.isArray(penghasilanRawData)){
+      const row=penghasilanRawData.find(r=>normalizeCif(r?.cif||r?.CIF||'')===normalizeCif(cif));
+      if(row){
+        const v=v221FirstValue(row,['alamat','ALAMAT','address','ADDRESS']);
+        if(String(v||'').trim())return String(v).trim();
+        for(const k of Object.keys(row)){if(String(k).toLowerCase().replace(/[^a-z0-9]/g,'').includes('alamat')&&String(row[k]??'').trim())return String(row[k]).trim();}
+      }
+    }
+    return '-';
+  }
+  function v223ResolveOwnerUser(item){
+    const deb=item?.cifRef||{};
+    const kode=String(item?.kode_ao||item?.kodeAO||deb?.kode_ao||deb?.kodeAO||'').trim().toUpperCase();
+    const email=String(item?.email_ao||item?.emailAO||deb?.email_ao||deb?.emailAO||'').trim().toLowerCase();
+    const users=Array.isArray(window.v87AdminState?.users)?window.v87AdminState.users:[];
+    let owner=users.find(u=>(kode&&String(u?.kodeAO||u?.kode_ao||'').trim().toUpperCase()===kode)||(email&&String(u?.email||'').trim().toLowerCase()===email));
+    const cu=window.currentUser||{};
+    const cuKode=String(cu?.kodeAO||cu?.kode_ao||'').trim().toUpperCase();
+    const cuEmail=String(cu?.email||'').trim().toLowerCase();
+    if(!owner&&((kode&&cuKode===kode)||(email&&cuEmail===email)||(!kode&&!email)))owner=cu;
+    return owner||{};
+  }
+  function v223OwnerPhone(owner,item){
+    const deb=item?.cifRef||{};
+    return String(v221FirstValue(owner,['noWA','noWa','nomorWA','no_hp','phone','hp','HP_AO'])||v221FirstValue(deb,['hp_ao','HP_AO','no_hp_ao','noWA_ao'])||'-').trim()||'-';
+  }
+  function v223SourceLabel(item){
+    try{if(typeof sourceProfile==='function'){const s=sourceProfile(item);if(s?.label)return String(s.label);}}catch(e){}
+    return String(item?.sumber_penghasilan||item?.facilityRef?.sumber_penghasilan||item?.prodRule?.sumber||'-').trim()||'-';
+  }
+  function v223AutomaticNumber(item){
+    const direct=v221FirstValue(item,['nomor_surat','nomorSurat','offer_letter_number','offerLetterNumber']);
+    return String(direct||'').trim()||'____';
+  }
+  function v223LetterVars(item,offer){
+    const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW');
+    const deb=item?.cifRef||{};
+    const nama=String(deb?.nama||v221FirstValue(item,['nama','NAMA'])||'Debitur');
     const gross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
     const nettVal=type==='NEW'?Number(item?.potensiNew||0):type==='MENGULANG'?Number(item?.potensiMengulang||0):Number(item?.potensiPlafonTopUp||0);
-    const tenor=Number(item?.selectedTenor||item?.tenor||0),product=String(item?.tipe_pinjaman||item?.product||'-');
-    const rate=Number(getInterestRate(product,normalizeWaOfferType(type||'TOPUP'),item)||0),office=v220ResolveOffice(item),sign=v221GetSignatory(office);
-    const installment=Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
-    return {nama_debitur:nama,nama_ao:String(window.currentUser?.name||window.currentUser?.nama||item?.cifRef?.nama_ao||'-'),cif:String(item?.cifRef?.cif||item?.cif||'-'),produk:product,jenis_penawaran:type==='TOP-UP'?'TOP-UP':type,plafond_gross:v221Money(gross),nett:v221Money(nettVal),angsuran:installment?v221Money(installment):'-',tenor:tenor||'-',bunga:rate?(rate*100).toFixed(2).replace('.',',')+'% p.a.':'-',kantor:office||'-',nama_penandatangan:sign.name||'',jabatan:sign.title||'',tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})};
+    const tenor=Math.max(0,Number(item?.selectedTenor||item?.tenor||0));
+    const product=String(item?.tipe_pinjaman||item?.product||'-');
+    const office=v220ResolveOffice(item),sign=v221GetSignatory(office),owner=v223ResolveOwnerUser(item);
+    let installment=Number(item?.angsuran||item?.angsuran_baru||item?.angsuranNew||item?.angsuranTopUp||0);
+    try{if(gross>0&&tenor>0&&typeof calculateInstallmentFromPlafon==='function')installment=Number(calculateInstallmentFromPlafon(gross,tenor,product,type,item)||installment||0);}catch(e){}
+    const source=v223SourceLabel(item);
+    const remaining=Math.max(0,Number(item?.sisaBulanFasilitas||item?.facilityRef?.sisaBulanFasilitas||item?.sisa_tenor||0));
+    const ownerName=String(owner?.name||owner?.nama||owner?.namaAO||owner?.nama_ao||deb?.nama_ao||deb?.namaAO||'-').trim()||'-';
+    const baki=Math.max(0,Number(item?.baki_debet||item?.facilityRef?.baki_debet||0));
+    const year=String(new Date().getFullYear());
+    return {
+      tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
+      otomatis:v223AutomaticNumber(item),tahun:year,nama_debitur:nama,alamat:v223ResolveIncomeAddress(item),kantor:office||'-',
+      sumber_pembayaran:source,baki_debet:baki?Math.round(baki).toLocaleString('id-ID'):'0',sisa_tenor:remaining||'-',
+      plafond:v221Money(gross),angsuran:installment?v221Money(installment):'-',tenor:tenor?tenor+' Bulan':'-',nett:v221Money(nettVal),
+      nama_ao:ownerName,hp_ao:v223OwnerPhone(owner,item),nama_penandatangan:sign.name||'',jabatan:sign.title||'',
+      cif:String(deb?.cif||item?.cif||'-'),produk:product,jenis_penawaran:type
+    };
   }
-  window.downloadOfferLetterPdf=function(item,offer){
+  function v223TemplateKey(key){return String(key||'').trim().toLowerCase().replace(/[\s_]+/g,'_');}
+  function v223RenderTemplateText(text,vars){
+    const map=vars||{};
+    return String(text||'').replace(/\{([^{}]+)\}/g,(full,key)=>{
+      const k=v223TemplateKey(key);
+      return Object.prototype.hasOwnProperty.call(map,k)?String(map[k]??''):full;
+    });
+  }
+  function v223BlockClass(raw){
+    const t=String(raw||'').trim();
+    if(/^Karawang\s*,/i.test(t))return 'date';
+    if(/^Nomor\b/i.test(t)&&/Perihal\b/i.test(t))return 'meta';
+    if(/^Kepada\s+Yth/i.test(t))return 'recipient';
+    if(/^Dengan\s+Hormat/i.test(t))return 'salutation';
+    if(/^\s*1\./m.test(t))return 'list';
+    if(/PT\.\s*BANK\s+PEMBANGUNAN/i.test(t))return 'company';
+    if(/\{\s*Nama_Penandatangan\s*\}/i.test(t)||/\{\s*jabatan\s*\}/i.test(t))return 'signatory';
+    if(/^Untuk\s+Informasi/i.test(t))return 'contact';
+    if(/^Demikian\s+surat/i.test(t))return 'closing';
+    return 'body';
+  }
+  function v223Esc(v){return v221EscapeHtml(String(v??''));}
+  function v223MakeLetterSheet(template,vars){
+    const sheet=document.createElement('div');sheet.setAttribute('aria-hidden','true');
+    sheet.style.cssText='position:fixed;left:-10000px;top:0;width:210mm;height:297mm;box-sizing:border-box;background:#fff;color:#111;padding:29mm 21.1mm 12.7mm 25.2mm;font-family:"Myriad Pro",Arial,Helvetica,sans-serif;font-size:11pt;font-weight:400;line-height:1.15;overflow:hidden;z-index:-1;';
+    const blocks=String(template||'').replace(/\r\n/g,'\n').trim().split(/\n\s*\n+/);
+    const add=(html,css='')=>{const d=document.createElement('div');d.style.cssText=css;d.innerHTML=html;sheet.appendChild(d);};
+    for(const rawBlock of blocks){
+      const cls=v223BlockClass(rawBlock), rendered=v223RenderTemplateText(rawBlock,vars), lines=rendered.split('\n').map(x=>x.trimEnd());
+      if(cls==='date'){add(v223Esc(rendered),'margin:0 0 7mm 0;line-height:1.15;');continue;}
+      if(cls==='meta'){
+        const rows=lines.filter(Boolean).map((line,idx)=>{const p=line.indexOf(':');const label=p>=0?line.slice(0,p).trim():line.trim(),value=p>=0?line.slice(p+1).trim():'';return '<div style="display:grid;grid-template-columns:27mm 4mm 1fr;align-items:start;line-height:1.18;"><span>'+v223Esc(label)+'</span><span>:</span><span style="'+(/perihal/i.test(label)?'font-weight:700;':'')+(idx===0?'font-size:12pt;':'')+'">'+v223Esc(value)+'</span></div>';}).join('');
+        add(rows,'margin:0 0 7mm 0;');continue;
+      }
+      if(cls==='recipient'){
+        const rows=lines.filter(Boolean);let h='';rows.forEach((line,i)=>{h+='<div style="'+((i===1||i===3)?'font-weight:700;':'')+'line-height:1.15;">'+v223Esc(line)+'</div>';});add(h,'margin:0 0 7mm 0;');continue;
+      }
+      if(cls==='salutation'){add(v223Esc(rendered),'margin:0 0 6mm 0;text-align:justify;line-height:1.0;');continue;}
+      if(cls==='list'){
+        let h='';lines.filter(Boolean).forEach(line=>{const m=line.match(/^\s*(\d+\.)\s*(.*?)\s*:\s*(.*)$/);if(m)h+='<div style="display:grid;grid-template-columns:7mm 39mm 4mm 1fr;line-height:1.2;"><span>'+v223Esc(m[1])+'</span><span>'+v223Esc(m[2])+'</span><span>:</span><span>'+v223Esc(m[3])+'</span></div>';else h+='<div>'+v223Esc(line)+'</div>';});add(h,'margin:0 0 6mm 0;');continue;
+      }
+      if(cls==='company'){add(lines.filter(Boolean).map(x=>'<div>'+v223Esc(x)+'</div>').join(''),'margin:0 0 20mm 0;font-weight:700;line-height:1.35;');continue;}
+      if(cls==='signatory'){
+        const rows=lines.filter(Boolean);const name=rows[0]||vars.nama_penandatangan||'',title=rows[1]||vars.jabatan||'';
+        add('<div style="font-weight:700;text-decoration:underline;">'+v223Esc(name)+'</div><div style="font-size:10pt;margin-top:1mm;">'+v223Esc(title)+'</div>','margin:0;line-height:1.15;');continue;
+      }
+      let html=v223Esc(rendered).replace(/\n/g,'<br>');
+      if(cls==='body')html=html.replace(/bank bjb/g,'<b>bank bjb</b>');
+      if(cls==='contact'){
+        const office=v223Esc(vars.kantor),ao=v223Esc(vars.nama_ao),hp=v223Esc(vars.hp_ao);
+        html=html.replace(/bank bjb/gi,'<b>bank bjb</b>');
+        if(office&&office!=='-')html=html.replace(office,'<b>'+office+'</b>');
+        if(ao&&ao!=='-')html=html.replace(ao,'<b>'+ao+'</b>');
+        if(hp&&hp!=='-')html=html.replace(hp,'<b>'+hp+'</b>');
+      }
+      add(html,'margin:0 0 6mm 0;text-align:justify;line-height:1.15;');
+    }
+    document.body.appendChild(sheet);return sheet;
+  }
+  window.downloadOfferLetterPdf=async function(item,offer){
+    let sheet=null;
     try{
-      if(!item)throw new Error('Pilih debitur terlebih dahulu.');if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
-      const vars=v220LetterVars(item,offer),office=vars.kantor,sign=v221GetSignatory(office);if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia. Atur Kantor Unit user pada Administrasi Cabang.');if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
-      const body=renderWaTemplate(offerLetterTemplate||DEFAULT_OFFER_LETTER_TEMPLATE,vars);const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});const left=24,right=22,width=210-left-right;
-      // 45 mm pertama sengaja kosong untuk kop surat fisik/digital.
-      let y=48;doc.setFont('helvetica','normal');doc.setFontSize(10.5);doc.text(vars.kantor+', '+vars.tanggal,210-right,y,{align:'right'});y+=8;doc.setFont('helvetica','bold');doc.text('SURAT PENAWARAN KREDIT',105,y,{align:'center'});y+=9;doc.setFont('helvetica','normal');doc.setFontSize(10.5);
-      const lines=doc.splitTextToSize(body,width);lines.forEach(line=>{if(y>245){doc.addPage();y=25;}doc.text(line,left,y);y+=5.4;});
-      y=Math.max(y+12,220);if(y>245){doc.addPage();y=35;}doc.text('Hormat kami,',210-right,y,{align:'right'});y+=6;doc.text('Bank bjb',210-right,y,{align:'right'});y+=22;doc.setFont('helvetica','bold');doc.text(sign.name,210-right,y,{align:'right'});y+=5;doc.setFont('helvetica','normal');doc.text(sign.title,210-right,y,{align:'right'});
-      const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);doc.save('Surat_Penawaran_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf');
+      if(!item)throw new Error('Pilih debitur terlebih dahulu.');
+      if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
+      if(typeof window.html2canvas!=='function')throw new Error('Library render surat belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
+      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW'),vars=v223LetterVars(item,type),office=vars.kantor,sign=v221GetSignatory(office);
+      if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia. Atur Kantor Unit user pada Administrasi Cabang.');
+      if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
+      const template=type==='MENGULANG'?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG):(offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
+      sheet=v223MakeLetterSheet(template,vars);
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const canvas=await window.html2canvas(sheet,{scale:2.4,useCORS:true,backgroundColor:'#ffffff',logging:false,width:sheet.scrollWidth,height:sheet.scrollHeight,windowWidth:sheet.scrollWidth,windowHeight:sheet.scrollHeight});
+      const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+      doc.addImage(canvas.toDataURL('image/jpeg',0.94),'JPEG',0,0,210,297,undefined,'FAST');
+      const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);doc.save('Surat_Penawaran_'+type+'_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf');
     }catch(e){alert('Gagal membuat surat penawaran: '+(e.message||e));}
+    finally{try{sheet?.remove();}catch(e){}}
   };
 
   // =========================================================
@@ -9592,7 +9807,8 @@ function updateWaPreview() {
       localStorage.setItem('productRequirementParams_v1', JSON.stringify(productRequirementParams));
       localStorage.setItem('waMessageTemplates_v1', JSON.stringify(waMessageTemplates));
       localStorage.setItem('waMessageTemplateRules_v2', JSON.stringify(waMessageTemplateRules));
-      localStorage.setItem('offerLetterTemplate_v1', String(offerLetterTemplate||''));
+      localStorage.setItem('offerLetterTemplates_v2', JSON.stringify(offerLetterTemplates||DEFAULT_OFFER_LETTER_TEMPLATES));
+      localStorage.setItem('offerLetterTemplate_v1', String(offerLetterTemplates?.NEW_TOPUP||''));
       localStorage.setItem('offerLetterSignatories_v1', JSON.stringify(offerLetterSignatories||{}));
       localStorage.setItem('branchOfficeUnitsByBranch_v1', JSON.stringify(branchOfficeUnitsByBranch||{}));
     }catch(e){ console.warn('Cache parameter lokal gagal:', e); }
@@ -9641,7 +9857,11 @@ function updateWaPreview() {
       waMessageTemplateRules = normalizeWaTemplateRules(payload.waMessageTemplateRules);
       changed=true;
     }
-    if(payload.offerLetterTemplate){ try{ offerLetterTemplate=normalizeOfferLetterTemplate(payload.offerLetterTemplate); changed=true; }catch(e){} }
+    if(payload.offerLetterTemplates && typeof payload.offerLetterTemplates === 'object'){
+      try{ offerLetterTemplates=normalizeOfferLetterTemplates(payload.offerLetterTemplates); changed=true; }catch(e){}
+    }else if(payload.offerLetterTemplate){
+      try{ const legacy=normalizeOfferLetterTemplate(payload.offerLetterTemplate);offerLetterTemplates={MENGULANG:legacy,NEW_TOPUP:legacy};changed=true; }catch(e){}
+    }
     if(payload.offerLetterSignatories && typeof payload.offerLetterSignatories === 'object'){ offerLetterSignatories=normalizeOfferLetterSignatories(payload.offerLetterSignatories); changed=true; }
     if(payload.branchOfficeUnitsByBranch && typeof payload.branchOfficeUnitsByBranch === 'object'){ branchOfficeUnitsByBranch=normalizeBranchOfficeUnitsByBranch(payload.branchOfficeUnitsByBranch); changed=true; }
     if(changed){
@@ -9688,7 +9908,7 @@ function updateWaPreview() {
   window.loadCentralParameters = async function(options={}){
     if(!googleCredential) return {success:false, skipped:true};
     try{
-      const result=await callApi('getParameters', googleCredential);
+      const result=await callApi('getParameters', googleCredential, {branchKey:(typeof v221BranchKey==='function'?v221BranchKey():'DEFAULT')});
       if(!result || !result.success) throw new Error((result&&result.error)||'Gagal mengambil parameter server.');
       if(result.parameters){
         applyCentralParameters(result.parameters);
@@ -9716,12 +9936,14 @@ function updateWaPreview() {
       productRequirementParams: productRequirementParams,
       waMessageTemplates: waMessageTemplates,
       waMessageTemplateRules: waMessageTemplateRules,
-      offerLetterTemplate: offerLetterTemplate,
+      offerLetterTemplates: offerLetterTemplates,
+      // legacy fallback agar backend parameter lama tetap dapat membaca template Baru/Top Up.
+      offerLetterTemplate: offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP,
       offerLetterSignatories: offerLetterSignatories,
       branchOfficeUnitsByBranch: branchOfficeUnitsByBranch,
-      schemaVersion: '18.3.11.221'
+      schemaVersion: '18.3.11.223'
     };
-    const result=await callApi('saveParameters', googleCredential, {parameters:payload});
+    const result=await callApi('saveParameters', googleCredential, {parameters:payload, branchKey:(typeof v221BranchKey==='function'?v221BranchKey():'DEFAULT')});
     if(!result || !result.success) throw new Error((result&&result.error)||'Gagal menyimpan parameter ke server.');
     cacheActiveParameters();
     updateCentralParamStatus('saved', result.meta||{});
