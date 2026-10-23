@@ -9908,11 +9908,27 @@ function updateWaPreview() {
         add(rows,'margin:0 0 7mm 0;');continue;
       }
       if(cls==='recipient'){
-        const rows=lines.filter(Boolean);let h='';rows.forEach((line,i)=>{
-          const isAddress=i===2;
-          const style=((i===1||i===3)?'font-weight:700;':'')+'line-height:1.15;'+(isAddress?'max-width:82mm;white-space:normal;overflow-wrap:anywhere;word-break:normal;':'');
-          h+='<div style="'+style+'">'+v223Esc(line)+'</div>';
-        });add(h,'margin:0 0 7mm 0;');continue;
+        // V232: jangan menentukan alamat dari index baris. Template Admin dapat berubah,
+        // sehingga baris alamat dikenali dari placeholder {alamat} pada template mentah.
+        const rawLines=String(rawBlock||'').split('\n').map(x=>x.trimEnd());
+        let h='';
+        rawLines.forEach((rawLine,i)=>{
+          if(!String(rawLine||'').trim())return;
+          const line=v223RenderTemplateText(rawLine,vars);
+          const isAddress=/\{\s*alamat\s*\}/i.test(String(rawLine||''));
+          const isName=/\{\s*nama_debitur\s*\}/i.test(String(rawLine||''));
+          const isCity=!isAddress && /^\s*Karawang\s*$/i.test(String(line||'').trim());
+          let style='line-height:1.15;';
+          if(isName||isCity)style+='font-weight:700;';
+          if(isAddress){
+            // Area isi dimulai di 25.2mm; lebar 78mm berhenti sebelum titik tengah
+            // fisik halaman A4 (105mm). width + max-width wajib agar html2canvas
+            // tidak memperlebar box mengikuti teks.
+            style+='display:block;width:78mm;max-width:78mm;box-sizing:border-box;white-space:normal;overflow-wrap:break-word;word-wrap:break-word;word-break:break-word;hyphens:auto;font-weight:400 !important;';
+          }
+          h+='<div data-offer-address="'+(isAddress?'1':'0')+'" style="'+style+'">'+v223Esc(line)+'</div>';
+        });
+        add(h,'margin:0 0 7mm 0;display:block;width:100%;');continue;
       }
       if(cls==='salutation'){add(v223Esc(rendered),'margin:0 0 6mm 0;text-align:justify;line-height:1.0;');continue;}
       if(cls==='list'){
@@ -19161,6 +19177,6 @@ document.addEventListener('visibilitychange',()=>{
 </body>
 </html>
 
-<!-- V18.3.11.231 ADDRESS HALF-WIDTH WRAP -->
+<!-- V18.3.11.232 ADDRESS STRICT MIDPAGE WRAP -->
 
-<!-- V18.3.11.231: Recipient address limited to 82mm (~half page) and wraps downward. -->
+<!-- V18.3.11.233: Address line fixed 78mm, wraps before midpoint, normal weight (not bold). -->
