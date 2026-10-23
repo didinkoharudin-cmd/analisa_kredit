@@ -10698,6 +10698,29 @@ function updateWaPreview() {
   };
 
 
+
+
+  // V235: expose a narrow, read-only bridge for the fast offer-letter renderer.
+  // The offer-letter implementation lives inside this IIFE, so external patch
+  // scripts must use this bridge instead of referencing private identifiers.
+  window.__scoreOfferLetterBridgeV235={
+    normalizeOfferType:v223NormalizeOfferType,
+    letterVars:v223LetterVars,
+    getSignatory:v221GetSignatory,
+    normalizeLetterCode:v226NormalizeLetterCode,
+    issueNumber:v225IssueOfferLetterNumber,
+    logDownloaded:v227LogLetterDownloaded,
+    activityRecord:v227LetterActivityRecord,
+    blockClass:v223BlockClass,
+    renderTemplateText:v223RenderTemplateText,
+    makeLetterSheet:v223MakeLetterSheet,
+    getTemplate:function(type){
+      return String(type||'').toUpperCase()==='MENGULANG'
+        ?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG)
+        :(offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
+    }
+  };
+
   window.logoutGoogleUser=function(){
     googleCredential=null;
     currentUser=null;
@@ -19174,12 +19197,13 @@ document.addEventListener('visibilitychange',()=>{
 <script src="./upload-v120.js?v=129" onerror="document.getElementById('v87ImportStatus').textContent='Modul upload V129 gagal dimuat. Muat ulang aplikasi atau hapus cache situs.'"></script>
 <script src="./usage-traffic-v122.js"></script>
 <script src="./score-header-v137.js?v=137"></script>
-<script id="v18311234-fast-direct-letter-renderer">
+<script id="v18311235-fast-direct-letter-renderer">
 (function(){
   'use strict';
-  // V234 — FAST DIRECT RENDER.
+  // V235 — FAST DIRECT RENDER + private-helper bridge hotfix.
   // Menggambar Surat Penawaran langsung ke canvas A4 berukuran hampir sama dengan
   // canvas Simulasi Interaktif, tanpa DOM screenshot/html2canvas pada jalur normal.
+  const bridge=window.__scoreOfferLetterBridgeV235||null;
   const W=1080, H=Math.round(W*297/210), MM=W/210;
   const mm=v=>Number(v||0)*MM;
   const pt=v=>Number(v||0)*MM*(25.4/72);
@@ -19251,8 +19275,8 @@ document.addEventListener('visibilitychange',()=>{
     let y=mm(42)+pt(11);
     const blocks=String(template||'').replace(/\r\n/g,'\n').trim().split(/\n\s*\n+/);
     for(const rawBlock of blocks){
-      const cls=typeof v223BlockClass==='function'?v223BlockClass(rawBlock):'body';
-      const rendered=typeof v223RenderTemplateText==='function'?v223RenderTemplateText(rawBlock,vars):String(rawBlock||'');
+      const cls=bridge?.blockClass?bridge.blockClass(rawBlock):'body';
+      const rendered=bridge?.renderTemplateText?bridge.renderTemplateText(rawBlock,vars):String(rawBlock||'');
       const lines=String(rendered||'').split('\n').map(x=>x.trimEnd());
       if(cls==='date'){y=drawPlain(ctx,rendered,left,y,11,false)+mm(7);continue;}
       if(cls==='meta'){
@@ -19266,7 +19290,7 @@ document.addEventListener('visibilitychange',()=>{
         const rawLines=String(rawBlock||'').split('\n').map(x=>x.trimEnd());
         rawLines.forEach(rawLine=>{
           if(!String(rawLine||'').trim())return;
-          const line=typeof v223RenderTemplateText==='function'?v223RenderTemplateText(rawLine,vars):rawLine;
+          const line=bridge?.renderTemplateText?bridge.renderTemplateText(rawLine,vars):rawLine;
           const isAddress=/\{\s*alamat\s*\}/i.test(String(rawLine||''));
           const isName=/\{\s*nama_debitur\s*\}/i.test(String(rawLine||''));
           const isCity=!isAddress&&/^\s*Karawang\s*$/i.test(String(line||'').trim());
@@ -19300,34 +19324,35 @@ document.addEventListener('visibilitychange',()=>{
     if(typeof window.html2canvas!=='function')throw new Error('Renderer fallback html2canvas tidak tersedia.');
     let sheet=null;
     try{
-      sheet=v223MakeLetterSheet(template,vars);await new Promise(r=>requestAnimationFrame(r));
+      sheet=bridge.makeLetterSheet(template,vars);await new Promise(r=>requestAnimationFrame(r));
       return await window.html2canvas(sheet,{scale:1.35,useCORS:true,backgroundColor:'#ffffff',logging:false,imageTimeout:0,width:sheet.scrollWidth,height:sheet.scrollHeight,windowWidth:sheet.scrollWidth,windowHeight:sheet.scrollHeight});
     }finally{try{sheet?.remove();}catch(e){}}
   }
-  window.v234BuildOfferLetterCanvas=makeCanvas;
+  window.v235BuildOfferLetterCanvas=makeCanvas;
   window.v233DownloadOfferLetterPdf=window.downloadOfferLetterPdf;
   window.downloadOfferLetterPdf=async function(item,offer,override={}){
     const started=performance.now();let mode='direct';
     try{
       if(!item)throw new Error('Pilih debitur terlebih dahulu.');
+      if(!bridge){console.warn('[V235] Bridge Surat Penawaran belum tersedia; gunakan renderer V233.');return await window.v233DownloadOfferLetterPdf?.(item,offer,override);}
       if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
       if(!googleCredential)throw new Error('Sesi login tidak tersedia. Silakan login kembali.');
       // Biasanya sudah diprefetch saat Rincian dibuka; bila cache masih valid, ini langsung return.
       await window.v225RefreshLetterRuntime({maxAgeMs:300000,throwOnError:true});
       const afterRuntime=performance.now();
-      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW');
-      const previewVars=v223LetterVars(item,type,override),office=previewVars.kantor,sign=v221GetSignatory(office);
+      const type=bridge.normalizeOfferType(offer||item?.__offerType||'NEW');
+      const previewVars=bridge.letterVars(item,type,override),office=previewVars.kantor,sign=bridge.getSignatory(office);
       if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia. Atur Kantor Unit user pada Administrasi Cabang.');
       if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
-      const letterCode=v226NormalizeLetterCode(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'KAR-KON')||'KAR-KON';
-      const template=type==='MENGULANG'?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG):(offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
+      const letterCode=bridge.normalizeLetterCode(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'KAR-KON')||'KAR-KON';
+      const template=bridge.getTemplate(type);
       if(!String(template||'').trim())throw new Error('Template Surat Penawaran belum tersedia.');
 
       // Nomor surat tetap atomic. Ini satu-satunya round-trip yang memang wajib sebelum file final.
-      const issued=await v225IssueOfferLetterNumber(office);const afterNumber=performance.now();
-      const vars=v223LetterVars(item,type,Object.assign({},override,{letterNumber:issued.number,letterYear:issued.year}));
+      const issued=await bridge.issueNumber(office);const afterNumber=performance.now();
+      const vars=bridge.letterVars(item,type,Object.assign({},override,{letterNumber:issued.number,letterYear:issued.year}));
       let canvas;
-      try{canvas=makeCanvas(template,vars);}catch(err){console.warn('[V234] Direct renderer fallback:',err);mode='html2canvas-fallback';canvas=await fallbackRender(template,vars);}
+      try{canvas=makeCanvas(template,vars);}catch(err){console.warn('[V235] Direct renderer fallback:',err);mode='html2canvas-fallback';canvas=await fallbackRender(template,vars);}
       const afterRender=performance.now();
       const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
       doc.addImage(canvas,'JPEG',0,0,210,297,undefined,'FAST');
@@ -19335,9 +19360,9 @@ document.addEventListener('visibilitychange',()=>{
       const filename='Surat_Penawaran_'+String(issued.number)+'_'+type+'_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf';
       const blob=doc.output('blob');const url=URL.createObjectURL(blob),a=document.createElement('a');a.download=filename;a.href=url;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
       const afterSave=performance.now();
-      v227LogLetterDownloaded(v227LetterActivityRecord(item,type,override,issued,vars,office,letterCode),type);
-      window.v234LastLetterTiming={mode,runtimeMs:Math.round(afterRuntime-started),numberMs:Math.round(afterNumber-afterRuntime),renderMs:Math.round(afterRender-afterNumber),pdfMs:Math.round(afterSave-afterRender),totalMs:Math.round(afterSave-started)};
-      console.info('[V234] Surat Penawaran timing',window.v234LastLetterTiming);
+      bridge.logDownloaded(bridge.activityRecord(item,type,override,issued,vars,office,letterCode),type);
+      window.v235LastLetterTiming={mode,runtimeMs:Math.round(afterRuntime-started),numberMs:Math.round(afterNumber-afterRuntime),renderMs:Math.round(afterRender-afterNumber),pdfMs:Math.round(afterSave-afterRender),totalMs:Math.round(afterSave-started)};
+      console.info('[V235] Surat Penawaran timing',window.v235LastLetterTiming);
     }catch(e){alert('Gagal membuat surat penawaran: '+(e.message||e));}
   };
 })();
@@ -19349,4 +19374,5 @@ document.addEventListener('visibilitychange',()=>{
 <!-- V18.3.11.232 ADDRESS STRICT MIDPAGE WRAP -->
 
 <!-- V18.3.11.233: Address line fixed 78mm, wraps before midpoint, normal weight (not bold). -->
-<!-- V18.3.11.234: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback. -->
+<!-- V18.3.11.235: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback.
+<!-- V18.3.11.235: Fast renderer helper-scope bridge hotfix; Safari/iOS safe. --> -->
