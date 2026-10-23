@@ -9825,10 +9825,10 @@ function updateWaPreview() {
         add('<div style="font-weight:700;text-decoration:underline;">'+v223Esc(name)+'</div><div style="font-size:10pt;margin-top:1mm;">'+v223Esc(title)+'</div>','margin:0;line-height:1.15;');continue;
       }
       let html=v223Esc(rendered).replace(/\n/g,'<br>');
-      if(cls==='body')html=html.replace(/bank bjb/g,'<b>bank bjb</b>');
+      if(cls==='body')html=html.replace(/bank bjb/g,'bank <b>bjb</b>');
       if(cls==='contact'){
         const office=v223Esc(vars.kantor),ao=v223Esc(vars.nama_ao),hp=v223Esc(vars.hp_ao);
-        html=html.replace(/bank bjb/gi,'<b>bank bjb</b>');
+        html=html.replace(/bank bjb/gi,'bank <b>bjb</b>');
         if(office&&office!=='-')html=html.replace(office,'<b>'+office+'</b>');
         if(ao&&ao!=='-')html=html.replace(ao,'<b>'+ao+'</b>');
         if(hp&&hp!=='-')html=html.replace(hp,'<b>'+hp+'</b>');
