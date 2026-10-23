@@ -4787,8 +4787,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                     </div>
                     <div class="rounded-xl bg-white border border-indigo-200 p-3 text-[9px] leading-relaxed text-slate-600">
                       <b class="text-indigo-900">Variabel template:</b>
-                      <code>{tanggal}</code>, <code>{OTOMATIS}</code>, <code>{TAHUN}</code>, <code>{nama_debitur}</code>, <code>{alamat}</code>, <code>{kantor}</code>, <code>{sumber_pembayaran}</code>/<code>{sumber_Pembayaran}</code>, <code>{baki debet}</code>, <code>{sisa_tenor}</code>, <code>{plafond}</code>, <code>{angsuran}</code>, <code>{tenor}</code>, <code>{nett}</code>, <code>{nama_ao}</code>, <code>{HP_AO}</code>, <code>{Nama_Penandatangan}</code>, <code>{jabatan}</code>.
-                      <div class="mt-1 text-amber-700"><b>Alamat</b> dibaca dari kolom Alamat pada data Penghasilan. Variabel {OTOMATIS} siap digunakan untuk nomor surat; bila sumber nomor belum tersedia, ditampilkan sebagai garis isian.</div>
+                      <code>{tanggal}</code>, <code>{OTOMATIS}</code>, <code>{KODE_SURAT}</code>, <code>{TAHUN}</code>, <code>{nama_debitur}</code>, <code>{alamat}</code>, <code>{kantor}</code>, <code>{sumber_pembayaran}</code>/<code>{sumber_Pembayaran}</code>, <code>{baki debet}</code>, <code>{sisa_tenor}</code>, <code>{plafond}</code>, <code>{angsuran}</code>, <code>{tenor}</code>, <code>{nett}</code>, <code>{nama_ao}</code>, <code>{HP_AO}</code>, <code>{Nama_Penandatangan}</code>, <code>{jabatan}</code>.
+                      <div class="mt-1 text-amber-700"><b>Alamat</b> dibaca dari kolom Alamat pada data Penghasilan. Nomor urut {OTOMATIS} dibuat otomatis per Unit Kantor dan reset setiap 1 Januari. <b>Kode Nomor Surat</b> diatur per Unit Kantor pada kolom di bawah Jabatan dan dipakai melalui {KODE_SURAT}.</div>
                     </div>
                     <label class="text-[10px] font-bold text-slate-600 block">Template Mengulang
                       <textarea id="cfgOfferLetterTemplateRenewal" rows="16" maxlength="16000" class="mt-1 w-full p-3 border border-indigo-200 rounded-xl bg-white text-xs leading-relaxed" placeholder="Template surat penawaran Mengulang..."></textarea>
@@ -4803,9 +4803,15 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
                       <label class="text-[10px] font-bold text-slate-600 block">Nama Penandatangan
                         <input id="cfgOfferLetterSigner" maxlength="120" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white text-xs" placeholder="Nama pejabat penandatangan">
                       </label>
-                      <label class="text-[10px] font-bold text-slate-600 block">Jabatan
-                        <input id="cfgOfferLetterTitle" maxlength="120" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white text-xs" placeholder="Contoh: Pemimpin KCP">
-                      </label>
+                      <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-slate-600 block">Jabatan
+                          <input id="cfgOfferLetterTitle" maxlength="120" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white text-xs" placeholder="Contoh: Pemimpin KCP">
+                        </label>
+                        <label class="text-[10px] font-bold text-slate-600 block">Kode Nomor Surat
+                          <input id="cfgOfferLetterCode" maxlength="40" autocapitalize="characters" class="mt-1 w-full p-2 border border-indigo-200 rounded-lg bg-white text-xs uppercase" placeholder="Contoh: KAR-KON">
+                          <span class="mt-1 block text-[9px] font-normal text-slate-500">Berlaku khusus untuk Unit Kantor yang dipilih.</span>
+                        </label>
+                      </div>
                     </div>
                     <div class="flex flex-wrap gap-2 justify-end">
                       <button type="button" onclick="resetOfferLetterTemplates()" class="bg-white border border-indigo-200 text-indigo-800 text-xs px-3 py-2 rounded-xl font-bold">Reset Template Lampiran</button>
@@ -5456,7 +5462,7 @@ Terima kasih.`
         const DEFAULT_OFFER_LETTER_TEMPLATES = {
           MENGULANG: `Karawang, {tanggal}
 
-Nomor                    : {OTOMATIS}/KAR-KON/{TAHUN}
+Nomor                    : {OTOMATIS}/{KODE_SURAT}/{TAHUN}
 Sifat                     : Biasa
 Lampiran                  : -
 Perihal                   : Penawaran Fasilitas Kredit
@@ -5488,7 +5494,7 @@ CABANG KARAWANG
 {jabatan}`,
           NEW_TOPUP: `Karawang, {tanggal}
 
-Nomor                    : {OTOMATIS}/KAR-KON/{TAHUN}
+Nomor                    : {OTOMATIS}/{KODE_SURAT}/{TAHUN}
 Sifat                     : Biasa
 Lampiran                  : -
 Perihal                   : Penawaran Fasilitas Kredit
@@ -5564,7 +5570,13 @@ CABANG KARAWANG
         }
         function normalizeOfferLetterSignatories(value){
           const src=value&&typeof value==='object'?value:{}; const out={};
-          Object.keys(src).forEach(k=>{const office=String(k||'').trim();if(!office)return;const row=src[k]||{};out[office]={name:String(row.name||row.nama||'').trim(),title:String(row.title||row.jabatan||'').trim()};});
+          Object.keys(src).forEach(k=>{
+            const office=String(k||'').trim();if(!office)return;
+            const row=src[k]||{};
+            const rawCode=String(row.letterCode||row.letter_code||row.kodeSurat||row.kode_surat||row.KODE_SURAT||'').trim().toUpperCase();
+            const letterCode=rawCode.replace(/\s+/g,'-').replace(/[^A-Z0-9._-]/g,'').replace(/-+/g,'-').slice(0,40);
+            out[office]={name:String(row.name||row.nama||'').trim(),title:String(row.title||row.jabatan||'').trim(),letterCode};
+          });
           return out;
         }
 
@@ -8196,6 +8208,9 @@ CABANG KARAWANG
             }
 
             document.getElementById('mengulangDetailModal').classList.remove('hidden');
+            // V225: prefetch konfigurasi surat ringan saat user mulai melihat rincian.
+            // Pada saat tombol Download ditekan, konfigurasi umumnya sudah siap.
+            try{window.v225RefreshLetterRuntime?.({maxAgeMs:15000});}catch(e){}
         }
 
         function closeMengulangDetailModal() {
@@ -9576,9 +9591,16 @@ function updateWaPreview() {
     office=v220OfficeLabel(office);if(!office)return {};
     return offerLetterSignatories?.[v221SignatoryKey(office)]||offerLetterSignatories?.[office]||{};
   }
+  function v226NormalizeLetterCode(value){
+    return String(value||'').trim().toUpperCase().replace(/\s+/g,'-').replace(/[^A-Z0-9._-]/g,'').replace(/-+/g,'-').slice(0,40);
+  }
   function v221SetSignatory(office,row){
     office=v220OfficeLabel(office);if(!office)return;
-    offerLetterSignatories=Object.assign({},offerLetterSignatories,{[v221SignatoryKey(office)]:{name:String(row?.name||'').trim(),title:String(row?.title||'').trim()}});
+    offerLetterSignatories=Object.assign({},offerLetterSignatories,{[v221SignatoryKey(office)]:{
+      name:String(row?.name||'').trim(),
+      title:String(row?.title||'').trim(),
+      letterCode:v226NormalizeLetterCode(row?.letterCode||row?.letter_code||row?.kodeSurat||row?.kode_surat||'')
+    }});
   }
   function v221Money(v){
     const n=Math.round(Number(v)||0);
@@ -9616,7 +9638,7 @@ function updateWaPreview() {
       offerLetterSignatories:offerLetterSignatories,
       branchOfficeUnitsByBranch:branchOfficeUnitsByBranch,
       offerLetterUserDirectory:offerLetterUserDirectory,
-      schemaVersion:'18.3.11.224'
+      schemaVersion:'18.3.11.226'
     };
     const result=await callApi('saveParameters',googleCredential,{parameters:payload,branchKey:v221BranchKey(),scope:'LETTER_ONLY'});
     if(!result||!result.success)throw new Error((result&&result.error)||'Gagal menyimpan konfigurasi Surat Penawaran.');
@@ -9682,7 +9704,10 @@ function updateWaPreview() {
   window.renderOfferLetterAdminEditor=renderOfferLetterAdminEditor;
   function loadOfferLetterSignatoryEditor(){
     const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value),row=v221GetSignatory(office);
-    const n=document.getElementById('cfgOfferLetterSigner'),t=document.getElementById('cfgOfferLetterTitle');if(n)n.value=row.name||'';if(t)t.value=row.title||'';
+    const n=document.getElementById('cfgOfferLetterSigner'),t=document.getElementById('cfgOfferLetterTitle'),c=document.getElementById('cfgOfferLetterCode');
+    if(n)n.value=row.name||'';
+    if(t)t.value=row.title||'';
+    if(c)c.value=v226NormalizeLetterCode(row.letterCode||row.letter_code||row.kodeSurat||row.kode_surat||'KAR-KON')||'KAR-KON';
   }
   window.loadOfferLetterSignatoryEditor=loadOfferLetterSignatoryEditor;
   window.resetOfferLetterTemplates=function(){
@@ -9698,8 +9723,15 @@ function updateWaPreview() {
       const newTopup=normalizeOfferLetterTemplate(document.getElementById('cfgOfferLetterTemplateNewTopup')?.value||'');
       const office=v220OfficeLabel(document.getElementById('cfgOfferLetterOffice')?.value);if(!office)throw new Error('Pilih kantor unit. Tambahkan unit terlebih dahulu pada Administrasi Cabang jika daftar masih kosong.');
       const name=String(document.getElementById('cfgOfferLetterSigner')?.value||'').trim(),title=String(document.getElementById('cfgOfferLetterTitle')?.value||'').trim();
-      if(!name)throw new Error('Nama penandatangan wajib diisi.');if(!title)throw new Error('Jabatan wajib diisi.');
-      offerLetterTemplates={MENGULANG:renewal,NEW_TOPUP:newTopup};v221SetSignatory(office,{name,title});await v224SaveOfferLetterBranchSettings();renderOfferLetterAdminEditor();alert('Template Mengulang, Baru/Top Up, dan penandatangan '+office+' berhasil disimpan.');
+      const letterCode=v226NormalizeLetterCode(document.getElementById('cfgOfferLetterCode')?.value||'');
+      if(!name)throw new Error('Nama penandatangan wajib diisi.');
+      if(!title)throw new Error('Jabatan wajib diisi.');
+      if(!letterCode)throw new Error('Kode Nomor Surat wajib diisi untuk unit '+office+'.');
+      offerLetterTemplates={MENGULANG:renewal,NEW_TOPUP:newTopup};
+      v221SetSignatory(office,{name,title,letterCode});
+      await v224SaveOfferLetterBranchSettings();
+      renderOfferLetterAdminEditor();
+      alert('Template, penandatangan, dan Kode Nomor Surat '+letterCode+' untuk '+office+' berhasil disimpan.');
     }catch(e){alert('Gagal menyimpan surat penawaran: '+(e.message||e));}
   };
   function v223NormalizeOfferType(value){
@@ -9770,20 +9802,26 @@ function updateWaPreview() {
     const year=String(new Date().getFullYear());
     return {
       tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
-      otomatis:v223AutomaticNumber(item),tahun:year,nama_debitur:nama,alamat:v223ResolveIncomeAddress(item),kantor:office||'-',
+      otomatis:String(override?.letterNumber||v223AutomaticNumber(item)||'____'),tahun:String(override?.letterYear||year),nama_debitur:nama,alamat:v223ResolveIncomeAddress(item),kantor:office||'-',
       sumber_pembayaran:source,baki_debet:baki?Math.round(baki).toLocaleString('id-ID'):'0',sisa_tenor:remaining||'-',
       plafond:v221Money(gross),angsuran:installment?v221Money(installment):'-',tenor:tenor?tenor+' Bulan':'-',nett:v221Money(nettVal),
       nama_ao:ownerName,hp_ao:v223OwnerPhone(owner,item),nama_penandatangan:sign.name||'',jabatan:sign.title||'',
+      kode_surat:v226NormalizeLetterCode(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'KAR-KON')||'KAR-KON',
       cif:String(deb?.cif||item?.cif||'-'),produk:product,jenis_penawaran:type
     };
   }
   function v223TemplateKey(key){return String(key||'').trim().toLowerCase().replace(/[\s_]+/g,'_');}
   function v223RenderTemplateText(text,vars){
     const map=vars||{};
-    return String(text||'').replace(/\{([^{}]+)\}/g,(full,key)=>{
+    let rendered=String(text||'').replace(/\{([^{}]+)\}/g,(full,key)=>{
       const k=v223TemplateKey(key);
       return Object.prototype.hasOwnProperty.call(map,k)?String(map[k]??''):full;
     });
+    // V226 compatibility: template lama V223-V225 masih memakai literal /KAR-KON/.
+    // Kode per unit tetap diterapkan tanpa Admin harus mengetik ulang template.
+    const code=v226NormalizeLetterCode(map.kode_surat||map.kodeSurat||'');
+    if(code)rendered=rendered.replace(/\/KAR-KON\//gi,'/'+code+'/');
+    return rendered;
   }
   function v223BlockClass(raw){
     const t=String(raw||'').trim();
@@ -9837,25 +9875,134 @@ function updateWaPreview() {
     }
     document.body.appendChild(sheet);return sheet;
   }
+
+  // =========================================================
+  // V226 — FAST LETTER RUNTIME + NOMOR SURAT OTOMATIS + KODE PER UNIT
+  // =========================================================
+  let v225LetterRuntimePromise=null;
+  let v225LetterRuntimeSyncedAt=0;
+
+  function v225ApplyLetterRuntimeParameters(payload){
+    if(!payload||typeof payload!=='object')return false;
+    let changed=false;
+    if(payload.offerLetterTemplates&&typeof payload.offerLetterTemplates==='object'){
+      try{offerLetterTemplates=normalizeOfferLetterTemplates(payload.offerLetterTemplates);changed=true;}catch(e){}
+    }else if(payload.offerLetterTemplate){
+      try{const legacy=normalizeOfferLetterTemplate(payload.offerLetterTemplate);offerLetterTemplates={MENGULANG:legacy,NEW_TOPUP:legacy};changed=true;}catch(e){}
+    }
+    if(payload.offerLetterSignatories&&typeof payload.offerLetterSignatories==='object'){
+      offerLetterSignatories=normalizeOfferLetterSignatories(payload.offerLetterSignatories);changed=true;
+    }
+    if(payload.offerLetterUserDirectory&&typeof payload.offerLetterUserDirectory==='object'){
+      offerLetterUserDirectory=normalizeOfferLetterUserDirectory(payload.offerLetterUserDirectory);changed=true;
+    }
+    if(payload.offerLetterCurrentUserProfile&&typeof payload.offerLetterCurrentUserProfile==='object'){
+      const p=payload.offerLetterCurrentUserProfile||{};
+      offerLetterCurrentUserProfile={
+        email:String(p.email||'').trim().toLowerCase(),
+        kodeAO:String(p.kodeAO||p.kode_ao||'').trim().toUpperCase(),
+        name:String(p.name||p.nama||'').trim(),
+        office:String(p.office||p.kantor||'').trim().replace(/\s+/g,' '),
+        phone:v224NormalizePhone(p.phone||p.noHp||p.no_hp||p.hp||p.noWA)
+      };
+      changed=true;
+    }
+    if(payload.branchOfficeUnitsByBranch&&typeof payload.branchOfficeUnitsByBranch==='object'){
+      branchOfficeUnitsByBranch=normalizeBranchOfficeUnitsByBranch(payload.branchOfficeUnitsByBranch);changed=true;
+    }
+    if(changed){
+      try{
+        localStorage.setItem('offerLetterTemplates_v2',JSON.stringify(offerLetterTemplates||DEFAULT_OFFER_LETTER_TEMPLATES));
+        localStorage.setItem('offerLetterTemplate_v1',String(offerLetterTemplates?.NEW_TOPUP||''));
+        localStorage.setItem('offerLetterSignatories_v1',JSON.stringify(offerLetterSignatories||{}));
+        localStorage.setItem('offerLetterUserDirectory_v1',JSON.stringify(offerLetterUserDirectory||{}));
+        localStorage.setItem('offerLetterCurrentUserProfile_v1',JSON.stringify(offerLetterCurrentUserProfile||{}));
+        localStorage.setItem('branchOfficeUnitsByBranch_v1',JSON.stringify(branchOfficeUnitsByBranch||{}));
+      }catch(e){}
+    }
+    return changed;
+  }
+
+  window.v225RefreshLetterRuntime=async function(options={}){
+    if(!googleCredential)return {success:false,skipped:true};
+    const maxAgeMs=Math.max(0,Number(options.maxAgeMs??15000));
+    if(!options.force&&v225LetterRuntimeSyncedAt&&Date.now()-v225LetterRuntimeSyncedAt<maxAgeMs){
+      return {success:true,cached:true};
+    }
+    if(v225LetterRuntimePromise)return v225LetterRuntimePromise;
+    v225LetterRuntimePromise=(async()=>{
+      try{
+        const result=await callApi('getParameters',googleCredential,{branchKey:v221BranchKey(),scope:'LETTER_RUNTIME'});
+        if(!result||!result.success)throw new Error((result&&result.error)||'Gagal mengambil konfigurasi Surat Penawaran.');
+        if(result.meta?.branchKey)window.centralResolvedBranchKey=String(result.meta.branchKey).toUpperCase();
+        if(result.parameters)v225ApplyLetterRuntimeParameters(result.parameters);
+        v225LetterRuntimeSyncedAt=Date.now();
+        return result;
+      }catch(err){
+        console.warn('Sinkronisasi ringan Surat Penawaran gagal:',err);
+        if(options.throwOnError)throw err;
+        return {success:false,error:String(err?.message||err)};
+      }finally{
+        v225LetterRuntimePromise=null;
+      }
+    })();
+    return v225LetterRuntimePromise;
+  };
+
+  function v225RequestId(){
+    try{if(globalThis.crypto&&typeof globalThis.crypto.randomUUID==='function')return globalThis.crypto.randomUUID();}catch(e){}
+    return 'L'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,12);
+  }
+
+  async function v225IssueOfferLetterNumber(office){
+    const requestId=v225RequestId();
+    const result=await callApi('saveParameters',googleCredential,{
+      scope:'ISSUE_LETTER_NUMBER',
+      branchKey:v221BranchKey(),
+      office:String(office||'').trim(),
+      requestId
+    });
+    if(!result||!result.success)throw new Error((result&&result.error)||'Gagal membuat nomor surat otomatis.');
+    if(!result.number)throw new Error('Server tidak mengembalikan nomor surat.');
+    return result;
+  }
+
   window.downloadOfferLetterPdf=async function(item,offer,override={}){
     let sheet=null;
     try{
       if(!item)throw new Error('Pilih debitur terlebih dahulu.');
       if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
       if(typeof window.html2canvas!=='function')throw new Error('Library render surat belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
-      // Ambil parameter terbaru setiap kali surat akan dibuat agar perubahan Admin langsung
-      // berlaku di device AO lain tanpa harus membuka menu Admin/refresh manual.
-      try{if(typeof window.loadCentralParameters==='function')await window.loadCentralParameters({throwOnError:false});}catch(e){console.warn('Refresh parameter surat:',e);}
-      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW'),vars=v223LetterVars(item,type,override),office=vars.kantor,sign=v221GetSignatory(office);
+      if(!googleCredential)throw new Error('Sesi login tidak tersedia. Silakan login kembali.');
+
+      // V225: hanya refresh payload Surat Penawaran yang ringan. Jika modal sudah
+      // terbuka beberapa detik, hasil prefetch langsung dipakai tanpa request ulang.
+      await window.v225RefreshLetterRuntime({maxAgeMs:15000,throwOnError:true});
+
+      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW');
+      const previewVars=v223LetterVars(item,type,override);
+      const office=previewVars.kantor,sign=v221GetSignatory(office);
       if(!office||office==='-')throw new Error('Kantor unit debitur/AO belum tersedia. Atur Kantor Unit user pada Administrasi Cabang.');
       if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur pada menu Admin.');
+      const letterCode=v226NormalizeLetterCode(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'KAR-KON')||'KAR-KON';
+      if(!letterCode)throw new Error('Kode Nomor Surat untuk kantor '+office+' belum diatur pada menu Admin.');
       const template=type==='MENGULANG'?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG):(offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
+      if(!String(template||'').trim())throw new Error('Template Surat Penawaran belum tersedia.');
+
+      // Nomor baru dikeluarkan setelah semua validasi lokal lulus, sehingga risiko
+      // nomor terpakai tanpa PDF diminimalkan. Backend menjamin atomic + idempotent.
+      const issued=await v225IssueOfferLetterNumber(office);
+      const vars=v223LetterVars(item,type,Object.assign({},override,{letterNumber:issued.number,letterYear:issued.year}));
       sheet=v223MakeLetterSheet(template,vars);
-      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-      const canvas=await window.html2canvas(sheet,{scale:2.4,useCORS:true,backgroundColor:'#ffffff',logging:false,width:sheet.scrollWidth,height:sheet.scrollHeight,windowWidth:sheet.scrollWidth,windowHeight:sheet.scrollHeight});
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+
+      // V225: scale 1.8 masih tajam untuk teks A4 tetapi jumlah pixel sekitar
+      // separuh render V224 (2.4), sehingga pembuatan PDF jauh lebih ringan.
+      const canvas=await window.html2canvas(sheet,{scale:1.8,useCORS:true,backgroundColor:'#ffffff',logging:false,width:sheet.scrollWidth,height:sheet.scrollHeight,windowWidth:sheet.scrollWidth,windowHeight:sheet.scrollHeight});
       const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-      doc.addImage(canvas.toDataURL('image/jpeg',0.94),'JPEG',0,0,210,297,undefined,'FAST');
-      const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);doc.save('Surat_Penawaran_'+type+'_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf');
+      doc.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297,undefined,'FAST');
+      const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);
+      doc.save('Surat_Penawaran_'+String(issued.number)+'_'+type+'_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf');
     }catch(e){alert('Gagal membuat surat penawaran: '+(e.message||e));}
     finally{try{sheet?.remove();}catch(e){}}
   };
@@ -10026,7 +10173,7 @@ function updateWaPreview() {
       offerLetterSignatories: offerLetterSignatories,
       offerLetterUserDirectory: offerLetterUserDirectory,
       branchOfficeUnitsByBranch: branchOfficeUnitsByBranch,
-      schemaVersion: '18.3.11.224'
+      schemaVersion: '18.3.11.226'
     };
     const result=await callApi('saveParameters', googleCredential, {parameters:payload, branchKey:(typeof v221BranchKey==='function'?v221BranchKey():'DEFAULT')});
     if(!result || !result.success) throw new Error((result&&result.error)||'Gagal menyimpan parameter ke server.');
