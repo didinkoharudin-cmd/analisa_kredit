@@ -9908,7 +9908,11 @@ function updateWaPreview() {
         add(rows,'margin:0 0 7mm 0;');continue;
       }
       if(cls==='recipient'){
-        const rows=lines.filter(Boolean);let h='';rows.forEach((line,i)=>{h+='<div style="'+((i===1||i===3)?'font-weight:700;':'')+'line-height:1.15;">'+v223Esc(line)+'</div>';});add(h,'margin:0 0 7mm 0;');continue;
+        const rows=lines.filter(Boolean);let h='';rows.forEach((line,i)=>{
+          const isAddress=i===2;
+          const style=((i===1||i===3)?'font-weight:700;':'')+'line-height:1.15;'+(isAddress?'max-width:82mm;white-space:normal;overflow-wrap:anywhere;word-break:normal;':'');
+          h+='<div style="'+style+'">'+v223Esc(line)+'</div>';
+        });add(h,'margin:0 0 7mm 0;');continue;
       }
       if(cls==='salutation'){add(v223Esc(rendered),'margin:0 0 6mm 0;text-align:justify;line-height:1.0;');continue;}
       if(cls==='list'){
@@ -19157,4 +19161,6 @@ document.addEventListener('visibilitychange',()=>{
 </body>
 </html>
 
-<!-- V18.3.11.230 STRICT LETTER FLAG + ADDRESS + RPC MAX + FAST PDF -->
+<!-- V18.3.11.231 ADDRESS HALF-WIDTH WRAP -->
+
+<!-- V18.3.11.231: Recipient address limited to 82mm (~half page) and wraps downward. -->
