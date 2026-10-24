@@ -10044,6 +10044,25 @@ function updateWaPreview() {
     return result;
   }
 
+  async function v237IssueOfferLetterNumbersBulk(items){
+    const rows=(Array.isArray(items)?items:[]).map((x,i)=>({
+      office:String(x?.office||'').trim(),
+      clientKey:String(x?.clientKey||x?.key||('ROW_'+i)).slice(0,180)
+    }));
+    if(!rows.length)throw new Error('Daftar Surat Penawaran bulk kosong.');
+    if(rows.length>50)throw new Error('Maksimal 50 Surat Penawaran dalam satu proses bulk.');
+    const requestId='BULK-'+v225RequestId();
+    const result=await callApi('saveParameters',googleCredential,{
+      scope:'ISSUE_LETTER_NUMBER_BULK',
+      branchKey:v221BranchKey(),
+      requestId,
+      items:rows
+    });
+    if(!result||!result.success)throw new Error((result&&result.error)||'Gagal memesan nomor surat bulk.');
+    if(!Array.isArray(result.items)||result.items.length!==rows.length)throw new Error('Server tidak mengembalikan nomor surat bulk secara lengkap.');
+    return result;
+  }
+
   function v227LetterActivityRecord(item,type,override,issued,vars,office,letterCode){
     const deb=item?.cifRef||{};
     const baseGross=type==='NEW'?Number(item?.plafonGrossNew||0):type==='MENGULANG'?Number(item?.plafonGrossMengulang||0):Number(item?.plafonGrossTopUp||0);
@@ -10709,6 +10728,7 @@ function updateWaPreview() {
     getSignatory:v221GetSignatory,
     normalizeLetterCode:v226NormalizeLetterCode,
     issueNumber:v225IssueOfferLetterNumber,
+    issueNumbersBulk:v237IssueOfferLetterNumbersBulk,
     logDownloaded:v227LogLetterDownloaded,
     activityRecord:v227LetterActivityRecord,
     blockClass:v223BlockClass,
@@ -19302,6 +19322,39 @@ document.addEventListener('visibilitychange',()=>{
       return await window.html2canvas(sheet,{scale:1.35,useCORS:true,backgroundColor:'#ffffff',logging:false,imageTimeout:0,width:sheet.scrollWidth,height:sheet.scrollHeight,windowWidth:sheet.scrollWidth,windowHeight:sheet.scrollHeight});
     }finally{try{sheet?.remove();}catch(e){}}
   }
+
+  async function buildOfferLetterPdfBlob(item,offer,issued,override={}){
+    if(!item)throw new Error('Data debitur tidak tersedia.');
+    if(!bridge)throw new Error('Bridge Surat Penawaran belum tersedia.');
+    if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia.');
+    if(!issued?.number||!issued?.year)throw new Error('Nomor surat belum tersedia.');
+
+    const type=bridge.normalizeOfferType(offer||item?.__offerType||'NEW');
+    const previewVars=bridge.letterVars(item,type,override);
+    const office=previewVars.kantor,sign=bridge.getSignatory(office);
+    if(!office||office==='-')throw new Error('Kantor Unit belum tersedia.');
+    if(!sign.name||!sign.title)throw new Error('Penandatangan untuk kantor '+office+' belum diatur.');
+    const letterCode=bridge.normalizeLetterCode(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'KAR-KON')||'KAR-KON';
+    const template=bridge.getTemplate(type);
+    if(!String(template||'').trim())throw new Error('Template Surat Penawaran belum tersedia.');
+
+    const vars=bridge.letterVars(item,type,Object.assign({},override,{letterNumber:issued.number,letterYear:issued.year}));
+    let canvas,renderMode='direct';
+    try{canvas=makeCanvas(template,vars);}
+    catch(err){console.warn('[V237] Direct renderer fallback:',err);renderMode='html2canvas-fallback';canvas=await fallbackRender(template,vars);}
+
+    const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    doc.addImage(canvas,'JPEG',0,0,210,297,undefined,'FAST');
+    const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').replace(/_+/g,'_').slice(0,50);
+    const productSafe=String(vars.produk||'produk').replace(/[^A-Za-z0-9_-]+/g,'_').replace(/_+/g,'_').slice(0,30);
+    const filename='Surat_Penawaran_'+String(issued.number)+'_'+type+'_'+safe+'_'+productSafe+'.pdf';
+    const blob=doc.output('blob');
+    try{canvas.width=1;canvas.height=1;}catch(e){}
+    const record=bridge.activityRecord(item,type,override,issued,vars,office,letterCode);
+    return {blob,filename,record,type,vars,office,letterCode,renderMode};
+  }
+  window.v237BuildOfferLetterPdfBlob=buildOfferLetterPdfBlob;
+
   window.v235BuildOfferLetterCanvas=makeCanvas;
   window.v233DownloadOfferLetterPdf=window.downloadOfferLetterPdf;
   window.downloadOfferLetterPdf=async function(item,offer,override={}){
@@ -19342,6 +19395,265 @@ document.addEventListener('visibilitychange',()=>{
 })();
 </script>
 
+
+<style id="v237-bulk-letter-style">
+.v237-bulk-trigger{border:0;border-radius:10px;background:#0b5fc6;color:#fff;padding:7px 11px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(11,95,198,.18)}
+.v237-bulk-trigger.active{background:#0f766e}
+.v237-bulk-bar{position:sticky;top:6px;z-index:25;margin:8px 0;padding:9px 10px;border:1px solid #bae6fd;border-radius:12px;background:#f0f9ff;box-shadow:0 5px 18px rgba(15,23,42,.08);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.v237-bulk-bar .count{font-size:10px;font-weight:900;color:#075985;margin-right:auto}
+.v237-bulk-bar button{border:1px solid #bfdbfe;background:white;color:#1d4ed8;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:900}
+.v237-bulk-bar button.primary{background:#0757c7;color:#fff;border-color:#0757c7}
+.v237-bulk-bar button.danger{color:#be123c;border-color:#fecdd3}
+.v237-bulk-mode .v16-debtor-card{position:relative;padding-top:38px}
+.v237-bulk-check{display:none;position:absolute;right:10px;top:9px;z-index:5;background:#fff;border:1px solid #bfdbfe;border-radius:9px;padding:5px 8px;font-size:9px;font-weight:900;color:#1e40af;align-items:center;gap:6px;box-shadow:0 2px 7px rgba(15,23,42,.09)}
+.v237-bulk-mode .v237-bulk-check{display:flex}
+.v237-bulk-check input{width:17px;height:17px;accent-color:#0757c7}
+.v237-bulk-selected{outline:2px solid #0ea5e9!important;outline-offset:1px}
+#v237BulkModal{position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.58);display:none;align-items:flex-end;justify-content:center;padding:10px}
+#v237BulkModal.show{display:flex}
+.v237-modal-card{width:min(920px,100%);max-height:88vh;overflow:hidden;background:#fff;border-radius:20px;box-shadow:0 22px 70px rgba(0,0,0,.28);display:flex;flex-direction:column}
+.v237-modal-head{padding:15px 16px;border-bottom:1px solid #e2e8f0;display:flex;gap:10px;align-items:center}
+.v237-modal-head h3{font-size:15px;font-weight:900;color:#0f172a;margin:0}.v237-modal-head p{font-size:9px;color:#64748b;margin:2px 0 0}
+.v237-modal-head button{margin-left:auto;border:0;background:#f1f5f9;width:34px;height:34px;border-radius:50%;font-size:18px}
+.v237-modal-body{padding:12px 14px;overflow:auto}
+.v237-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
+.v237-summary-grid div{border-radius:10px;padding:8px;background:#f8fafc;border:1px solid #e2e8f0}.v237-summary-grid small{display:block;font-size:8px;color:#64748b}.v237-summary-grid b{font-size:14px}
+.v237-table-wrap{overflow:auto;border:1px solid #e2e8f0;border-radius:12px}.v237-table{border-collapse:collapse;width:100%;font-size:9px;min-width:720px}.v237-table th,.v237-table td{padding:7px;border-bottom:1px solid #e2e8f0;text-align:left;vertical-align:top}.v237-table th{position:sticky;top:0;background:#f8fafc;color:#475569;font-weight:900}.v237-ok{color:#047857;font-weight:900}.v237-bad{color:#be123c;font-weight:900}
+.v237-progress{margin-top:10px}.v237-progress-track{height:8px;border-radius:999px;background:#e2e8f0;overflow:hidden}.v237-progress-fill{height:100%;width:0;background:#0757c7;transition:width .18s}.v237-progress-text{font-size:9px;color:#475569;margin-top:5px}
+.v237-modal-foot{padding:12px 14px;border-top:1px solid #e2e8f0;display:flex;gap:8px;justify-content:flex-end}.v237-modal-foot button{border-radius:10px;padding:9px 12px;font-size:10px;font-weight:900;border:1px solid #cbd5e1;background:#fff}.v237-modal-foot button.primary{background:#0757c7;color:#fff;border-color:#0757c7}.v237-modal-foot button:disabled{opacity:.45}
+@media(min-width:768px){#v237BulkModal{align-items:center}.v237-modal-card{max-height:82vh}}
+</style>
+<div id="v237BulkModal" aria-hidden="true">
+  <div class="v237-modal-card">
+    <div class="v237-modal-head">
+      <div><h3>Bulk Surat Penawaran</h3><p>Validasi → reserve nomor per unit → generate PDF → ZIP → flag kartu berhasil.</p></div>
+      <button type="button" id="v237BulkClose" aria-label="Tutup">×</button>
+    </div>
+    <div class="v237-modal-body">
+      <div class="v237-summary-grid">
+        <div><small>Dipilih</small><b id="v237BulkSelectedCount">0</b></div>
+        <div><small>Siap</small><b id="v237BulkReadyCount" style="color:#047857">0</b></div>
+        <div><small>Perlu diperbaiki</small><b id="v237BulkInvalidCount" style="color:#be123c">0</b></div>
+      </div>
+      <div class="v237-table-wrap"><table class="v237-table">
+        <thead><tr><th>Debitur</th><th>Jenis</th><th>Tenor</th><th>Plafond</th><th>Unit</th><th>Status</th></tr></thead>
+        <tbody id="v237BulkTableBody"></tbody>
+      </table></div>
+      <div class="v237-progress" id="v237BulkProgress" style="display:none">
+        <div class="v237-progress-track"><div class="v237-progress-fill" id="v237BulkProgressFill"></div></div>
+        <div class="v237-progress-text" id="v237BulkProgressText">Menyiapkan…</div>
+      </div>
+    </div>
+    <div class="v237-modal-foot">
+      <button type="button" id="v237BulkCancel">Batal</button>
+      <button type="button" class="primary" id="v237BulkGenerate">Download ZIP Surat Siap</button>
+    </div>
+  </div>
+</div>
+<script id="v18311237-bulk-offer-letter">
+(function(){
+  'use strict';
+  const MAX_BULK=50;
+  const state={mode:false,selected:new Map(),preview:[],busy:false};
+  const bridge=()=>window.__scoreOfferLetterBridgeV236||null;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const rupiah=v=>'Rp '+Math.round(Number(v||0)).toLocaleString('id-ID');
+  function offerNorm(v){const x=String(v||'').trim().toUpperCase().replace(/[\s_]+/g,'-');if(x==='TOPUP'||x==='TOP-UP')return 'TOPUP';if(x==='MENGULANG'||x==='RENEWAL')return 'MENGULANG';if(x==='NEW'||x==='BARU')return 'NEW';return '';}
+  function rowId(row){return String(row?.loan_id||row?.LOAN_ID||row?.no_pinjaman||row?.NO_PINJAMAN||'');}
+  function keyOf(row,type){return rowId(row)+'|'+offerNorm(type||row?.__offerType||'');}
+  function grossOf(row,type){type=offerNorm(type);return type==='NEW'?Number(row?.plafonGrossNew||0):type==='MENGULANG'?Number(row?.plafonGrossMengulang||0):Number(row?.plafonGrossTopUp||0);}
+  function nameOf(row){return String(row?.cifRef?.nama||row?.nama||row?.NAMA||'Debitur');}
+  function allRenderedRows(){
+    let rows=[];try{rows=typeof getFilteredLoans==='function'?getFilteredLoans():[];}catch(e){}
+    const map=new Map();(Array.isArray(rows)?rows:[]).forEach(r=>{const t=offerNorm(r?.__offerType);if(t)map.set(keyOf(r,t),r);});
+    return map;
+  }
+  function getCurrentCardRow(card,rowMap){return rowMap.get(String(card?.dataset?.loanId||'')+'|'+offerNorm(card?.dataset?.offerType||''))||null;}
+  function updateCount(){
+    const el=document.getElementById('v237BulkCount');if(el)el.textContent=state.selected.size+' dipilih';
+    const process=document.getElementById('v237BulkProcess');if(process)process.disabled=!state.selected.size;
+  }
+  function clearSelection(){state.selected.clear();document.querySelectorAll('.v237-bulk-selected').forEach(x=>x.classList.remove('v237-bulk-selected'));document.querySelectorAll('.v237-bulk-check input').forEach(x=>x.checked=false);updateCount();}
+  function setMode(on){
+    state.mode=!!on;
+    const list=document.getElementById('v9DebtorList');list?.classList.toggle('v237-bulk-mode',state.mode);
+    document.querySelectorAll('.v237-bulk-trigger').forEach(b=>{b.classList.toggle('active',state.mode);b.innerHTML=state.mode?'<i class="fa-solid fa-check-double"></i> Mode Bulk Aktif':'<i class="fa-solid fa-file-zipper"></i> Bulk Surat';});
+    const bar=document.getElementById('v237BulkBar');if(bar)bar.style.display=state.mode?'flex':'none';
+    if(!state.mode)clearSelection();
+  }
+  function decorate(){
+    const list=document.getElementById('v9DebtorList');if(!list)return;
+    const cards=[...list.querySelectorAll('.v16-debtor-card[data-loan-id][data-offer-type]')].filter(c=>offerNorm(c.dataset.offerType));
+    if(!cards.length)return;
+    const summary=list.querySelector('.v16-debtor-summary');
+    if(summary&&!summary.querySelector('.v237-bulk-trigger')){
+      const btn=document.createElement('button');btn.type='button';btn.className='v237-bulk-trigger';btn.innerHTML='<i class="fa-solid fa-file-zipper"></i> Bulk Surat';
+      btn.addEventListener('click',()=>setMode(!state.mode));summary.appendChild(btn);
+    }
+    let bar=document.getElementById('v237BulkBar');
+    if(!bar){
+      bar=document.createElement('div');bar.id='v237BulkBar';bar.className='v237-bulk-bar';bar.style.display=state.mode?'flex':'none';
+      bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" disabled>Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
+      summary?.insertAdjacentElement('afterend',bar);
+      bar.querySelector('#v237BulkSelectVisible')?.addEventListener('click',()=>{
+        const rowMap=allRenderedRows();const currentCards=[...list.querySelectorAll('.v16-debtor-card[data-loan-id][data-offer-type]')].filter(c=>offerNorm(c.dataset.offerType));
+        let remaining=MAX_BULK-state.selected.size;
+        for(const card of currentCards){if(remaining<=0)break;const row=getCurrentCardRow(card,rowMap);if(!row)continue;const k=keyOf(row,card.dataset.offerType);if(state.selected.has(k))continue;state.selected.set(k,{row,type:offerNorm(card.dataset.offerType)});card.classList.add('v237-bulk-selected');const cb=card.querySelector('.v237-bulk-check input');if(cb)cb.checked=true;remaining--;}
+        if(currentCards.length>MAX_BULK)alert('Maksimal '+MAX_BULK+' surat per batch.');updateCount();
+      });
+      bar.querySelector('#v237BulkClear')?.addEventListener('click',clearSelection);
+      bar.querySelector('#v237BulkExit')?.addEventListener('click',()=>setMode(false));
+      bar.querySelector('#v237BulkProcess')?.addEventListener('click',openPreview);
+    }
+    list.classList.toggle('v237-bulk-mode',state.mode);bar.style.display=state.mode?'flex':'none';
+
+    const rowMap=allRenderedRows();
+    cards.forEach(card=>{
+      if(card.querySelector('.v237-bulk-check'))return;
+      const row=getCurrentCardRow(card,rowMap);if(!row)return;
+      const t=offerNorm(card.dataset.offerType),k=keyOf(row,t);
+      const label=document.createElement('label');label.className='v237-bulk-check';label.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span>';
+      const input=label.querySelector('input');input.checked=state.selected.has(k);
+      if(input.checked)card.classList.add('v237-bulk-selected');
+      label.addEventListener('click',e=>e.stopPropagation());
+      input.addEventListener('change',e=>{
+        e.stopPropagation();
+        if(input.checked){
+          if(state.selected.size>=MAX_BULK){input.checked=false;alert('Maksimal '+MAX_BULK+' surat per batch.');return;}
+          state.selected.set(k,{row,type:t});card.classList.add('v237-bulk-selected');
+        }else{state.selected.delete(k);card.classList.remove('v237-bulk-selected');}
+        updateCount();
+      });
+      card.prepend(label);
+    });
+    updateCount();
+  }
+
+  async function validateSelection(){
+    if(!state.selected.size)throw new Error('Belum ada kartu yang dipilih.');
+    if(!bridge())throw new Error('Modul Surat Penawaran belum siap. Muat ulang aplikasi.');
+    await window.v225RefreshLetterRuntime?.({maxAgeMs:300000,throwOnError:true});
+    const result=[];
+    for(const [key,entry] of state.selected){
+      const row=entry.row,type=entry.type,errors=[];
+      let vars={},office='',sign={},template='';
+      try{
+        vars=bridge().letterVars(row,type,{});
+        office=String(vars?.kantor||'').trim();
+        sign=bridge().getSignatory(office)||{};
+        template=bridge().getTemplate(type)||'';
+        if(!office||office==='-')errors.push('Unit belum tersedia');
+        if(!sign.name||!sign.title)errors.push('Penandatangan belum diatur');
+        if(!String(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'').trim())errors.push('Kode surat belum diatur');
+        if(!String(vars.alamat||'').trim()||String(vars.alamat).trim()==='-')errors.push('Alamat kosong');
+        if(!(Number(row?.selectedTenor||row?.tenor||0)>0))errors.push('Tenor tidak valid');
+        if(!(grossOf(row,type)>0))errors.push('Plafond tidak tersedia');
+        if(!String(template).trim())errors.push('Template belum tersedia');
+      }catch(e){errors.push(String(e?.message||e));}
+      result.push({key,row,type,vars,office,sign,template,errors,ready:errors.length===0});
+    }
+    return result;
+  }
+  function renderPreview(rows){
+    state.preview=rows;
+    const ready=rows.filter(x=>x.ready),invalid=rows.length-ready.length;
+    document.getElementById('v237BulkSelectedCount').textContent=rows.length;
+    document.getElementById('v237BulkReadyCount').textContent=ready.length;
+    document.getElementById('v237BulkInvalidCount').textContent=invalid;
+    const body=document.getElementById('v237BulkTableBody');body.innerHTML=rows.map(x=>{
+      const tenor=Number(x.row?.selectedTenor||x.row?.tenor||0);
+      const status=x.ready?'<span class="v237-ok">Siap</span>':'<span class="v237-bad">'+esc(x.errors.join(' • '))+'</span>';
+      return '<tr><td><b>'+esc(nameOf(x.row))+'</b><br><span style="color:#64748b">'+esc(String(x.row?.no_pinjaman||x.row?.cifRef?.cif||''))+'</span></td><td>'+esc(x.type)+'</td><td>'+tenor+' bln</td><td>'+rupiah(grossOf(x.row,x.type))+'</td><td>'+esc(x.office||'-')+'</td><td>'+status+'</td></tr>';
+    }).join('');
+    const gen=document.getElementById('v237BulkGenerate');gen.disabled=!ready.length;gen.textContent='Download ZIP '+ready.length+' Surat Siap';
+  }
+  async function openPreview(){
+    const modal=document.getElementById('v237BulkModal');modal.classList.add('show');modal.setAttribute('aria-hidden','false');
+    document.getElementById('v237BulkTableBody').innerHTML='<tr><td colspan="6">Memvalidasi data Surat Penawaran…</td></tr>';
+    document.getElementById('v237BulkGenerate').disabled=true;
+    try{renderPreview(await validateSelection());}
+    catch(e){document.getElementById('v237BulkTableBody').innerHTML='<tr><td colspan="6" class="v237-bad">'+esc(e.message||e)+'</td></tr>';}
+  }
+  function closeModal(){if(state.busy)return;const m=document.getElementById('v237BulkModal');m.classList.remove('show');m.setAttribute('aria-hidden','true');}
+  function progress(done,total,text){const pct=total?Math.round(done/total*100):0;document.getElementById('v237BulkProgress').style.display='block';document.getElementById('v237BulkProgressFill').style.width=pct+'%';document.getElementById('v237BulkProgressText').textContent=text||('Memproses '+done+' / '+total);}
+  function slug(v){return String(v||'').trim().replace(/[^A-Za-z0-9_-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').slice(0,60)||'Surat';}
+  function le16(v){return new Uint8Array([v&255,(v>>>8)&255]);}
+  function le32(v){v=v>>>0;return new Uint8Array([v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255]);}
+  function cat(parts){let len=0;for(const p of parts)len+=p.length;const out=new Uint8Array(len);let o=0;for(const p of parts){out.set(p,o);o+=p.length;}return out;}
+  const crcTable=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+  function crc32(bytes){let c=0xffffffff;for(let i=0;i<bytes.length;i++)c=crcTable[(c^bytes[i])&255]^(c>>>8);return (c^0xffffffff)>>>0;}
+  function dosStamp(d=new Date()){let y=Math.max(1980,d.getFullYear());return {time:((d.getHours()&31)<<11)|((d.getMinutes()&63)<<5)|((Math.floor(d.getSeconds()/2))&31),date:(((y-1980)&127)<<9)|(((d.getMonth()+1)&15)<<5)|(d.getDate()&31)};}
+  async function makeZip(files){
+    const enc=new TextEncoder(),locals=[],centrals=[];let offset=0;
+    for(const f of files){
+      const name=enc.encode(String(f.name||'file.pdf')),bytes=new Uint8Array(await f.blob.arrayBuffer()),crc=crc32(bytes),stamp=dosStamp(new Date());
+      const local=cat([le32(0x04034b50),le16(20),le16(0x0800),le16(0),le16(stamp.time),le16(stamp.date),le32(crc),le32(bytes.length),le32(bytes.length),le16(name.length),le16(0),name,bytes]);
+      locals.push(local);
+      const central=cat([le32(0x02014b50),le16(20),le16(20),le16(0x0800),le16(0),le16(stamp.time),le16(stamp.date),le32(crc),le32(bytes.length),le32(bytes.length),le16(name.length),le16(0),le16(0),le16(0),le16(0),le32(0),le32(offset),name]);
+      centrals.push(central);offset+=local.length;
+    }
+    const centralSize=centrals.reduce((s,x)=>s+x.length,0),eocd=cat([le32(0x06054b50),le16(0),le16(0),le16(files.length),le16(files.length),le32(centralSize),le32(offset),le16(0)]);
+    return new Blob([...locals,...centrals,eocd],{type:'application/zip'});
+  }
+  async function generateBulk(){
+    if(state.busy)return;
+    const ready=state.preview.filter(x=>x.ready);if(!ready.length)return;
+    const b=bridge();if(!b?.issueNumbersBulk||!window.v237BuildOfferLetterPdfBlob){alert('Modul Bulk Surat V237 belum siap. Muat ulang aplikasi.');return;}
+    state.busy=true;
+    const gen=document.getElementById('v237BulkGenerate'),cancel=document.getElementById('v237BulkCancel'),close=document.getElementById('v237BulkClose');gen.disabled=true;cancel.disabled=true;close.disabled=true;
+    const successes=[],failures=[];
+    try{
+      progress(0,ready.length+2,'Memesan '+ready.length+' nomor surat dalam satu request…');
+      const reservation=await b.issueNumbersBulk(ready.map(x=>({office:x.office,clientKey:x.key})));
+      const issuedMap=new Map((reservation.items||[]).map(x=>[String(x.clientKey),x]));
+      let done=0;
+      for(const entry of ready){
+        const issued=issuedMap.get(entry.key);
+        if(!issued){failures.push({entry,error:'Nomor surat tidak diterima'});done++;progress(done,ready.length+2,'Melewati '+nameOf(entry.row));continue;}
+        try{
+          progress(done,ready.length+2,'Membuat '+issued.number+' • '+nameOf(entry.row));
+          const pdf=await window.v237BuildOfferLetterPdfBlob(entry.row,entry.type,issued,{});
+          successes.push({name:pdf.filename,blob:pdf.blob,record:pdf.record,type:pdf.type,key:entry.key});
+        }catch(e){failures.push({entry,error:String(e?.message||e)});}
+        done++;progress(done,ready.length+2,'Selesai '+done+' dari '+ready.length+' surat');
+        await new Promise(r=>setTimeout(r,0));
+      }
+      if(!successes.length)throw new Error('Tidak ada PDF yang berhasil dibuat.');
+      progress(ready.length+1,ready.length+2,'Mengemas '+successes.length+' PDF ke ZIP…');
+      const zip=await makeZip(successes);
+      const offices=[...new Set(ready.map(x=>x.office).filter(Boolean))];
+      const officePart=offices.length===1?'_'+slug(offices[0]):'';
+      const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      const filename='Surat_Penawaran_Bulk'+officePart+'_'+day+'.zip';
+      const url=URL.createObjectURL(zip),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+      // Flag/activity only for PDFs successfully generated and included in ZIP.
+      successes.forEach(x=>{try{b.logDownloaded(x.record,x.type);}catch(e){}state.selected.delete(x.key);});
+      progress(ready.length+2,ready.length+2,'ZIP berhasil dibuat • '+successes.length+' surat'+(failures.length?' • '+failures.length+' gagal':''));
+      renderPreview(state.preview.map(x=>{
+        const fail=failures.find(f=>f.entry.key===x.key);
+        if(fail)return Object.assign({},x,{ready:false,errors:['Generate gagal: '+fail.error]});
+        return x;
+      }));
+      setTimeout(()=>{if(!failures.length){closeModal();setMode(false);}else{decorate();}},900);
+    }catch(e){
+      alert('Bulk Surat Penawaran gagal: '+(e.message||e));
+      progress(0,1,'Gagal: '+(e.message||e));
+    }finally{state.busy=false;gen.disabled=false;cancel.disabled=false;close.disabled=false;updateCount();}
+  }
+
+  const original=window.renderDebtors;
+  if(typeof original==='function'){
+    window.renderDebtors=function(){const r=original.apply(this,arguments);setTimeout(decorate,0);return r;};
+  }
+  document.getElementById('v237BulkClose')?.addEventListener('click',closeModal);
+  document.getElementById('v237BulkCancel')?.addEventListener('click',closeModal);
+  document.getElementById('v237BulkGenerate')?.addEventListener('click',generateBulk);
+  document.getElementById('v237BulkModal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  window.addEventListener('letter-download-flags-updated',()=>setTimeout(decorate,0));
+  setTimeout(decorate,1200);
+})();
+</script>
+
 </body>
 </html>
 
@@ -19350,3 +19662,5 @@ document.addEventListener('visibilitychange',()=>{
 <!-- V18.3.11.233: Address line fixed 78mm, wraps before midpoint, normal weight (not bold). -->
 <!-- V18.3.11.236: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback.
 <!-- V18.3.11.236: Fast renderer helper-scope bridge hotfix; Safari/iOS safe. --> -->
+
+<!-- V18.3.11.237: Bulk Surat Penawaran — select, validate, atomic number reservation, direct PDF, ZIP, per-card flags. -->
