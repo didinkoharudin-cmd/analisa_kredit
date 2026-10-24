@@ -3248,8 +3248,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V240</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
-  <button type="button" id="v240BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V241</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <button type="button" id="v241BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
 <section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div style="margin:12px 0 8px;padding:0 2px;font-size:9px;font-weight:950;color:#64748b;text-transform:uppercase;letter-spacing:.04em"><i class="fa-solid fa-bullseye" style="color:#2563eb;margin-right:5px"></i>Potensi KPPB</div>
@@ -12370,6 +12370,10 @@ function renderDebtors(){
     if(window.isMonthlyOffered && window.isMonthlyOffered(o)) card.classList.add('monthly-offered');
     card.dataset.loanId=id;
     card.dataset.offerType=offerType;
+    // V241: simpan referensi row hasil ekspansi langsung pada kartu.
+    // Bulk Surat tidak perlu mencari ulang row melalui getFilteredLoans().
+    card.__scoreBulkLetterRow=o;
+    card.__scoreBulkLetterType=offerType;
     card.innerHTML=`
       ${offerType?`<label class="v237-bulk-check" data-v240-static-check="1" data-v240-loan-id="${escapeHtml(id)}" data-v240-offer-type="${escapeHtml(offerType)}"><input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span></label>`:''}
       <div class="v16-card-main">
@@ -13071,7 +13075,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=240',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v240').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=241',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v241').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19494,12 +19498,15 @@ document.addEventListener('visibilitychange',()=>{
     return map;
   }
   function domOfferType(node){
-    const direct=offerNorm(node?.dataset?.offerType||node?.dataset?.actionOfferType||'');
+    const direct=offerNorm(node?.__scoreBulkLetterType||node?.dataset?.offerType||node?.dataset?.actionOfferType||'');
     if(direct)return direct;
     const tag=String(node?.querySelector?.('.v16-offer-tag')?.textContent||'').replace(/^POTENSI\s+/i,'');
     return offerNorm(tag);
   }
   function getCurrentCardRow(card,rowMap){
+    // V241: mobile cards retain the exact expanded offer row used by renderDebtors().
+    // This fixes checkboxes that were visible but could not enter state.selected.
+    if(card?.__scoreBulkLetterRow) return card.__scoreBulkLetterRow;
     const id=String(card?.dataset?.loanId||card?.getAttribute?.('data-loan-id')||'');
     const t=domOfferType(card);
     let row=rowMap.get(id+'|'+t)||null;
@@ -19521,12 +19528,12 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V240</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v240BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V241</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v241BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
-    if(trigger&&!trigger.dataset.v240Bound){trigger.dataset.v240Bound='1';trigger.addEventListener('click',()=>setMode(!state.mode));}
-    // V240: toolbar statis selalu terlihat pada halaman Debitur dan checkbox
+    if(trigger&&!trigger.dataset.v241Bound){trigger.dataset.v241Bound='1';trigger.addEventListener('click',()=>setMode(!state.mode));}
+    // V241: toolbar statis selalu terlihat pada halaman Debitur dan checkbox
     // sudah dirender langsung di setiap kartu eligible.
     tb.style.display='flex';
     tb.dataset.eligibleCount=String(Number(eligibleCount||0));
@@ -19540,7 +19547,7 @@ document.addEventListener('visibilitychange',()=>{
     if(!state.mode)clearSelection();
     setTimeout(decorate,0);
   }
-  window.v240ToggleBulkSurat=function(){setMode(!state.mode);};
+  window.v241ToggleBulkSurat=function(){setMode(!state.mode);};
   function ensureBulkBar(list){
     let bar=document.getElementById('v237BulkBar');
     if(bar)return bar;
@@ -19559,20 +19566,48 @@ document.addEventListener('visibilitychange',()=>{
     bar.querySelector('#v237BulkProcess')?.addEventListener('click',openPreview);
     return bar;
   }
+  function bindDelegatedSelection(list){
+    if(!list||list.dataset.v241BulkDelegated==='1') return;
+    list.dataset.v241BulkDelegated='1';
+    // Stop checkbox interaction from opening the debtor card/detail.
+    list.addEventListener('click',e=>{
+      if(e.target?.closest?.('.v237-bulk-check,.v237-table-check')) e.stopPropagation();
+    });
+    // One stable handler survives rerenders and works for checkboxes already present in markup.
+    list.addEventListener('change',e=>{
+      const input=e.target?.closest?.('.v237-bulk-check input,.v237-table-check input');
+      if(!input) return;
+      e.stopPropagation();
+      const node=input.closest('article.v16-debtor-card[data-loan-id],tr[data-loan-id]');
+      if(!node) return;
+      const t=domOfferType(node);
+      const row=getCurrentCardRow(node,allRenderedRows());
+      const k=row&&t?keyOf(row,t):'';
+      if(!row||!t||!k){
+        input.checked=false;
+        console.warn('[V241 Bulk Surat] row kartu tidak dapat di-resolve', {loanId:node.dataset?.loanId,offerType:t});
+        return;
+      }
+      node.__scoreBulkLetterRow=row;
+      node.__scoreBulkLetterType=t;
+      toggleNode(node,row,t,k,input.checked);
+    });
+  }
+
   function attachSelector(node,rowMap){
     const t=domOfferType(node);if(!t)return false;
     const row=getCurrentCardRow(node,rowMap);if(!row)return false;
     const k=keyOf(row,t);
+    node.__scoreBulkLetterRow=row;
+    node.__scoreBulkLetterType=t;
     if(node.matches('article.v16-debtor-card')){
       let label=node.querySelector('.v237-bulk-check');
       if(!label){
         label=document.createElement('label');label.className='v237-bulk-check';label.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span>';node.prepend(label);
       }
-      if(!label.dataset.v240Bound){
-        label.dataset.v240Bound='1';
+      if(!label.dataset.v241Bound){
+        label.dataset.v241Bound='1';
         label.addEventListener('click',e=>e.stopPropagation());
-        const input=label.querySelector('input');
-        if(input) input.addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
       }
       const input=label.querySelector('input');if(input) input.checked=state.selected.has(k);
     }else if(node.matches('tr[data-loan-id]')){
@@ -19580,11 +19615,9 @@ document.addEventListener('visibilitychange',()=>{
       if(!host){
         const td=node.querySelector('td');if(!td)return true;host=document.createElement('label');host.className='v237-table-check';host.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Surat</span>';td.prepend(host);
       }
-      if(!host.dataset.v240Bound){
-        host.dataset.v240Bound='1';
+      if(!host.dataset.v241Bound){
+        host.dataset.v241Bound='1';
         host.addEventListener('click',e=>e.stopPropagation());
-        const input=host.querySelector('input');
-        if(input) input.addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
       }
       const input=host.querySelector('input');if(input) input.checked=state.selected.has(k);
     }
@@ -19597,6 +19630,7 @@ document.addEventListener('visibilitychange',()=>{
   }
   function decorate(){
     const list=document.getElementById('v9DebtorList');if(!list)return;
+    bindDelegatedSelection(list);
     const rowMap=allRenderedRows();
     const nodes=[...list.querySelectorAll('article.v16-debtor-card[data-loan-id],table.v9-table tbody tr[data-loan-id]')];
     let eligible=0;for(const node of nodes)if(attachSelector(node,rowMap))eligible++;
