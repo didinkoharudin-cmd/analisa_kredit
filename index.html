@@ -3248,7 +3248,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V244</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V245</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
   <button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
@@ -10738,6 +10738,24 @@ function updateWaPreview() {
     blockClass:v223BlockClass,
     renderTemplateText:v223RenderTemplateText,
     makeLetterSheet:v223MakeLetterSheet,
+    bulkPreviewMeta:function(item,offer){
+      const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW');
+      const deb=item?.cifRef||{};
+      const office=v220ResolveOffice(item);
+      const sign=v221GetSignatory(office)||{};
+      const template=type==='MENGULANG'
+        ?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG)
+        :(offerLetterTemplates?.NEW_TOPUP||DEFAULT_OFFER_LETTER_TEMPLATES.NEW_TOPUP);
+      return {
+        type:type,
+        name:String(deb?.nama||v221FirstValue(item,['nama','NAMA'])||'Debitur'),
+        address:v223ResolveIncomeAddress(item),
+        office:office||'',
+        signatory:sign,
+        template:String(template||''),
+        tenor:Math.max(0,Number(item?.selectedTenor||item?.tenor||0))
+      };
+    },
     getTemplate:function(type){
       return String(type||'').toUpperCase()==='MENGULANG'
         ?(offerLetterTemplates?.MENGULANG||DEFAULT_OFFER_LETTER_TEMPLATES.MENGULANG)
@@ -13075,7 +13093,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=244',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v244').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=245',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v245').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19529,7 +19547,7 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V244</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V245</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
@@ -19644,34 +19662,53 @@ document.addEventListener('visibilitychange',()=>{
 
   async function validateSelection(){
     if(!state.selected.size)throw new Error('Belum ada kartu yang dipilih.');
-    if(!bridge())throw new Error('Modul Surat Penawaran belum siap. Muat ulang aplikasi.');
-    // V243: preview tidak boleh menunggu jaringan. Konfigurasi lokal/runtime cache
-    // dipakai segera; refresh server berjalan di belakang dengan timeout singkat.
+    const b=bridge();
+    if(!b)throw new Error('Modul Surat Penawaran belum siap. Muat ulang aplikasi.');
+    if(typeof b.bulkPreviewMeta!=='function')throw new Error('Validator Bulk Surat V245 belum aktif. Tutup lalu buka ulang aplikasi.');
+
+    // V245: preview harus ringan. Jangan panggil letterVars() penuh karena fungsi itu
+    // menyiapkan data PDF dan menghitung angsuran. Preview hanya membaca metadata.
     try{
       const refresh=window.v225RefreshLetterRuntime?.({maxAgeMs:300000,throwOnError:false});
       if(refresh&&typeof refresh.then==='function') Promise.race([
         refresh,
-        new Promise(resolve=>setTimeout(()=>resolve({timeout:true}),2500))
+        new Promise(resolve=>setTimeout(()=>resolve({timeout:true}),2000))
       ]).catch(()=>{});
     }catch(e){}
+
     const result=[];
+    let done=0;
+    const total=state.selected.size;
+    const body=document.getElementById('v237BulkTableBody');
     for(const [key,entry] of state.selected){
       const row=entry.row,type=entry.type,errors=[];
-      let vars={},office='',sign={},template='';
+      let meta={};
       try{
-        vars=bridge().letterVars(row,type,{});
-        office=String(vars?.kantor||'').trim();
-        sign=bridge().getSignatory(office)||{};
-        template=bridge().getTemplate(type)||'';
+        meta=b.bulkPreviewMeta(row,type)||{};
+        const office=String(meta.office||'').trim();
+        const sign=meta.signatory||{};
         if(!office||office==='-')errors.push('Unit belum tersedia');
-        if(!sign.name||!sign.title)errors.push('Penandatangan belum diatur');
+        if(!String(sign.name||'').trim()||!String(sign.title||'').trim())errors.push('Penandatangan belum diatur');
         if(!String(sign.letterCode||sign.letter_code||sign.kodeSurat||sign.kode_surat||'').trim())errors.push('Kode surat belum diatur');
-        if(!String(vars.alamat||'').trim()||String(vars.alamat).trim()==='-')errors.push('Alamat kosong');
-        if(!(Number(row?.selectedTenor||row?.tenor||0)>0))errors.push('Tenor tidak valid');
+        if(!String(meta.address||'').trim()||String(meta.address).trim()==='-')errors.push('Alamat kosong');
+        if(!(Number(meta.tenor||row?.selectedTenor||row?.tenor||0)>0))errors.push('Tenor tidak valid');
         if(!(grossOf(row,type)>0))errors.push('Plafond tidak tersedia');
-        if(!String(template).trim())errors.push('Template belum tersedia');
+        if(!String(meta.template||'').trim())errors.push('Template belum tersedia');
       }catch(e){errors.push(String(e?.message||e));}
-      result.push({key,row,type,vars,office,sign,template,errors,ready:errors.length===0});
+      result.push({
+        key,row,type,
+        vars:{alamat:meta.address||'',kantor:meta.office||''},
+        office:String(meta.office||''),
+        sign:meta.signatory||{},
+        template:String(meta.template||''),
+        errors,ready:errors.length===0
+      });
+      done++;
+      if(body){
+        body.innerHTML='<tr><td colspan="6"><span class="v237-ok"><i class="fa-solid fa-spinner fa-spin"></i> Memvalidasi '+done+' / '+total+' data surat…</span></td></tr>';
+      }
+      // Beri Safari kesempatan repaint dan menjalankan timer setiap kartu.
+      await new Promise(resolve=>setTimeout(resolve,0));
     }
     return result;
   }
@@ -19715,14 +19752,14 @@ document.addEventListener('visibilitychange',()=>{
       if(modal){modal.classList.add('show');modal.setAttribute('aria-hidden','false');}
       if(body) body.innerHTML='<tr><td colspan="6" class="v237-bad">'+esc(e?.message||e)+'</td></tr>';
       if(gen) gen.disabled=true;
-      console.error('[V243 Bulk Surat] preview gagal',e);
+      console.error('[V245 Bulk Surat] preview gagal',e);
     }finally{
       previewBusy=false;
       if(processBtn){processBtn.disabled=false;processBtn.setAttribute('aria-disabled',state.selected.size?'false':'true');processBtn.innerHTML=oldText;}
     }
   }
   window.v243OpenBulkPreview=openPreview;
-  // V244: direct, always-clickable entry point. Do not rely on delegated listeners
+  // V245: direct, always-clickable entry point. Do not rely on delegated listeners
   // or the native disabled attribute, because disabled buttons emit no click on Safari/PWA.
   window.v244BulkPreviewButton=function(event,btn){
     try{event?.preventDefault?.();event?.stopPropagation?.();}catch(e){}
@@ -19734,7 +19771,7 @@ document.addEventListener('visibilitychange',()=>{
     }
     if(btn){btn.setAttribute('aria-disabled','true');btn.innerHTML='<i class=\"fa-solid fa-spinner fa-spin\"></i> Memvalidasi…';}
     Promise.resolve(openPreview()).catch(err=>{
-      console.error('[V244 Bulk Surat] direct preview gagal',err);
+      console.error('[V245 Bulk Surat] direct preview gagal',err);
       alert('Preview Bulk Surat gagal: '+String(err?.message||err));
     });
     return false;
@@ -19815,7 +19852,7 @@ document.addEventListener('visibilitychange',()=>{
   window.v240RefreshBulkSuratUI=v240Bootstrap;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v240Bootstrap,{once:true});else v240Bootstrap();
   [100,400,900,1800,3500,7000].forEach(ms=>setTimeout(v240Bootstrap,ms));
-  // V244: preview uses direct onclick on #v237BulkProcess.
+  // V245: preview uses lightweight validator + direct onclick on #v237BulkProcess.
   document.getElementById('v237BulkClose')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkCancel')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkGenerate')?.addEventListener('click',generateBulk);
