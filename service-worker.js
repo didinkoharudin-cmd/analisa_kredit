@@ -1,130 +1,108 @@
-const CACHE = 'analisis-kredit-pwa-V18.3.11.197-kgb-pisan-jobtype';
+/* SCORE PWA Service Worker — V18.3.11.239
+ * Goal: force a clean app-shell generation so old HTML/UI patches are not
+ * retained by CacheStorage, while preserving offline fallback + Web Push.
+ */
+'use strict';
 
-// V166: cache shell tetap ringan. Instalasi dilakukan SETELAH login/Smart Sync
-// dan aset diambil berurutan agar tidak memenuhi koneksi seluler dengan banyak
-// download paralel.
-const SHELL = [
-  './index.html',
-  './score-v158.css?v=158',
-  './score-header-v137.js?v=137',
-  './score-header-background-v137.jpg?v=137',
-  './score-logo-white-compact.png',
-  './score-icon-192.png',
-  './score-icon-512.png',
-  './kgb-pisan-logo.jpg',
-  './upload-v120.js?v=129',
-  './android-back-v111.js?v=137',
-  './customer-care-v109.js',
-  './bundling-g6b-g2c-v189.js?v=1891',
-  './usage-traffic-v122.js',
-  './manifest.webmanifest',
-  './offline.html'
+const SW_VERSION = '18.3.11.239';
+const CACHE_NAME = 'score-pwa-v239';
+const NAV_CACHE_KEY = './index.html';
+const SHELL_ASSETS = [
+  './icon-192.png',
+  './icon-512.png',
+  './manifest.webmanifest'
 ];
 
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
-
-    // Sequential precache: lebih lambat di background tetapi jauh lebih aman
-    // untuk bandwidth. Gagal satu aset tidak menggagalkan instalasi seluruh SW.
-    for (const url of SHELL) {
+    const cache = await caches.open(CACHE_NAME);
+    // Fetch a fresh HTML copy explicitly; do not trust the HTTP/browser cache.
+    try {
+      const fresh = await fetch(new Request('./index.html', { cache: 'reload' }));
+      if (fresh && fresh.ok) await cache.put(NAV_CACHE_KEY, fresh.clone());
+    } catch (_) {}
+    await Promise.all(SHELL_ASSETS.map(async asset => {
       try {
-        const request = new Request(new URL(url, self.location.href), { cache: 'reload' });
-        const response = await fetch(request);
-        if (response && response.ok) await cache.put(request, response.clone());
-      } catch (err) {
-        console.warn('[SW V182] precache skip:', url, err && err.message ? err.message : err);
-      }
-      // Yield singkat agar browser dapat memprioritaskan request aplikasi aktif.
-      await sleep(35);
-    }
-
-    await self.skipWaiting();
+        const response = await fetch(new Request(asset, { cache: 'reload' }));
+        if (response && response.ok) await cache.put(asset, response.clone());
+      } catch (_) {}
+    }));
   })());
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
+    // Dedicated SCORE origin: remove every previous CacheStorage generation.
+    // This intentionally prevents V208/V23x cached HTML from surviving V239.
     const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)));
+    await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
   })());
 });
 
-async function navigationResponse(request) {
-  const cache = await caches.open(CACHE);
-  const cached = await cache.match('./index.html');
+async function networkFirstNavigation(request) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const response = await fetch(new Request(request, { cache: 'no-store' }));
+    if (response && response.ok) {
+      await cache.put(NAV_CACHE_KEY, response.clone());
+      return response;
+    }
+    throw new Error('navigation response not ok');
+  } catch (_) {
+    return (await cache.match(NAV_CACHE_KEY)) || Response.error();
+  }
+}
 
-  // Jika cache tersedia, jangan biarkan jaringan lambat menahan pembukaan PWA.
-  // Network tetap memperbarui index di belakang layar.
-  const networkPromise = fetch(request, { cache: 'no-store' })
-    .then(async response => {
-      if (response && response.ok) {
-        try { await cache.put('./index.html', response.clone()); } catch (_) {}
-      }
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  const network = fetch(new Request(request, { cache: 'no-cache' }))
+    .then(response => {
+      if (response && response.ok) cache.put(request, response.clone()).catch(() => {});
       return response;
     })
     .catch(() => null);
-
-  if (!cached) {
-    const online = await networkPromise;
-    if (online) return online;
-    return (await cache.match('./offline.html')) || Response.error();
-  }
-
-  const fastNetwork = await Promise.race([
-    networkPromise,
-    sleep(450).then(() => null)
-  ]);
-
-  return fastNetwork || cached;
+  return cached || (await network) || Response.error();
 }
 
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
-
   const url = new URL(request.url);
 
-  if (request.mode === 'navigate') {
-    event.respondWith(navigationResponse(request));
+  // Do not interfere with API/auth requests or third-party CDN traffic.
+  if (url.origin !== self.location.origin) return;
+
+  if (request.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname === '/') {
+    event.respondWith(networkFirstNavigation(request));
     return;
   }
 
-  if (url.origin === self.location.origin) {
-    event.respondWith((async () => {
-      const cache = await caches.open(CACHE);
-      const cached = await cache.match(request);
-      if (cached) return cached;
-
-      const response = await fetch(request);
-      if (response && response.ok) {
-        try { await cache.put(request, response.clone()); } catch (_) {}
-      }
-      return response;
-    })());
+  const dest = request.destination;
+  if (['style','script','image','font','manifest'].includes(dest)) {
+    event.respondWith(staleWhileRevalidate(request));
   }
 });
 
+// Preserve SCORE Web Push functionality when replacing an older service worker.
 self.addEventListener('push', event => {
-  let data = {};
-  try { data = event.data ? event.data.json() : {}; }
-  catch (e) {
-    try { data = { body: event.data ? event.data.text() : '' }; }
-    catch (_) { data = {}; }
-  }
+  let payload = {};
+  try { payload = event.data ? event.data.json() : {}; }
+  catch (_) { try { payload = { body: event.data ? event.data.text() : '' }; } catch (_) {} }
 
-  const title = String(data.title || 'Analisis Kredit');
+  const notification = payload.notification && typeof payload.notification === 'object' ? payload.notification : {};
+  const data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+  const title = payload.title || notification.title || data.title || 'SCORE';
+  const body = payload.body || notification.body || data.body || data.message || 'Ada pembaruan baru.';
   const options = {
-    body: String(data.body || ''),
-    icon: data.icon || './score-icon-192.png',
-    badge: './score-icon-192.png',
-    tag: data.tag || undefined,
-    renotify: true,
-    data: data.data || {},
-    timestamp: Date.now()
+    body,
+    icon: notification.icon || payload.icon || './icon-192.png',
+    badge: notification.badge || payload.badge || './icon-192.png',
+    tag: payload.tag || notification.tag || data.tag || undefined,
+    renotify: false,
+    data
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
@@ -133,16 +111,31 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const data = event.notification.data || {};
   event.waitUntil((async () => {
-    const list = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    for (const client of list) {
-      if ('focus' in client) await client.focus();
-      try { client.postMessage({ type: 'WEB_PUSH_CLICK', data }); } catch (e) {}
-      return;
+    const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clientsList) {
+      try {
+        await client.focus();
+        client.postMessage({ type: 'WEB_PUSH_CLICK', data });
+        return;
+      } catch (_) {}
     }
-
-    let url = './';
-    if (data.kind === 'chat') url = './?push=chat&peer=' + encodeURIComponent(String(data.peerEmail || ''));
-    else if (data.kind === 'reminder') url = './?push=reminder';
-    if (clients.openWindow) return clients.openWindow(url);
+    let target = data.url || './';
+    if (!data.url && data.kind) {
+      const params = new URLSearchParams({ push: String(data.kind) });
+      if (data.peerEmail) params.set('peer', String(data.peerEmail));
+      target = './?' + params.toString();
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(target);
   })());
+});
+
+self.addEventListener('message', event => {
+  const type = event.data && event.data.type;
+  if (type === 'SKIP_WAITING') self.skipWaiting();
+  if (type === 'CLEAR_SCORE_CACHE') {
+    event.waitUntil((async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
+    })());
+  }
 });
