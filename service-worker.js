@@ -5,7 +5,7 @@
 'use strict';
 
 const SW_VERSION = '18.3.11.246';
-const CACHE_NAME = 'score-pwa-v246';
+const CACHE_NAME = 'score-pwa-v247';
 const NAV_CACHE_KEY = './index.html';
 const SHELL_ASSETS = [
   './icon-192.png',
@@ -34,7 +34,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     // Dedicated SCORE origin: remove every previous CacheStorage generation.
-    // This intentionally prevents older cached HTML from surviving V246.
+    // This intentionally prevents older cached HTML from surviving V247.
     const keys = await caches.keys();
     await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
