@@ -5,7 +5,7 @@
 'use strict';
 
 const SW_VERSION = '18.3.11.240';
-const CACHE_NAME = 'score-pwa-v241';
+const CACHE_NAME = 'score-pwa-v242';
 const NAV_CACHE_KEY = './index.html';
 const SHELL_ASSETS = [
   './icon-192.png',

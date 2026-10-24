@@ -3248,8 +3248,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V241</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
-  <button type="button" id="v241BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V242</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <button type="button" id="v242BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
 <section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div style="margin:12px 0 8px;padding:0 2px;font-size:9px;font-weight:950;color:#64748b;text-transform:uppercase;letter-spacing:.04em"><i class="fa-solid fa-bullseye" style="color:#2563eb;margin-right:5px"></i>Potensi KPPB</div>
@@ -13075,7 +13075,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=241',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v241').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=242',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v242').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19528,7 +19528,7 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V241</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v241BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V242</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v242BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
@@ -19547,12 +19547,12 @@ document.addEventListener('visibilitychange',()=>{
     if(!state.mode)clearSelection();
     setTimeout(decorate,0);
   }
-  window.v241ToggleBulkSurat=function(){setMode(!state.mode);};
+  window.v242ToggleBulkSurat=function(){setMode(!state.mode);};
   function ensureBulkBar(list){
     let bar=document.getElementById('v237BulkBar');
     if(bar)return bar;
     bar=document.createElement('div');bar.id='v237BulkBar';bar.className='v237-bulk-bar';bar.style.display=state.mode?'flex':'none';
-    bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" disabled>Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
+    bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" onclick="window.v242OpenBulkPreview&&window.v242OpenBulkPreview();return false;" disabled>Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
     list.parentElement?.insertBefore(bar,list);
     bar.querySelector('#v237BulkSelectVisible')?.addEventListener('click',()=>{
       const rowMap=allRenderedRows();
@@ -19679,12 +19679,25 @@ document.addEventListener('visibilitychange',()=>{
     const gen=document.getElementById('v237BulkGenerate');gen.disabled=!ready.length;gen.textContent='Download ZIP '+ready.length+' Surat Siap';
   }
   async function openPreview(){
-    const modal=document.getElementById('v237BulkModal');modal.classList.add('show');modal.setAttribute('aria-hidden','false');
-    document.getElementById('v237BulkTableBody').innerHTML='<tr><td colspan="6">Memvalidasi data Surat Penawaran…</td></tr>';
-    document.getElementById('v237BulkGenerate').disabled=true;
-    try{renderPreview(await validateSelection());}
-    catch(e){document.getElementById('v237BulkTableBody').innerHTML='<tr><td colspan="6" class="v237-bad">'+esc(e.message||e)+'</td></tr>';}
+    const processBtn=document.getElementById('v237BulkProcess');
+    const oldText=processBtn?.innerHTML||'Preview & Download';
+    if(processBtn){processBtn.disabled=true;processBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memvalidasi…';}
+    try{
+      const modal=document.getElementById('v237BulkModal');
+      if(!modal) throw new Error('Modal Bulk Surat tidak ditemukan.');
+      modal.classList.add('show');modal.setAttribute('aria-hidden','false');
+      const body=document.getElementById('v237BulkTableBody');if(body) body.innerHTML='<tr><td colspan="6">Memvalidasi data Surat Penawaran…</td></tr>';
+      const gen=document.getElementById('v237BulkGenerate');if(gen) gen.disabled=true;
+      renderPreview(await validateSelection());
+    }catch(e){
+      const modal=document.getElementById('v237BulkModal');if(modal){modal.classList.add('show');modal.setAttribute('aria-hidden','false');}
+      const body=document.getElementById('v237BulkTableBody');if(body) body.innerHTML='<tr><td colspan="6" class="v237-bad">'+esc(e.message||e)+'</td></tr>';
+      console.error('[V242 Bulk Surat] preview gagal',e);
+    }finally{
+      if(processBtn){processBtn.disabled=!state.selected.size;processBtn.innerHTML=oldText;}
+    }
   }
+  window.v242OpenBulkPreview=openPreview;
   function closeModal(){if(state.busy)return;const m=document.getElementById('v237BulkModal');m.classList.remove('show');m.setAttribute('aria-hidden','true');}
   function progress(done,total,text){const pct=total?Math.round(done/total*100):0;document.getElementById('v237BulkProgress').style.display='block';document.getElementById('v237BulkProgressFill').style.width=pct+'%';document.getElementById('v237BulkProgressText').textContent=text||('Memproses '+done+' / '+total);}
   function slug(v){return String(v||'').trim().replace(/[^A-Za-z0-9_-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').slice(0,60)||'Surat';}
@@ -19761,6 +19774,15 @@ document.addEventListener('visibilitychange',()=>{
   window.v240RefreshBulkSuratUI=v240Bootstrap;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v240Bootstrap,{once:true});else v240Bootstrap();
   [100,400,900,1800,3500,7000].forEach(ms=>setTimeout(v240Bootstrap,ms));
+  if(!window.__v242BulkPreviewFallbackBound){
+    window.__v242BulkPreviewFallbackBound=true;
+    document.addEventListener('click',e=>{
+      const btn=e.target?.closest?.('#v237BulkProcess');
+      if(!btn) return;
+      e.preventDefault();e.stopPropagation();
+      window.v242OpenBulkPreview?.();
+    },true);
+  }
   document.getElementById('v237BulkClose')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkCancel')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkGenerate')?.addEventListener('click',generateBulk);
@@ -19781,4 +19803,4 @@ document.addEventListener('visibilitychange',()=>{
 <!-- V18.3.11.236: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback.
 <!-- V18.3.11.236: Fast renderer helper-scope bridge hotfix; Safari/iOS safe. --> -->
 
-<!-- V18.3.11.238: Bulk Surat UI hook fix — persistent toolbar + MutationObserver + mobile/desktop selectors. -->
+<!-- V18.3.11.242: Bulk Surat preview button binding fix — persistent toolbar + MutationObserver + mobile/desktop selectors. -->
