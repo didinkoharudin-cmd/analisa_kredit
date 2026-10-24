@@ -3248,7 +3248,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V247 LITE</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V248 LITE</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
   <button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
@@ -13114,7 +13114,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=247',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v247').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=248',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v248').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19433,7 +19433,9 @@ document.addEventListener('visibilitychange',()=>{
       doc.addImage(canvas,'JPEG',0,0,210,297,undefined,'FAST');
       const safe=String(vars.nama_debitur||'debitur').replace(/[^A-Za-z0-9_-]+/g,'_').slice(0,50);
       const filename='Surat_Penawaran_'+String(issued.number)+'_'+type+'_'+safe+'_'+String(vars.produk).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf';
-      const blob=doc.output('blob');const url=URL.createObjectURL(blob),a=document.createElement('a');a.download=filename;a.href=url;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+      const blob=doc.output('blob');
+      if(typeof window.scoreDownloadBlobV248==='function')window.scoreDownloadBlobV248(blob,filename,'application/pdf');
+      else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.download=filename;a.href=url;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);}
       const afterSave=performance.now();
       bridge.logDownloaded(bridge.activityRecord(item,type,override,issued,vars,office,letterCode),type);
       window.v235LastLetterTiming={mode,runtimeMs:Math.round(afterRuntime-started),numberMs:Math.round(afterNumber-afterRuntime),renderMs:Math.round(afterRender-afterNumber),pdfMs:Math.round(afterSave-afterRender),totalMs:Math.round(afterSave-started)};
@@ -19443,6 +19445,68 @@ document.addEventListener('visibilitychange',()=>{
 })();
 </script>
 
+
+
+<style id="v248-download-complete-style">
+#v248DownloadComplete{position:fixed;inset:0;z-index:10180;background:rgba(15,23,42,.56);display:none;align-items:flex-end;justify-content:center;padding:12px}
+#v248DownloadComplete.show{display:flex}.v248-dl-card{width:min(480px,100%);background:#fff;border-radius:20px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.28)}
+.v248-dl-icon{width:48px;height:48px;border-radius:15px;background:#ecfdf5;color:#047857;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
+.v248-dl-card h3{font-size:15px;font-weight:900;color:#0f172a;margin:0}.v248-dl-card p{font-size:10px;color:#64748b;margin:5px 0 12px;word-break:break-word}
+.v248-dl-actions{display:flex;gap:8px;flex-wrap:wrap}.v248-dl-actions button{flex:1;min-width:105px;border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:11px;padding:10px 9px;font-size:10px;font-weight:900}
+.v248-dl-actions button.primary{background:#0757c7;color:#fff;border-color:#0757c7}.v248-dl-actions button.share{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+</style>
+<div id="v248DownloadComplete" role="dialog" aria-modal="true" aria-label="Download selesai">
+  <div class="v248-dl-card">
+    <div class="v248-dl-icon"><i class="fa-solid fa-circle-check"></i></div>
+    <h3>Download selesai</h3>
+    <p id="v248DownloadName">File sudah disiapkan.</p>
+    <div class="v248-dl-actions">
+      <button type="button" class="primary" id="v248DownloadOpen"><i class="fa-solid fa-folder-open"></i> Buka File</button>
+      <button type="button" class="share" id="v248DownloadShare"><i class="fa-solid fa-share-nodes"></i> Bagikan</button>
+      <button type="button" id="v248DownloadClose">Tutup</button>
+    </div>
+  </div>
+</div>
+<script id="v248-download-complete-controller">
+(function(){
+  'use strict';
+  let active=null;
+  function isAndroid(){return /Android/i.test(navigator.userAgent||'');}
+  function cleanup(){
+    if(active?.url){try{URL.revokeObjectURL(active.url);}catch(e){}}
+    active=null;
+  }
+  function close(){const m=document.getElementById('v248DownloadComplete');m?.classList.remove('show');cleanup();}
+  async function shareActive(){
+    if(!active)return;
+    try{
+      const file=new File([active.blob],active.filename,{type:active.mime||active.blob?.type||'application/octet-stream'});
+      if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:active.filename});return;}
+      alert('Fitur bagikan file tidak tersedia pada perangkat/browser ini. File tetap sudah tersimpan melalui proses download.');
+    }catch(e){if(e?.name!=='AbortError')alert('Gagal membagikan file: '+(e?.message||e));}
+  }
+  function show(blob,filename,mime){
+    if(!isAndroid())return;
+    cleanup();
+    const url=URL.createObjectURL(blob);active={blob,filename:String(filename||'file'),mime:String(mime||blob?.type||''),url};
+    const m=document.getElementById('v248DownloadComplete'),n=document.getElementById('v248DownloadName');
+    if(n)n.textContent=active.filename+' sudah selesai dibuat. Pilih Buka File atau Bagikan.';
+    m?.classList.add('show');
+  }
+  function trigger(blob,filename,mime){
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+    show(blob,filename,mime);
+  }
+  window.scoreDownloadBlobV248=trigger;
+  window.showDownloadCompleteV248=show;
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('v248DownloadClose')?.addEventListener('click',close);
+    document.getElementById('v248DownloadOpen')?.addEventListener('click',()=>{if(!active?.url)return;const a=document.createElement('a');a.href=active.url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();});
+    document.getElementById('v248DownloadShare')?.addEventListener('click',shareActive);
+    document.getElementById('v248DownloadComplete')?.addEventListener('click',e=>{if(e.target?.id==='v248DownloadComplete')close();});
+  });
+})();
+</script>
 
 <style id="v237-bulk-letter-style">
 .v237-bulk-trigger{border:0;border-radius:10px;background:#0b5fc6;color:#fff;padding:7px 11px;font-size:10px;font-weight:900;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(11,95,198,.18)}
@@ -19576,7 +19640,7 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V247 LITE</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V248 LITE</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
@@ -19696,7 +19760,7 @@ document.addEventListener('visibilitychange',()=>{
     if(panel)return panel;
     const list=document.getElementById('v9DebtorList');
     panel=document.createElement('section');panel.id='v247BulkLitePanel';
-    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat Lite <span class="v58-version-badge">V247</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
+    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat Lite <span class="v58-version-badge">V248</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
     const bar=document.getElementById('v237BulkBar');
     if(bar?.parentElement)bar.insertAdjacentElement('afterend',panel);else list?.parentElement?.insertBefore(panel,list);
     panel.querySelector('#v247LiteClose')?.addEventListener('click',()=>{if(!state.busy)panel.classList.remove('show');});
@@ -19735,7 +19799,7 @@ document.addEventListener('visibilitychange',()=>{
   window.v247BulkLitePreview=function(event){
     try{event?.preventDefault?.();event?.stopPropagation?.();}catch(e){}
     if(!state.selected.size){alert('Belum ada kartu Surat Penawaran yang dipilih.');return false;}
-    try{renderLitePanel(liteRowsSnapshot());}catch(e){console.error('[V247 Lite] preview',e);alert('Gagal menampilkan daftar bulk: '+(e?.message||e));}
+    try{renderLitePanel(liteRowsSnapshot());}catch(e){console.error('[V248 Lite] preview',e);alert('Gagal menampilkan daftar bulk: '+(e?.message||e));}
     return false;
   };
   async function generateBulkLite(){
@@ -19755,8 +19819,10 @@ document.addEventListener('visibilitychange',()=>{
         await new Promise(r=>requestAnimationFrame(()=>r()));
         try{
           // Reuse the exact single-letter preparation path that already works.
+          // V248: jangan kirim installment=0. Nilai 0 dianggap override valid oleh letterVars
+          // dan mematikan kalkulasi angsuran otomatis. Hanya pakai override jika > 0.
           const stableInstallment=Number(entry.row?.angsuran||entry.row?.angsuran_baru||entry.row?.angsuranNew||entry.row?.angsuranTopUp||0);
-          const letterOverride={installment:Number.isFinite(stableInstallment)?stableInstallment:0};
+          const letterOverride=(Number.isFinite(stableInstallment)&&stableInstallment>0)?{installment:stableInstallment}:{};
           const vars=b.letterVars(entry.row,entry.type,letterOverride);
           const office=String(vars?.kantor||'').trim();
           if(!office||office==='-')throw new Error('Unit Kantor belum tersedia');
@@ -19781,11 +19847,27 @@ document.addEventListener('visibilitychange',()=>{
       setLiteProgress(snapshot.length,snapshot.length,'Mengemas '+successes.length+' PDF ke ZIP…');
       const zip=await makeZip(successes);
       const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-      const url=URL.createObjectURL(zip),a=document.createElement('a');a.href=url;a.download='Surat_Penawaran_Bulk_'+day+'.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
-      successes.forEach(x=>{try{b.logDownloaded(x.record,x.type);}catch(e){}state.selected.delete(x.key);});
+      const zipName='Surat_Penawaran_Bulk_'+day+'.zip';
+      // V248: commit flag lokal + Activity Log setelah ZIP valid terbentuk, SEBELUM
+      // Android/PWA menyerahkan kontrol ke download manager. Gunakan identity row asli
+      // agar canonical key badge persis sama dengan kartu yang sedang tampil.
+      successes.forEach(x=>{
+        try{
+          const src=state.selected.get(x.key)?.row||{};
+          const merged=Object.assign({},src,x.record||{},
+            {facilityRef:src?.facilityRef,cifRef:src?.cifRef,jenis_penawaran:x.type,jenis_pengajuan:x.type,timestamp:x.record?.timestamp||new Date().toISOString()});
+          window.markLetterDownloaded?.(merged,x.type);
+          b.logDownloaded(x.record,x.type);
+        }catch(e){console.warn('[V248] Flag bulk surat:',e);}
+      });
+      successes.forEach(x=>state.selected.delete(x.key));
       updateCount();decorate();
+      setTimeout(()=>window.refreshLetterDownloadFlags?.(true),1200);
+      setTimeout(()=>window.refreshLetterDownloadFlags?.(true),5000);
+      if(typeof window.scoreDownloadBlobV248==='function')window.scoreDownloadBlobV248(zip,zipName,'application/zip');
+      else{const url=URL.createObjectURL(zip),a=document.createElement('a');a.href=url;a.download=zipName;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);}
       setLiteProgress(snapshot.length,snapshot.length,'ZIP selesai • '+successes.length+' berhasil'+(failures.length?' • '+failures.length+' gagal':'')+'.');
-    }catch(e){console.error('[V247 Lite] generate',e);setLiteProgress(done||0,snapshot.length,'Gagal: '+(e?.message||e));alert('Bulk Surat gagal: '+(e?.message||e));}
+    }catch(e){console.error('[V248 Lite] generate',e);setLiteProgress(done||0,snapshot.length,'Gagal: '+(e?.message||e));alert('Bulk Surat gagal: '+(e?.message||e));}
     finally{state.busy=false;if(dl)dl.disabled=false;if(cancel)cancel.disabled=false;}
   }
 
