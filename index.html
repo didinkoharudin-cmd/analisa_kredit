@@ -19423,6 +19423,14 @@ document.addEventListener('visibilitychange',()=>{
 .v237-modal-foot{padding:12px 14px;border-top:1px solid #e2e8f0;display:flex;gap:8px;justify-content:flex-end}.v237-modal-foot button{border-radius:10px;padding:9px 12px;font-size:10px;font-weight:900;border:1px solid #cbd5e1;background:#fff}.v237-modal-foot button.primary{background:#0757c7;color:#fff;border-color:#0757c7}.v237-modal-foot button:disabled{opacity:.45}
 @media(min-width:768px){#v237BulkModal{align-items:center}.v237-modal-card{max-height:82vh}}
 </style>
+
+<style id="v238-bulk-ui-hook-fix">
+#v238BulkLetterToolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:9px 10px;border:1px solid #bfdbfe;border-radius:13px;background:#eff6ff;box-shadow:0 4px 14px rgba(15,23,42,.06)}
+#v238BulkLetterToolbar .v238-copy{flex:1;min-width:160px}#v238BulkLetterToolbar .v238-copy b{display:block;font-size:10px;color:#1e3a8a}#v238BulkLetterToolbar .v238-copy small{display:block;margin-top:2px;font-size:8px;color:#64748b}
+#v238BulkLetterToolbar .v237-bulk-trigger{flex:none}
+.v237-bulk-mode tr[data-loan-id]{position:relative}.v237-table-check{display:none;align-items:center;justify-content:center;gap:4px}.v237-bulk-mode .v237-table-check{display:inline-flex}.v237-table-check input{width:16px;height:16px;accent-color:#0757c7}
+@media(max-width:560px){#v238BulkLetterToolbar{align-items:stretch}#v238BulkLetterToolbar .v237-bulk-trigger{width:100%;justify-content:center}}
+</style>
 <div id="v237BulkModal" aria-hidden="true">
   <div class="v237-modal-card">
     <div class="v237-modal-head">
@@ -19465,67 +19473,109 @@ document.addEventListener('visibilitychange',()=>{
   function nameOf(row){return String(row?.cifRef?.nama||row?.nama||row?.NAMA||'Debitur');}
   function allRenderedRows(){
     let rows=[];try{rows=typeof getFilteredLoans==='function'?getFilteredLoans():[];}catch(e){}
-    const map=new Map();(Array.isArray(rows)?rows:[]).forEach(r=>{const t=offerNorm(r?.__offerType);if(t)map.set(keyOf(r,t),r);});
+    const map=new Map();
+    (Array.isArray(rows)?rows:[]).forEach(r=>{
+      const t=offerNorm(r?.__offerType||r?.jenis_penawaran||r?.jenis_pengajuan);
+      const id=rowId(r);
+      if(id&&t) map.set(id+'|'+t,r);
+    });
     return map;
   }
-  function getCurrentCardRow(card,rowMap){return rowMap.get(String(card?.dataset?.loanId||'')+'|'+offerNorm(card?.dataset?.offerType||''))||null;}
+  function domOfferType(node){
+    const direct=offerNorm(node?.dataset?.offerType||node?.dataset?.actionOfferType||'');
+    if(direct)return direct;
+    const tag=String(node?.querySelector?.('.v16-offer-tag')?.textContent||'').replace(/^POTENSI\s+/i,'');
+    return offerNorm(tag);
+  }
+  function getCurrentCardRow(card,rowMap){
+    const id=String(card?.dataset?.loanId||card?.getAttribute?.('data-loan-id')||'');
+    const t=domOfferType(card);
+    let row=rowMap.get(id+'|'+t)||null;
+    if(row)return row;
+    // fallback exact loan id when a renderer omitted __offerType
+    try{
+      const rows=typeof getFilteredLoans==='function'?getFilteredLoans():[];
+      row=(Array.isArray(rows)?rows:[]).find(r=>rowId(r)===id && (!offerNorm(r?.__offerType)||offerNorm(r?.__offerType)===t))||null;
+    }catch(e){}
+    return row;
+  }
   function updateCount(){
     const el=document.getElementById('v237BulkCount');if(el)el.textContent=state.selected.size+' dipilih';
     const process=document.getElementById('v237BulkProcess');if(process)process.disabled=!state.selected.size;
+    const top=document.querySelector('#v238BulkLetterToolbar [data-v238-count]');if(top)top.textContent=state.selected.size+' dipilih';
   }
-  function clearSelection(){state.selected.clear();document.querySelectorAll('.v237-bulk-selected').forEach(x=>x.classList.remove('v237-bulk-selected'));document.querySelectorAll('.v237-bulk-check input').forEach(x=>x.checked=false);updateCount();}
+  function clearSelection(){state.selected.clear();document.querySelectorAll('.v237-bulk-selected').forEach(x=>x.classList.remove('v237-bulk-selected'));document.querySelectorAll('.v237-bulk-check input,.v237-table-check input').forEach(x=>x.checked=false);updateCount();}
+  function ensureTopToolbar(list,eligibleCount){
+    let tb=document.getElementById('v238BulkLetterToolbar');
+    if(!tb){
+      tb=document.createElement('div');tb.id='v238BulkLetterToolbar';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Surat Penawaran</b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download dalam ZIP.</small></div><button type="button" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      list.parentElement?.insertBefore(tb,list);
+      tb.querySelector('.v237-bulk-trigger')?.addEventListener('click',()=>setMode(!state.mode));
+    }
+    tb.style.display=eligibleCount?'flex':'none';
+    return tb;
+  }
   function setMode(on){
     state.mode=!!on;
     const list=document.getElementById('v9DebtorList');list?.classList.toggle('v237-bulk-mode',state.mode);
     document.querySelectorAll('.v237-bulk-trigger').forEach(b=>{b.classList.toggle('active',state.mode);b.innerHTML=state.mode?'<i class="fa-solid fa-check-double"></i> Mode Bulk Aktif':'<i class="fa-solid fa-file-zipper"></i> Bulk Surat';});
     const bar=document.getElementById('v237BulkBar');if(bar)bar.style.display=state.mode?'flex':'none';
     if(!state.mode)clearSelection();
+    setTimeout(decorate,0);
+  }
+  function ensureBulkBar(list){
+    let bar=document.getElementById('v237BulkBar');
+    if(bar)return bar;
+    bar=document.createElement('div');bar.id='v237BulkBar';bar.className='v237-bulk-bar';bar.style.display=state.mode?'flex':'none';
+    bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" disabled>Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
+    list.parentElement?.insertBefore(bar,list);
+    bar.querySelector('#v237BulkSelectVisible')?.addEventListener('click',()=>{
+      const rowMap=allRenderedRows();
+      const nodes=[...list.querySelectorAll('article.v16-debtor-card[data-loan-id],table.v9-table tbody tr[data-loan-id]')].filter(n=>domOfferType(n));
+      let remaining=MAX_BULK-state.selected.size;
+      for(const node of nodes){if(remaining<=0)break;const row=getCurrentCardRow(node,rowMap);if(!row)continue;const t=domOfferType(node),k=keyOf(row,t);if(state.selected.has(k))continue;state.selected.set(k,{row,type:t});node.classList.add('v237-bulk-selected');const cb=node.querySelector('.v237-bulk-check input,.v237-table-check input');if(cb)cb.checked=true;remaining--;}
+      if(nodes.length>MAX_BULK)alert('Maksimal '+MAX_BULK+' surat per batch.');updateCount();
+    });
+    bar.querySelector('#v237BulkClear')?.addEventListener('click',clearSelection);
+    bar.querySelector('#v237BulkExit')?.addEventListener('click',()=>setMode(false));
+    bar.querySelector('#v237BulkProcess')?.addEventListener('click',openPreview);
+    return bar;
+  }
+  function attachSelector(node,rowMap){
+    const t=domOfferType(node);if(!t)return false;
+    const row=getCurrentCardRow(node,rowMap);if(!row)return false;
+    const k=keyOf(row,t);
+    if(node.matches('article.v16-debtor-card')){
+      let label=node.querySelector('.v237-bulk-check');
+      if(!label){
+        label=document.createElement('label');label.className='v237-bulk-check';label.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span>';node.prepend(label);
+        label.addEventListener('click',e=>e.stopPropagation());
+        label.querySelector('input').addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
+      }
+      label.querySelector('input').checked=state.selected.has(k);
+    }else if(node.matches('tr[data-loan-id]')){
+      let host=node.querySelector('.v237-table-check');
+      if(!host){
+        const td=node.querySelector('td');if(!td)return true;host=document.createElement('label');host.className='v237-table-check';host.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Surat</span>';td.prepend(host);host.addEventListener('click',e=>e.stopPropagation());host.querySelector('input').addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
+      }
+      host.querySelector('input').checked=state.selected.has(k);
+    }
+    node.classList.toggle('v237-bulk-selected',state.selected.has(k));return true;
+  }
+  function toggleNode(node,row,t,k,checked){
+    if(checked){if(state.selected.size>=MAX_BULK){const cb=node.querySelector('.v237-bulk-check input,.v237-table-check input');if(cb)cb.checked=false;alert('Maksimal '+MAX_BULK+' surat per batch.');return;}state.selected.set(k,{row,type:t});node.classList.add('v237-bulk-selected');}
+    else{state.selected.delete(k);node.classList.remove('v237-bulk-selected');}
+    updateCount();
   }
   function decorate(){
     const list=document.getElementById('v9DebtorList');if(!list)return;
-    const cards=[...list.querySelectorAll('.v16-debtor-card[data-loan-id][data-offer-type]')].filter(c=>offerNorm(c.dataset.offerType));
-    if(!cards.length)return;
-    const summary=list.querySelector('.v16-debtor-summary');
-    if(summary&&!summary.querySelector('.v237-bulk-trigger')){
-      const btn=document.createElement('button');btn.type='button';btn.className='v237-bulk-trigger';btn.innerHTML='<i class="fa-solid fa-file-zipper"></i> Bulk Surat';
-      btn.addEventListener('click',()=>setMode(!state.mode));summary.appendChild(btn);
-    }
-    let bar=document.getElementById('v237BulkBar');
-    if(!bar){
-      bar=document.createElement('div');bar.id='v237BulkBar';bar.className='v237-bulk-bar';bar.style.display=state.mode?'flex':'none';
-      bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" disabled>Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
-      summary?.insertAdjacentElement('afterend',bar);
-      bar.querySelector('#v237BulkSelectVisible')?.addEventListener('click',()=>{
-        const rowMap=allRenderedRows();const currentCards=[...list.querySelectorAll('.v16-debtor-card[data-loan-id][data-offer-type]')].filter(c=>offerNorm(c.dataset.offerType));
-        let remaining=MAX_BULK-state.selected.size;
-        for(const card of currentCards){if(remaining<=0)break;const row=getCurrentCardRow(card,rowMap);if(!row)continue;const k=keyOf(row,card.dataset.offerType);if(state.selected.has(k))continue;state.selected.set(k,{row,type:offerNorm(card.dataset.offerType)});card.classList.add('v237-bulk-selected');const cb=card.querySelector('.v237-bulk-check input');if(cb)cb.checked=true;remaining--;}
-        if(currentCards.length>MAX_BULK)alert('Maksimal '+MAX_BULK+' surat per batch.');updateCount();
-      });
-      bar.querySelector('#v237BulkClear')?.addEventListener('click',clearSelection);
-      bar.querySelector('#v237BulkExit')?.addEventListener('click',()=>setMode(false));
-      bar.querySelector('#v237BulkProcess')?.addEventListener('click',openPreview);
-    }
-    list.classList.toggle('v237-bulk-mode',state.mode);bar.style.display=state.mode?'flex':'none';
-
     const rowMap=allRenderedRows();
-    cards.forEach(card=>{
-      if(card.querySelector('.v237-bulk-check'))return;
-      const row=getCurrentCardRow(card,rowMap);if(!row)return;
-      const t=offerNorm(card.dataset.offerType),k=keyOf(row,t);
-      const label=document.createElement('label');label.className='v237-bulk-check';label.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span>';
-      const input=label.querySelector('input');input.checked=state.selected.has(k);
-      if(input.checked)card.classList.add('v237-bulk-selected');
-      label.addEventListener('click',e=>e.stopPropagation());
-      input.addEventListener('change',e=>{
-        e.stopPropagation();
-        if(input.checked){
-          if(state.selected.size>=MAX_BULK){input.checked=false;alert('Maksimal '+MAX_BULK+' surat per batch.');return;}
-          state.selected.set(k,{row,type:t});card.classList.add('v237-bulk-selected');
-        }else{state.selected.delete(k);card.classList.remove('v237-bulk-selected');}
-        updateCount();
-      });
-      card.prepend(label);
-    });
+    const nodes=[...list.querySelectorAll('article.v16-debtor-card[data-loan-id],table.v9-table tbody tr[data-loan-id]')];
+    let eligible=0;for(const node of nodes)if(attachSelector(node,rowMap))eligible++;
+    ensureTopToolbar(list,eligible);
+    const bar=ensureBulkBar(list);
+    list.classList.toggle('v237-bulk-mode',state.mode);bar.style.display=state.mode&&eligible?'flex':'none';
     updateCount();
   }
 
@@ -19643,8 +19693,10 @@ document.addEventListener('visibilitychange',()=>{
 
   const original=window.renderDebtors;
   if(typeof original==='function'){
-    window.renderDebtors=function(){const r=original.apply(this,arguments);setTimeout(decorate,0);return r;};
+    window.renderDebtors=function(){const r=original.apply(this,arguments);setTimeout(decorate,0);setTimeout(decorate,80);return r;};
   }
+  const observeList=()=>{const list=document.getElementById('v9DebtorList');if(!list||list.__v238BulkObserved)return;list.__v238BulkObserved=true;let timer=null;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(decorate,30);}).observe(list,{childList:true,subtree:true});};
+  document.addEventListener('DOMContentLoaded',()=>{observeList();setTimeout(decorate,150);});
   document.getElementById('v237BulkClose')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkCancel')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkGenerate')?.addEventListener('click',generateBulk);
@@ -19663,4 +19715,4 @@ document.addEventListener('visibilitychange',()=>{
 <!-- V18.3.11.236: Fast direct canvas renderer for offer letter PDF; html2canvas only fallback.
 <!-- V18.3.11.236: Fast renderer helper-scope bridge hotfix; Safari/iOS safe. --> -->
 
-<!-- V18.3.11.237: Bulk Surat Penawaran — select, validate, atomic number reservation, direct PDF, ZIP, per-card flags. -->
+<!-- V18.3.11.238: Bulk Surat UI hook fix — persistent toolbar + MutationObserver + mobile/desktop selectors. -->
