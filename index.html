@@ -3248,8 +3248,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V239</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
-  <button type="button" id="v239BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V240</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <button type="button" id="v240BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
 <section class="v9-page" id="v9PageMenu"><div class="v9-title">Menu & Filter</div><div class="v9-panel" style="margin-top:0"><button id="v41OpenInstallmentBrochure" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0757c7,#2563eb);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-pdf" style="font-size:20px"></i><span><b style="display:block">Tabel Angsuran Produk</b><small style="font-size:8px;font-weight:600;color:#dbeafe">Download brosur PDF lengkap dengan kontak AO</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><button id="v74OpenSharedDocuments" type="button" style="width:100%;margin-bottom:10px;border:0;border-radius:14px;background:linear-gradient(135deg,#0f766e,#0891b2);color:#fff;padding:13px;text-align:left;font-size:11px;font-weight:900;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-file-signature" style="font-size:20px"></i><span><b style="display:block">Kirim Formulir dan Surat Pernyataan</b><small style="font-size:8px;font-weight:600;color:#cffafe">Download atau bagikan formulir & surat resmi terbaru</small></span><i class="fa-solid fa-chevron-right" style="margin-left:auto"></i></button><div style="margin:12px 0 8px;padding:0 2px;font-size:9px;font-weight:950;color:#64748b;text-transform:uppercase;letter-spacing:.04em"><i class="fa-solid fa-bullseye" style="color:#2563eb;margin-right:5px"></i>Potensi KPPB</div>
@@ -12371,6 +12371,7 @@ function renderDebtors(){
     card.dataset.loanId=id;
     card.dataset.offerType=offerType;
     card.innerHTML=`
+      ${offerType?`<label class="v237-bulk-check" data-v240-static-check="1" data-v240-loan-id="${escapeHtml(id)}" data-v240-offer-type="${escapeHtml(offerType)}"><input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span></label>`:''}
       <div class="v16-card-main">
         <div class="v16-avatar ${colorClass}">${initial}</div>
         <div class="v16-card-identity">
@@ -13070,7 +13071,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=239',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v239').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=240',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v240').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19520,13 +19521,13 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V239</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v239BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V240</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v240BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
-    if(trigger&&!trigger.dataset.v239Bound){trigger.dataset.v239Bound='1';trigger.addEventListener('click',()=>setMode(!state.mode));}
-    // V239: toolbar statis selalu terlihat pada halaman Debitur. Ini juga menjadi
-    // indikator bahwa HTML/cache V239 benar-benar sudah termuat.
+    if(trigger&&!trigger.dataset.v240Bound){trigger.dataset.v240Bound='1';trigger.addEventListener('click',()=>setMode(!state.mode));}
+    // V240: toolbar statis selalu terlihat pada halaman Debitur dan checkbox
+    // sudah dirender langsung di setiap kartu eligible.
     tb.style.display='flex';
     tb.dataset.eligibleCount=String(Number(eligibleCount||0));
     return tb;
@@ -19539,6 +19540,7 @@ document.addEventListener('visibilitychange',()=>{
     if(!state.mode)clearSelection();
     setTimeout(decorate,0);
   }
+  window.v240ToggleBulkSurat=function(){setMode(!state.mode);};
   function ensureBulkBar(list){
     let bar=document.getElementById('v237BulkBar');
     if(bar)return bar;
@@ -19565,16 +19567,26 @@ document.addEventListener('visibilitychange',()=>{
       let label=node.querySelector('.v237-bulk-check');
       if(!label){
         label=document.createElement('label');label.className='v237-bulk-check';label.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Pilih Surat</span>';node.prepend(label);
-        label.addEventListener('click',e=>e.stopPropagation());
-        label.querySelector('input').addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
       }
-      label.querySelector('input').checked=state.selected.has(k);
+      if(!label.dataset.v240Bound){
+        label.dataset.v240Bound='1';
+        label.addEventListener('click',e=>e.stopPropagation());
+        const input=label.querySelector('input');
+        if(input) input.addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
+      }
+      const input=label.querySelector('input');if(input) input.checked=state.selected.has(k);
     }else if(node.matches('tr[data-loan-id]')){
       let host=node.querySelector('.v237-table-check');
       if(!host){
-        const td=node.querySelector('td');if(!td)return true;host=document.createElement('label');host.className='v237-table-check';host.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Surat</span>';td.prepend(host);host.addEventListener('click',e=>e.stopPropagation());host.querySelector('input').addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
+        const td=node.querySelector('td');if(!td)return true;host=document.createElement('label');host.className='v237-table-check';host.innerHTML='<input type="checkbox" aria-label="Pilih surat bulk"><span>Surat</span>';td.prepend(host);
       }
-      host.querySelector('input').checked=state.selected.has(k);
+      if(!host.dataset.v240Bound){
+        host.dataset.v240Bound='1';
+        host.addEventListener('click',e=>e.stopPropagation());
+        const input=host.querySelector('input');
+        if(input) input.addEventListener('change',e=>{e.stopPropagation();toggleNode(node,row,t,k,e.target.checked);});
+      }
+      const input=host.querySelector('input');if(input) input.checked=state.selected.has(k);
     }
     node.classList.toggle('v237-bulk-selected',state.selected.has(k));return true;
   }
@@ -19711,10 +19723,10 @@ document.addEventListener('visibilitychange',()=>{
     window.renderDebtors=function(){const r=original.apply(this,arguments);setTimeout(decorate,0);setTimeout(decorate,80);return r;};
   }
   const observeList=()=>{const list=document.getElementById('v9DebtorList');if(!list)return false;if(list.__v238BulkObserved)return true;list.__v238BulkObserved=true;let timer=null;new MutationObserver(()=>{clearTimeout(timer);timer=setTimeout(decorate,30);}).observe(list,{childList:true,subtree:true});return true;};
-  function v239Bootstrap(){observeList();decorate();}
-  window.v239RefreshBulkSuratUI=v239Bootstrap;
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v239Bootstrap,{once:true});else v239Bootstrap();
-  [100,400,900,1800,3500,7000].forEach(ms=>setTimeout(v239Bootstrap,ms));
+  function v240Bootstrap(){observeList();decorate();}
+  window.v240RefreshBulkSuratUI=v240Bootstrap;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v240Bootstrap,{once:true});else v240Bootstrap();
+  [100,400,900,1800,3500,7000].forEach(ms=>setTimeout(v240Bootstrap,ms));
   document.getElementById('v237BulkClose')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkCancel')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkGenerate')?.addEventListener('click',generateBulk);
@@ -19724,7 +19736,8 @@ document.addEventListener('visibilitychange',()=>{
 })();
 </script>
 
-<!-- V18.3.11.239: static Bulk Surat toolbar + Service Worker cache reset v239 -->
+<!-- V18.3.11.240: checkbox rendered inside debtor card + Service Worker cache reset v240 -->
+<!-- V18.3.11.240: BULK SURAT CHECKBOX DIRECT CARD RENDER -->
 </body>
 </html>
 

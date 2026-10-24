@@ -1,11 +1,11 @@
-/* SCORE PWA Service Worker — V18.3.11.239
+/* SCORE PWA Service Worker — V18.3.11.240
  * Goal: force a clean app-shell generation so old HTML/UI patches are not
  * retained by CacheStorage, while preserving offline fallback + Web Push.
  */
 'use strict';
 
-const SW_VERSION = '18.3.11.239';
-const CACHE_NAME = 'score-pwa-v239';
+const SW_VERSION = '18.3.11.240';
+const CACHE_NAME = 'score-pwa-v240';
 const NAV_CACHE_KEY = './index.html';
 const SHELL_ASSETS = [
   './icon-192.png',
@@ -34,7 +34,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     // Dedicated SCORE origin: remove every previous CacheStorage generation.
-    // This intentionally prevents V208/V23x cached HTML from surviving V239.
+    // This intentionally prevents older cached HTML from surviving V240.
     const keys = await caches.keys();
     await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
