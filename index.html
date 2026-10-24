@@ -3248,7 +3248,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V243</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V244</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
   <button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
@@ -13075,7 +13075,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=243',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v243').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=244',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v244').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19412,6 +19412,7 @@ document.addEventListener('visibilitychange',()=>{
 .v237-bulk-bar .count{font-size:10px;font-weight:900;color:#075985;margin-right:auto}
 .v237-bulk-bar button{border:1px solid #bfdbfe;background:white;color:#1d4ed8;border-radius:9px;padding:6px 8px;font-size:9px;font-weight:900}
 .v237-bulk-bar button.primary{background:#0757c7;color:#fff;border-color:#0757c7}
+.v237-bulk-bar #v237BulkProcess[aria-disabled="true"]{opacity:.58;filter:saturate(.75);cursor:pointer}
 .v237-bulk-bar button.danger{color:#be123c;border-color:#fecdd3}
 .v237-bulk-mode .v16-debtor-card{position:relative;padding-top:38px}
 .v237-bulk-check{display:none;position:absolute;right:10px;top:9px;z-index:5;background:#fff;border:1px solid #bfdbfe;border-radius:9px;padding:5px 8px;font-size:9px;font-weight:900;color:#1e40af;align-items:center;gap:6px;box-shadow:0 2px 7px rgba(15,23,42,.09)}
@@ -19520,7 +19521,7 @@ document.addEventListener('visibilitychange',()=>{
   }
   function updateCount(){
     const el=document.getElementById('v237BulkCount');if(el)el.textContent=state.selected.size+' dipilih';
-    const process=document.getElementById('v237BulkProcess');if(process)process.disabled=!state.selected.size;
+    const process=document.getElementById('v237BulkProcess');if(process){process.disabled=false;process.setAttribute('aria-disabled',state.selected.size?'false':'true');process.classList.toggle('is-disabled',!state.selected.size);}
     const top=document.querySelector('#v238BulkLetterToolbar [data-v238-count]');if(top)top.textContent=state.selected.size+' dipilih';
   }
   function clearSelection(){state.selected.clear();document.querySelectorAll('.v237-bulk-selected').forEach(x=>x.classList.remove('v237-bulk-selected'));document.querySelectorAll('.v237-bulk-check input,.v237-table-check input').forEach(x=>x.checked=false);updateCount();}
@@ -19528,7 +19529,7 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V243</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V244</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
@@ -19552,7 +19553,7 @@ document.addEventListener('visibilitychange',()=>{
     let bar=document.getElementById('v237BulkBar');
     if(bar)return bar;
     bar=document.createElement('div');bar.id='v237BulkBar';bar.className='v237-bulk-bar';bar.style.display=state.mode?'flex':'none';
-    bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" disabled>Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
+    bar.innerHTML='<span class="count" id="v237BulkCount">0 dipilih</span><button type="button" id="v237BulkSelectVisible">Pilih semua tampil</button><button type="button" id="v237BulkClear">Kosongkan</button><button type="button" class="primary" id="v237BulkProcess" aria-disabled="true" onclick="return window.v244BulkPreviewButton(event,this)">Preview & Download</button><button type="button" class="danger" id="v237BulkExit">Batal Bulk</button>';
     list.parentElement?.insertBefore(bar,list);
     bar.querySelector('#v237BulkSelectVisible')?.addEventListener('click',()=>{
       const rowMap=allRenderedRows();
@@ -19561,6 +19562,8 @@ document.addEventListener('visibilitychange',()=>{
       for(const node of nodes){if(remaining<=0)break;const row=getCurrentCardRow(node,rowMap);if(!row)continue;const t=domOfferType(node),k=keyOf(row,t);if(state.selected.has(k))continue;state.selected.set(k,{row,type:t});node.classList.add('v237-bulk-selected');const cb=node.querySelector('.v237-bulk-check input,.v237-table-check input');if(cb)cb.checked=true;remaining--;}
       if(nodes.length>MAX_BULK)alert('Maksimal '+MAX_BULK+' surat per batch.');updateCount();
     });
+    const previewBtn=bar.querySelector('#v237BulkProcess');
+    if(previewBtn){previewBtn.disabled=false;previewBtn.onclick=function(ev){return window.v244BulkPreviewButton(ev,previewBtn);};}
     bar.querySelector('#v237BulkClear')?.addEventListener('click',clearSelection);
     bar.querySelector('#v237BulkExit')?.addEventListener('click',()=>setMode(false));
     return bar;
@@ -19691,7 +19694,7 @@ document.addEventListener('visibilitychange',()=>{
     previewBusy=true;
     const processBtn=document.getElementById('v237BulkProcess');
     const oldText=processBtn?.innerHTML||'Preview & Download';
-    if(processBtn){processBtn.disabled=true;processBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memvalidasi…';}
+    if(processBtn){processBtn.setAttribute('aria-disabled','true');processBtn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Memvalidasi…';}
     const modal=document.getElementById('v237BulkModal');
     const body=document.getElementById('v237BulkTableBody');
     const gen=document.getElementById('v237BulkGenerate');
@@ -19715,10 +19718,27 @@ document.addEventListener('visibilitychange',()=>{
       console.error('[V243 Bulk Surat] preview gagal',e);
     }finally{
       previewBusy=false;
-      if(processBtn){processBtn.disabled=!state.selected.size;processBtn.innerHTML=oldText;}
+      if(processBtn){processBtn.disabled=false;processBtn.setAttribute('aria-disabled',state.selected.size?'false':'true');processBtn.innerHTML=oldText;}
     }
   }
   window.v243OpenBulkPreview=openPreview;
+  // V244: direct, always-clickable entry point. Do not rely on delegated listeners
+  // or the native disabled attribute, because disabled buttons emit no click on Safari/PWA.
+  window.v244BulkPreviewButton=function(event,btn){
+    try{event?.preventDefault?.();event?.stopPropagation?.();}catch(e){}
+    if(previewBusy) return false;
+    if(!state.selected.size){
+      alert('Belum ada kartu Surat Penawaran yang dipilih.');
+      updateCount();
+      return false;
+    }
+    if(btn){btn.setAttribute('aria-disabled','true');btn.innerHTML='<i class=\"fa-solid fa-spinner fa-spin\"></i> Memvalidasi…';}
+    Promise.resolve(openPreview()).catch(err=>{
+      console.error('[V244 Bulk Surat] direct preview gagal',err);
+      alert('Preview Bulk Surat gagal: '+String(err?.message||err));
+    });
+    return false;
+  };
   function closeModal(){if(state.busy)return;const m=document.getElementById('v237BulkModal');m.classList.remove('show');m.setAttribute('aria-hidden','true');}
   function progress(done,total,text){const pct=total?Math.round(done/total*100):0;document.getElementById('v237BulkProgress').style.display='block';document.getElementById('v237BulkProgressFill').style.width=pct+'%';document.getElementById('v237BulkProgressText').textContent=text||('Memproses '+done+' / '+total);}
   function slug(v){return String(v||'').trim().replace(/[^A-Za-z0-9_-]+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').slice(0,60)||'Surat';}
@@ -19795,15 +19815,7 @@ document.addEventListener('visibilitychange',()=>{
   window.v240RefreshBulkSuratUI=v240Bootstrap;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',v240Bootstrap,{once:true});else v240Bootstrap();
   [100,400,900,1800,3500,7000].forEach(ms=>setTimeout(v240Bootstrap,ms));
-  if(!window.__v243BulkPreviewBound){
-    window.__v243BulkPreviewBound=true;
-    document.addEventListener('click',e=>{
-      const btn=e.target?.closest?.('#v237BulkProcess');
-      if(!btn) return;
-      e.preventDefault();e.stopPropagation();
-      openPreview();
-    },false);
-  }
+  // V244: preview uses direct onclick on #v237BulkProcess.
   document.getElementById('v237BulkClose')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkCancel')?.addEventListener('click',closeModal);
   document.getElementById('v237BulkGenerate')?.addEventListener('click',generateBulk);
@@ -19815,7 +19827,7 @@ document.addEventListener('visibilitychange',()=>{
 
 <!-- V18.3.11.240: checkbox rendered inside debtor card + Service Worker cache reset v240 -->
 <!-- V18.3.11.240: BULK SURAT CHECKBOX DIRECT CARD RENDER -->
-<!-- V18.3.11.243: non-blocking bulk preview validation + timeout + single handler -->
+<!-- V18.3.11.244: direct always-clickable bulk preview handler; no native disabled state -->
 </body>
 </html>
 
