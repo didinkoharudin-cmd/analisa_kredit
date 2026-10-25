@@ -10102,16 +10102,19 @@ function updateWaPreview() {
       let writePromise;
       if(cred&&typeof window.callApi==='function'){
         writePromise=Promise.resolve(window.callApi('markOfferLetterDownloaded',cred,{activity:enriched})).then(r=>{
-          if(r?.success)return r;
+          if(r?.success){
+            if(r?.flag&&typeof window.confirmLetterDownloadedFlag==='function')window.confirmLetterDownloadedFlag(r.flag);
+            return r;
+          }
           console.warn('Durable flag server belum tersedia, fallback Activity Log:',r?.error||r);
           return fallbackWrite();
         }).catch(e=>{console.warn('Durable flag server gagal, fallback Activity Log:',e);return fallbackWrite();});
       }else writePromise=fallbackWrite();
       return Promise.resolve(writePromise).then(async r=>{
         if(r?.success){
-          setTimeout(()=>window.refreshLetterDownloadFlags?.(true),350);
-          setTimeout(()=>window.refreshLetterDownloadFlags?.(true),1600);
-          setTimeout(()=>window.refreshLetterDownloadFlags?.(true),5000);
+          setTimeout(()=>window.refreshLetterDownloadFlags?.(true),250);
+          setTimeout(()=>window.refreshLetterDownloadFlags?.(true),1200);
+          setTimeout(()=>window.refreshLetterDownloadFlags?.(true),3500);
           // V250: Surat Penawaran yang berhasil diunduh juga harus upsert ke Pipeline Prospek.
           // Tunggu singkat supaya Android/PWA tidak men-suspend request saat download manager mengambil alih.
           if(typeof window.syncOfferActivityToPipeline==='function'){
@@ -13140,7 +13143,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=250',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v250').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=252',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v252').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -16187,14 +16190,26 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       const cred=window.googleCredential || (typeof googleCredential!=='undefined'?googleCredential:'');
       if(!cred || !record || typeof window.callApi!=='function') return Promise.resolve({success:false,skipped:true});
       const payload=Object.assign({},record,{activityType:activityType||record.activityType||'ACTIVITY',source:'PWA_V18.3.11.53'});
-      return window.callApi('logActivity',cred,{activity:payload}).then(function(r){
+      return window.callApi('logActivity',cred,{activity:payload}).then(async function(r){
         if(!r||!r.success){
           console.warn('Activity Log server ditolak:',r&&r.error);
         }else{
+          const offerFlagTypes=['PENAWARAN_WA','SIMULASI_WA','DOWNLOAD_SIMULASI'];
+          const normalizedType=String(activityType||payload.activityType||'').toUpperCase();
+          let durableAck=null;
+          if(offerFlagTypes.includes(normalizedType)){
+            try{
+              durableAck=await Promise.race([
+                Promise.resolve(window.callApi('markOfferWaFlagState',cred,{activity:payload})),
+                new Promise(resolve=>setTimeout(()=>resolve({success:false,timeout:true}),3000))
+              ]);
+              if(durableAck?.flag) window.confirmMonthlyOfferedServerFlag?.(durableAck.flag);
+            }catch(e){console.warn('Durable Penawaran WA flag:',e);}
+          }
           try{ window.confirmMonthlyOfferedWrite?.(record,activityType); }catch(e){}
-          // Beri waktu backend read-model mengejar write, lalu validasi ulang.
-          setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),1500);
-          setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),6000);
+          // V252: state durable biasanya langsung tersedia; refresh ini untuk device/read model lain.
+          setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),700);
+          setTimeout(()=>window.refreshMonthlyOfferFlags?.(true),3000);
         }
         return r;
       }).catch(function(err){ console.warn('Activity Log server gagal (aktivitas AO tetap dilanjutkan):',err); return {success:false,error:String(err&&err.message||err)}; });
@@ -16765,11 +16780,11 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 })();
 </script>
 
-<script id="v1831114-monthly-offer-flag-controller">
+<script id="v252-offer-wa-flag-state-controller">
 (function(){
   'use strict';
 
-  // V236 — persistent offer flag with write-ack protection.
+  // V252 — Penawaran WA / Sudah ditawarkan menggunakan durable server state + write-ack protection.
   // Bug fixed: saat kembali dari WhatsApp, refresh server dapat terjadi sebelum
   // getMonthlyOfferFlags membaca Activity Log terbaru. Flag lokal yang baru
   // ditulis tidak boleh dihapus hanya karena read-after-write belum konsisten.
@@ -16812,7 +16827,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       if(Array.isArray(rows)) rows.forEach(x=>{if(x?.key)state.flags.set(String(x.key),x);});
     }catch(e){console.warn('Persistent offer flag local:',e);}
   }
-  function emit(){window.dispatchEvent(new CustomEvent('monthly-offer-flags-updated',{detail:{month:state.month,total:state.flags.size,periodStart:state.periodStart,mode:'PERSISTENT_V236'}}));}
+  function emit(){window.dispatchEvent(new CustomEvent('monthly-offer-flags-updated',{detail:{month:state.month,total:state.flags.size,periodStart:state.periodStart,mode:'SERVER_AUTHORITATIVE_V252'}}));}
   function parseTime(value){const t=new Date(value||0).getTime();return Number.isFinite(t)?t:0;}
   function afterReset(flag,resetMs){if(!resetMs)return true;return parseTime(flag?.timestamp||flag?.waktu)>resetMs;}
 
@@ -16843,6 +16858,30 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     persist();emit();
   };
 
+
+  // V252: confirmation from durable Supabase state. This is what makes the
+  // "Sudah ditawarkan" badge authoritative across devices, not only local cache.
+  let offerFlagChannel=null;
+  try{
+    if('BroadcastChannel' in window){
+      offerFlagChannel=new BroadcastChannel('score-offer-wa-flags-v252');
+      offerFlagChannel.onmessage=(ev)=>{
+        const flag=ev?.data?.flag;if(!flag?.key)return;
+        ensurePeriod();
+        state.flags.set(String(flag.key),Object.assign({},flag,{pending:false,serverWriteAccepted:true,serverAcceptedAt:Date.now()}));
+        persist();emit();
+      };
+    }
+  }catch(e){}
+  window.confirmMonthlyOfferedServerFlag=function(flag){
+    if(!flag?.key)return false;
+    ensurePeriod();
+    state.flags.set(String(flag.key),Object.assign({},flag,{pending:false,serverWriteAccepted:true,serverAcceptedAt:Date.now()}));
+    persist();emit();
+    try{offerFlagChannel?.postMessage({flag:Object.assign({},flag,{pending:false})});}catch(e){}
+    return true;
+  };
+
   function ensurePeriod(){
     const m=monthKey(),a=accountKey();
     if(state.account===a){if(state.month!==m){state.month=m;emit();}return;}
@@ -16850,7 +16889,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   }
 
   async function syncServer(force){
-    ensurePeriod();if(!state.account||state.inFlight)return;if(!force&&state.lastSync&&Date.now()-state.lastSync<30000)return;
+    ensurePeriod();if(!state.account||state.inFlight)return;if(!force&&state.lastSync&&Date.now()-state.lastSync<5000)return;
     const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'');if(!cred||typeof window.callApi!=='function')return;
     state.inFlight=true;
     try{
@@ -16875,8 +16914,26 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   }
 
   window.refreshMonthlyOfferFlags=function(force){state.serverLoaded=false;state.lastSync=0;return syncServer(force!==false);};
-  document.addEventListener('DOMContentLoaded',()=>{ensurePeriod();setTimeout(syncServer,500);});
-  setInterval(()=>{ensurePeriod();syncServer(false);},30000);
+  document.addEventListener('DOMContentLoaded',()=>{
+    ensurePeriod();setTimeout(()=>syncServer(true),500);
+    try{
+      const debtorPage=document.getElementById('v9PageDebitur');
+      if(debtorPage&&'MutationObserver' in window){
+        let wasActive=debtorPage.classList.contains('active');
+        new MutationObserver(()=>{
+          const active=debtorPage.classList.contains('active');
+          if(active&&!wasActive)syncServer(true);
+          wasActive=active;
+        }).observe(debtorPage,{attributes:true,attributeFilter:['class','style']});
+      }
+    }catch(e){}
+  });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncServer(true);});
+  window.addEventListener('focus',()=>syncServer(true));
+  window.addEventListener('pageshow',()=>syncServer(true));
+  window.addEventListener('online',()=>syncServer(true));
+  setInterval(()=>{ensurePeriod();if(!document.hidden)syncServer(false);},8000);
+  window.__SCORE_OFFER_WA_FLAG_VERSION='V252_STATE_SYNC';
 })();
 </script>
 
@@ -16884,14 +16941,14 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 (function(){
   'use strict';
 
-  // V228 — Flag Surat Penawaran server-authoritative.
-  // Sumber kebenaran: backend getOfferLetterFlags yang mereduksi Activity Log
-  // DOWNLOAD_SURAT_PENAWARAN menjadi 1 flag terbaru per kartu/fasilitas.
+  // V251 — Flag Surat Penawaran server-authoritative dengan durable state row.
+  // Sumber utama: OFFER_LETTER_FLAG_STATE di Supabase (1 state per kartu/AO).
+  // Activity Log Supabase + Google tetap dibaca sebagai fallback/historical migration.
   // localStorage hanya cache cepat/offline + pending grace setelah download.
   const ACTIVITY_TYPE='DOWNLOAD_SURAT_PENAWARAN';
-  const CACHE_VERSION='v249';
+  const CACHE_VERSION='v251';
   const PENDING_GRACE_MS=180000;
-  const state={account:'',flags:new Map(),inFlight:false,lastSync:0,serverLoaded:false,source:'cache'};
+  const state={account:'',flags:new Map(),inFlight:false,lastSync:0,serverLoaded:false,source:'cache',revision:''};
 
   function norm(value){return String(value??'').trim().toUpperCase().replace(/\s+/g,'').replace(/[^A-Z0-9_-]/g,'');}
   function normalizeCif(value){return norm(value).replace(/^'+/,'').replace(/^0+(?=\d)/,'');}
@@ -16947,7 +17004,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   }
   function ensureAccount(){
     const a=accountKey();if(state.account===a)return;
-    state.account=a;state.flags.clear();state.inFlight=false;state.lastSync=0;state.serverLoaded=false;state.source='cache';restore();emit();
+    state.account=a;state.flags.clear();state.inFlight=false;state.lastSync=0;state.serverLoaded=false;state.source='cache';state.revision='';restore();emit();
   }
   function emit(){window.dispatchEvent(new CustomEvent('letter-download-flags-updated',{detail:{total:state.flags.size,mode:'SERVER_AUTHORITATIVE',source:state.source}}));}
 
@@ -16967,6 +17024,27 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     putFlag(flag,record,offer);state.source='local-pending';persist();emit();
   };
 
+  let flagChannel=null;
+  try{
+    if('BroadcastChannel' in window){
+      flagChannel=new BroadcastChannel('score-offer-letter-flags-v251');
+      flagChannel.onmessage=(ev)=>{
+        const flag=ev?.data?.flag;
+        if(!flag?.key)return;
+        ensureAccount();
+        putFlag(Object.assign({},flag,{pending:false}));
+        state.source='peer-confirmed';persist();emit();
+      };
+    }
+  }catch(e){}
+  window.confirmLetterDownloadedFlag=function(flag){
+    ensureAccount();if(!flag?.key)return false;
+    putFlag(Object.assign({},flag,{pending:false,pendingAt:0}));
+    state.source='server-confirmed';persist();emit();
+    try{flagChannel?.postMessage({flag:Object.assign({},flag,{pending:false})});}catch(e){}
+    return true;
+  };
+
   async function loadLegacyFlags(cred){
     const rows=[],seenIds=new Set();let offset=0;
     for(let page=0;page<20&&rows.length<5000;page++){
@@ -16984,7 +17062,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   async function fetchServerFlags(cred){
     try{
-      const result=await window.callApi('getOfferLetterFlags',cred,{});
+      const result=await window.callApi('getOfferLetterFlags',cred,{cacheBust:Date.now(),clientRevision:state.revision||''});
       if(result?.success&&Array.isArray(result.flags))return result;
       const msg=String(result?.error||'');
       if(msg&&!/Action|didukung|diizinkan|not found|404/i.test(msg))throw new Error(msg);
@@ -16998,7 +17076,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 
   async function syncServer(force){
     ensureAccount();if(!state.account||state.inFlight)return;
-    if(!force&&state.lastSync&&Date.now()-state.lastSync<15000)return;
+    if(!force&&state.lastSync&&Date.now()-state.lastSync<5000)return;
     const cred=window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'');
     if(!cred||typeof window.callApi!=='function')return;
     state.inFlight=true;
@@ -17011,18 +17089,34 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
       incoming.forEach(x=>{if(x?.key)state.flags.set(String(x.key),Object.assign({},x,{pending:false}));});
       // Grace hanya untuk download yang baru saja terjadi dan belum terbaca server.
       pending.forEach(x=>{if(x?.key&&!state.flags.has(x.key))state.flags.set(x.key,x);});
-      state.serverLoaded=true;state.lastSync=Date.now();state.source=String(result.source||result.backend||'server');persist();emit();
+      state.serverLoaded=true;state.lastSync=Date.now();state.revision=String(result.revision||result.serverRevision||'');state.source=String(result.source||result.backend||'server');persist();emit();
     }catch(err){
       state.serverLoaded=false;state.source='cache-fallback';console.warn('Letter download flags server:',err);
     }finally{state.inFlight=false;}
   }
   window.refreshLetterDownloadFlags=function(force){state.lastSync=0;return syncServer(force!==false);};
-  document.addEventListener('DOMContentLoaded',()=>{ensureAccount();setTimeout(()=>syncServer(true),2200);});
+  document.addEventListener('DOMContentLoaded',()=>{
+    ensureAccount();setTimeout(()=>syncServer(true),1200);
+    try{
+      const debtorPage=document.getElementById('v9PageDebitur');
+      if(debtorPage&&'MutationObserver' in window){
+        let wasActive=debtorPage.classList.contains('active');
+        new MutationObserver(()=>{
+          const active=debtorPage.classList.contains('active');
+          if(active&&!wasActive)syncServer(true);
+          wasActive=active;
+        }).observe(debtorPage,{attributes:true,attributeFilter:['class','style']});
+      }
+    }catch(e){}
+  });
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncServer(true);});
-  window.addEventListener('focus',()=>syncServer(false));
-  setInterval(()=>syncServer(false),20000);
+  window.addEventListener('focus',()=>syncServer(true));
+  window.addEventListener('pageshow',()=>syncServer(true));
+  window.addEventListener('online',()=>syncServer(true));
+  setInterval(()=>{if(!document.hidden)syncServer(false);},8000);
   if(!window.__letterDownloadFlagV229Bound){
     window.__letterDownloadFlagV229Bound=true;
+    window.__SCORE_LETTER_FLAG_VERSION='V252_STATE_SYNC';
     window.addEventListener('letter-download-flags-updated',()=>{
       try{const page=document.getElementById('v9PageDebitur');if(page?.classList.contains('active')&&typeof renderDebtors==='function')renderDebtors();}catch(e){}
       try{if(typeof filterData==='function'&&!window.isAppMobileViewport?.())filterData();}catch(e){}
@@ -20236,6 +20330,7 @@ document.addEventListener('visibilitychange',()=>{
   window.__SCORE_OFFER_PIPELINE_VERSION='V250';
 })();
 </script>
+<!-- V18.3.11.252: Dual durable cross-device flag state: Penawaran WA + Surat Penawaran. -->
 </body>
 </html>
 
