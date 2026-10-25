@@ -10107,11 +10107,21 @@ function updateWaPreview() {
           return fallbackWrite();
         }).catch(e=>{console.warn('Durable flag server gagal, fallback Activity Log:',e);return fallbackWrite();});
       }else writePromise=fallbackWrite();
-      return Promise.resolve(writePromise).then(r=>{
+      return Promise.resolve(writePromise).then(async r=>{
         if(r?.success){
           setTimeout(()=>window.refreshLetterDownloadFlags?.(true),350);
           setTimeout(()=>window.refreshLetterDownloadFlags?.(true),1600);
           setTimeout(()=>window.refreshLetterDownloadFlags?.(true),5000);
+          // V250: Surat Penawaran yang berhasil diunduh juga harus upsert ke Pipeline Prospek.
+          // Tunggu singkat supaya Android/PWA tidak men-suspend request saat download manager mengambil alih.
+          if(typeof window.syncOfferActivityToPipeline==='function'){
+            try{
+              await Promise.race([
+                Promise.resolve(window.syncOfferActivityToPipeline(enriched,'DOWNLOAD_SURAT_PENAWARAN')),
+                new Promise(resolve=>setTimeout(()=>resolve({success:false,timeout:true}),3500))
+              ]);
+            }catch(pipeErr){console.warn('[V250] Surat -> Pipeline:',pipeErr);}
+          }
         }
         return r;
       }).catch(e=>{console.warn('Sinkron flag Surat Penawaran:',e);return {success:false,error:String(e?.message||e)};});
@@ -13130,7 +13140,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=249',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v249').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=250',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v250').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20073,6 +20083,159 @@ document.addEventListener('visibilitychange',()=>{
 <!-- V18.3.11.240: BULK SURAT CHECKBOX DIRECT CARD RENDER -->
 <!-- V18.3.11.247: BULK SURAT LITE isolated inline preview + sequential proven single-letter path -->
 <script>window.__SCORE_BULK_SURAT_VERSION="V247-LITE";</script>
+
+<script id="v18311250-offer-to-pipeline-bridge">
+(function(){
+  'use strict';
+  // V250 — Penawaran WA + Download Surat Penawaran -> Pipeline Prospek.
+  // Satu bridge untuk seluruh jalur activity supaya WA biasa, bulk WA, Cloud API,
+  // verified offer, surat satuan dan surat bulk mengikuti aturan upsert yang sama.
+  const TARGET_TYPES=new Set(['PENAWARAN_WA','DOWNLOAD_SURAT_PENAWARAN']);
+  const inflight=new Map();
+  const recent=new Map();
+
+  function s(v){return String(v??'').trim();}
+  function up(v){return s(v).toUpperCase();}
+  function normOffer(v){
+    const x=up(v).replace(/[\s_-]+/g,'');
+    if(x==='MENGULANG'||x==='RENEWAL')return 'MENGULANG';
+    if(x==='TOPUP')return 'TOPUP';
+    if(x==='NEW'||x==='BARU')return 'NEW';
+    return up(v)||'NEW';
+  }
+  function normKey(v){return up(v).replace(/\s+/g,' ').replace(/[^A-Z0-9 ._\-/]/g,'').slice(0,120);}
+  function login(){return window.currentUser||((typeof currentUser!=='undefined'&&currentUser)?currentUser:{} )||{};}
+  function credential(){return window.googleCredential||(typeof googleCredential!=='undefined'?googleCredential:'');}
+  function productOf(r){return s(r?.tipe_pinjaman||r?.produk||r?.product||r?.produk_pengajuan);}
+  function offerOf(r){return normOffer(r?.jenis_penawaran||r?.jenis_pengajuan||r?.offerType||r?.__offerType||'NEW');}
+  function sourceOf(r){return s(r?.sumber_pembayaran||r?.sumber||r?.sourceIncome||'');}
+  function cifOf(r){return s(r?.cif||r?.CIF||r?.cifRef?.cif);}
+  function nameOf(r){return s(r?.nama||r?.name||r?.debtorName||r?.cifRef?.nama)||'Debitur';}
+  function phoneOf(r){return s(r?.no_hp||r?.noHp||r?.phone||r?.cifRef?.no_hp);}
+  function loanOf(r){return s(r?.no_pinjaman||r?.loan_id||r?.loanId);}
+  function amountOf(r){return Number(r?.plafond_gross||r?.plafond||r?.gross||0)||0;}
+  function typeLabel(type){return type==='DOWNLOAD_SURAT_PENAWARAN'?'Download Surat Penawaran':'Penawaran WhatsApp';}
+  function autoNote(type){return 'Dibuat/diperbarui otomatis dari '+typeLabel(type)+'.';}
+  function isAutoNote(v){return /^(dibuat|diperbarui).*otomatis|^aktivitas otomatis/i.test(s(v));}
+  function targetStatus(existing){
+    const status=up(existing?.status);
+    if(!status||status==='POTENSI'||status==='PENAWARAN_WA')return 'PENAWARAN_WA';
+    // Jangan pernah menurunkan status yang sudah lebih maju / terminal.
+    return status;
+  }
+  function identity(r){
+    const u=login();
+    const owner=s(u.email||u.emailAO||u.kodeAO||u.kode_ao).toLowerCase();
+    const cif=normKey(cifOf(r));
+    const loan=normKey(loanOf(r));
+    const name=normKey(nameOf(r));
+    const product=normKey(productOf(r));
+    const offer=normOffer(offerOf(r));
+    return ['AUTO-OFFER',owner,cif||loan||name,product,offer].join('|').slice(0,240);
+  }
+  function exactMatch(p,r){
+    const rcif=up(cifOf(r)), pcif=up(p?.cif);
+    const rname=up(nameOf(r)), pname=up(p?.nama);
+    const prod=up(productOf(r)), pprod=up(p?.produk);
+    const offer=normOffer(offerOf(r)), poffer=normOffer(p?.jenisPengajuan||'');
+    const debtorOk=rcif ? pcif===rcif : (rname&&pname===rname);
+    const prodOk=!prod||!pprod||pprod===prod;
+    const offerOk=!offer||!poffer||poffer===offer;
+    return debtorOk&&prodOk&&offerOk;
+  }
+  async function findExisting(r,cred){
+    const q=cifOf(r)||nameOf(r)||loanOf(r);
+    if(!q)return null;
+    try{
+      const res=await window.callApi('getProspectPipeline',cred,{search:String(q),page:1,pageSize:25});
+      if(!res?.success||!Array.isArray(res.prospects))return null;
+      return res.prospects.find(p=>exactMatch(p,r))||null;
+    }catch(e){console.warn('[V250] Cari prospek existing:',e);return null;}
+  }
+  function buildPayload(r,type,existing){
+    const note=autoNote(type);
+    const existingNote=s(existing?.catatan);
+    const out={
+      cif:cifOf(r),
+      nama:nameOf(r),
+      noHp:phoneOf(r),
+      produk:productOf(r),
+      sumber:sourceOf(r),
+      jenisPengajuan:offerOf(r),
+      plafond:amountOf(r),
+      status:targetStatus(existing),
+      reminderActive:Boolean(existing?.reminderActive),
+      nextFollowup:existing?.reminderActive?s(existing?.nextFollowup):'',
+      hasilFollowup:s(existing?.hasilFollowup),
+      catatan:(!existingNote||isAutoNote(existingNote))?note:existingNote
+    };
+    if(existing){
+      out.id=s(existing.id);
+      if(existing.supabaseId)out.supabaseId=s(existing.supabaseId);
+    }else{
+      out.legacyId=identity(r);
+    }
+    return out;
+  }
+
+  window.syncOfferActivityToPipeline=function(record,activityType){
+    const type=up(activityType||record?.activityType);
+    if(!TARGET_TYPES.has(type))return Promise.resolve({success:false,skipped:true,reason:'NOT_OFFER_ACTIVITY'});
+    if(!record)return Promise.resolve({success:false,skipped:true,reason:'NO_RECORD'});
+    const cred=credential();
+    if(!cred||typeof window.callApi!=='function')return Promise.resolve({success:false,skipped:true,reason:'SESSION_NOT_READY'});
+    const key=identity(record);
+    const recentAt=Number(recent.get(key)||0);
+    if(recentAt&&Date.now()-recentAt<5000)return Promise.resolve({success:true,skipped:true,deduped:true});
+    if(inflight.has(key))return inflight.get(key);
+    const task=(async()=>{
+      try{
+        const existing=await findExisting(record,cred);
+        const prospect=buildPayload(record,type,existing);
+        const res=await window.callApi('saveProspectPipeline',cred,{prospect});
+        if(!res?.success)throw new Error(res?.error||'Pipeline Prospek menolak penyimpanan.');
+        recent.set(key,Date.now());
+        setTimeout(()=>{if(Date.now()-Number(recent.get(key)||0)>=5000)recent.delete(key);},5500);
+        try{window.dispatchEvent(new CustomEvent('score-pipeline-updated',{detail:{source:type,prospect:res.prospect||null}}));}catch(e){}
+        return res;
+      }catch(err){
+        console.warn('[V250] Offer -> Pipeline gagal:',type,err);
+        return {success:false,error:String(err?.message||err)};
+      }finally{inflight.delete(key);}
+    })();
+    inflight.set(key,task);
+    return task;
+  };
+
+  // Bungkus central activity sekali saja. Activity tetap disimpan seperti sebelumnya,
+  // lalu PENAWARAN_WA ikut di-upsert ke Pipeline. DOWNLOAD_SURAT juga tertangkap
+  // bila memakai fallback activity; durable path surat dipanggil langsung di V250.
+  if(typeof window.pushCentralActivity==='function'&&!window.pushCentralActivity.__v250PipelineWrapped){
+    const original=window.pushCentralActivity;
+    const wrapped=function(record,activityType){
+      const type=up(activityType||record?.activityType);
+      const base=Promise.resolve(original.apply(this,arguments));
+      if(!TARGET_TYPES.has(type))return base;
+      return base.then(async result=>{
+        if(result?.success){
+          try{
+            await Promise.race([
+              Promise.resolve(window.syncOfferActivityToPipeline(record,type)),
+              new Promise(resolve=>setTimeout(()=>resolve({success:false,timeout:true}),3500))
+            ]);
+          }catch(e){console.warn('[V250] Activity -> Pipeline:',e);}
+        }
+        return result;
+      });
+    };
+    wrapped.__v250PipelineWrapped=true;
+    wrapped.__original=original;
+    window.pushCentralActivity=wrapped;
+  }
+
+  window.__SCORE_OFFER_PIPELINE_VERSION='V250';
+})();
+</script>
 </body>
 </html>
 
