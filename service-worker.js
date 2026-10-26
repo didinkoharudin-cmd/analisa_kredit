@@ -1,11 +1,11 @@
-/* SCORE PWA Service Worker — V18.3.11.252
+/* SCORE PWA Service Worker — V18.3.11.254
  * Goal: force a clean app-shell generation so old HTML/UI patches are not
  * retained by CacheStorage, while preserving offline fallback + Web Push.
  */
 'use strict';
 
-const SW_VERSION = '18.3.11.252';
-const CACHE_NAME = 'score-pwa-v252';
+const SW_VERSION = '18.3.11.254';
+const CACHE_NAME = 'score-pwa-v254';
 const NAV_CACHE_KEY = './index.html';
 const SHELL_ASSETS = [
   './icon-192.png',

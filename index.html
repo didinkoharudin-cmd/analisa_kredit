@@ -5494,7 +5494,7 @@ Untuk Informasi lebih lanjut dapat menghubungi Petugas bank bjb {kantor} atas na
 Demikian surat penawaran ini kami sampiakan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.
 
 PT. BANK PEMBANGUNAN DAERAH JAWA BARAT DAN BANTEN, Tbk.
-CABANG KARAWANG
+{kantor_upper}
 
 {Nama_Penandatangan}
 {jabatan}`,
@@ -5526,7 +5526,7 @@ Untuk Informasi lebih lanjut dapat menghubungi Petugas bank bjb {kantor} atas na
 Demikian surat penawaran ini kami sampiakan. Atas perhatian dan kepercayaan Bapak/Ibu, kami ucapkan terima kasih.
 
 PT. BANK PEMBANGUNAN DAERAH JAWA BARAT DAN BANTEN, Tbk.
-CABANG KARAWANG
+{kantor_upper}
 
 {Nama_Penandatangan}
 {jabatan}`
@@ -9843,6 +9843,13 @@ function updateWaPreview() {
     const direct=v221FirstValue(item,['nomor_surat','nomorSurat','offer_letter_number','offerLetterNumber']);
     return String(direct||'').trim()||'____';
   }
+  function v254OfferLetterOfficeHeading(office){
+    const raw=v220OfficeLabel(office).toUpperCase();
+    if(!raw)return '-';
+    if(raw==='CABANG KARAWANG')return 'CABANG KARAWANG';
+    if(/^KCP\s+A\b/i.test(raw))return raw;
+    return 'KCP A '+raw;
+  }
   function v223LetterVars(item,offer,override={}){
     const type=v223NormalizeOfferType(offer||item?.__offerType||'NEW');
     const deb=item?.cifRef||{};
@@ -9863,7 +9870,7 @@ function updateWaPreview() {
     const year=String(new Date().getFullYear());
     return {
       tanggal:new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}),
-      otomatis:String(override?.letterNumber||v223AutomaticNumber(item)||'____'),tahun:String(override?.letterYear||year),nama_debitur:nama,alamat:v223ResolveIncomeAddress(item),kantor:office||'-',
+      otomatis:String(override?.letterNumber||v223AutomaticNumber(item)||'____'),tahun:String(override?.letterYear||year),nama_debitur:nama,alamat:v223ResolveIncomeAddress(item),kantor:office||'-',kantor_upper:v254OfferLetterOfficeHeading(office),
       sumber_pembayaran:source,baki_debet:baki?Math.round(baki).toLocaleString('id-ID'):'0',sisa_tenor:remaining||'-',
       plafond:v221Money(gross),angsuran:installment?v221Money(installment):'-',tenor:tenor?tenor+' Bulan':'-',nett:v221Money(nettVal),
       nama_ao:ownerName,hp_ao:v223OwnerPhone(owner,item),nama_penandatangan:sign.name||'',jabatan:sign.title||'',
@@ -9882,6 +9889,10 @@ function updateWaPreview() {
     // Kode per unit tetap diterapkan tanpa Admin harus mengetik ulang template.
     const code=v226NormalizeLetterCode(map.kode_surat||map.kodeSurat||'');
     if(code)rendered=rendered.replace(/\/KAR-KON\//gi,'/'+code+'/');
+    const officeUpper=String(map.kantor_upper||map.kantorUpper||map.kantor||'').trim().toUpperCase();
+    if(officeUpper){
+      rendered=rendered.replace(/(^|\n)\s*CABANG\s+KARAWANG\s*(?=\n|$)/gi,(m,p1)=>p1+officeUpper);
+    }
     return rendered;
   }
   function v223BlockClass(raw){
@@ -13143,7 +13154,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=252',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v252').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=254',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v254').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20330,7 +20341,7 @@ document.addEventListener('visibilitychange',()=>{
   window.__SCORE_OFFER_PIPELINE_VERSION='V250';
 })();
 </script>
-<!-- V18.3.11.252: Dual durable cross-device flag state: Penawaran WA + Surat Penawaran. -->
+<!-- V18.3.11.254: Dual durable cross-device flag state: Penawaran WA + Surat Penawaran. -->
 </body>
 </html>
 
