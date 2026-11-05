@@ -3248,7 +3248,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V256 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V257 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
   <button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
@@ -13155,7 +13155,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=256',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v256').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=257',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v257').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19696,7 +19696,7 @@ document.addEventListener('visibilitychange',()=>{
 #v255LabelControls .label-hint{font-size:9px;color:#475569;margin:5px 0 9px}
 #v255LabelControls .label-options{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
 #v255LabelControls label{font-size:9px;font-weight:700;color:#334155}
-#v255LabelControls input,#v255LabelControls select{max-width:85px;border:1px solid #cbd5e1;background:white;border-radius:7px;padding:5px;font-size:11px}
+#v255LabelControls input,#v255LabelControls select{max-width:170px;border:1px solid #cbd5e1;background:white;border-radius:7px;padding:5px;font-size:11px}
 #v255LabelControls .label-actions{display:flex;gap:7px;flex-wrap:wrap}
 #v255LabelControls button{border:1px solid #2563eb;background:#fff;color:#1d4ed8;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:800}
 #v255LabelControls button:disabled{opacity:.5}
@@ -19918,7 +19918,7 @@ document.addEventListener('visibilitychange',()=>{
     if(panel)return panel;
     const list=document.getElementById('v9DebtorList');
     panel=document.createElement('section');panel.id='v247BulkLitePanel';
-    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat + Label <span class="v58-version-badge">V256</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
+    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat + Label <span class="v58-version-badge">V257</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
     const bar=document.getElementById('v237BulkBar');
     if(bar?.parentElement)bar.insertAdjacentElement('afterend',panel);else list?.parentElement?.insertBefore(panel,list);
     panel.querySelector('#v247LiteClose')?.addEventListener('click',()=>{if(!state.busy)panel.classList.remove('show');});
@@ -19926,8 +19926,9 @@ document.addEventListener('visibilitychange',()=>{
     panel.querySelector('#v247LiteDownload')?.addEventListener('click',generateBulkLite);
     const controls=document.createElement('div');controls.id='v255LabelControls';
     controls.innerHTML=`<div class="label-head"><i class="fa-solid fa-tags"></i> Label Amplop No. 103 — 12 label/lembar</div>
-      <div class="label-hint">Label ukuran 64 × 32 mm, susunan 3 kolom × 4 baris, kertas 204 × 165 mm. Cetak 100% / Actual Size, jangan Fit to Page.</div>
+      <div class="label-hint">Label 64 × 32 mm (3 kolom × 4 baris). Mode koreksi 90° disiapkan untuk kasus hasil cetak yang terputar seperti foto. Cetak Actual Size / 100%, tanpa auto-rotate atau Fit to Page. Tes pada kertas biasa dahulu.</div>
       <div class="label-options">
+        <label>Orientasi cetak <select id="v257LabelOrientation"><option value="rotate90" selected>Koreksi 90° (hasil foto)</option><option value="normal">Landscape standar</option></select></label>
         <label>Mulai label ke- <select id="v255LabelStart">${Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('')}</select></label>
         <label>Geser horizontal (mm) <input id="v255LabelOffsetX" type="number" min="-5" max="5" step="0.5" value="0"></label>
         <label>Geser vertikal (mm) <input id="v255LabelOffsetY" type="number" min="-5" max="5" step="0.5" value="0"></label>
@@ -19978,7 +19979,7 @@ document.addEventListener('visibilitychange',()=>{
   // V255 — Label No. 103. Keep label preview independent of letter numbering and flags.
   function v255Options(){
     const num=(id,def)=>{const n=Number(document.getElementById(id)?.value);return Number.isFinite(n)?n:def;};
-    return {start:Math.max(1,Math.min(12,Math.round(num('v255LabelStart',1)))),
+    return {orientation:document.getElementById('v257LabelOrientation')?.value==='normal'?'normal':'rotate90',start:Math.max(1,Math.min(12,Math.round(num('v255LabelStart',1)))),
       dx:Math.max(-5,Math.min(5,num('v255LabelOffsetX',0))),dy:Math.max(-5,Math.min(5,num('v255LabelOffsetY',0)))};
   }
   function v255SafeAddress(row){
@@ -20044,34 +20045,45 @@ document.addEventListener('visibilitychange',()=>{
   function v255BuildPdf(people,options){
     if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum siap. Periksa koneksi internet.');
     const {jsPDF}=window.jspdf;
-    // Label No.103: physical sheet 204×165 mm, 3 columns x 4 rows.
-    // Sticker 64×32 mm. Top/side margins, pitch can vary slightly by manufacturer.
-    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:[204,165],compress:true});
-    const start=(options?.start||1)-1,dx=options?.dx||0,dy=options?.dy||0;
+    // V257: Printer pada contoh foto memutar seluruh hasil 90 derajat terhadap
+    // label. Gunakan halaman PDF portrait 165 x 204 dengan KOORDINAT LAYOUT
+    // LANDSCAPE 204 x 165 yang diputar 90 derajat. Seluruh grid DAN teks
+    // ditransformasi bersama sehingga tulisan tidak berpindah antar stiker.
+    // Pilihan "Landscape standar" mempertahankan output V256 untuk printer lain.
+    const rotate90=options?.orientation!=='normal';
+    const pageFormat=rotate90?[165,204]:[204,165];
+    const pageOrientation=rotate90?'portrait':'landscape';
+    const pdf=new jsPDF({orientation:pageOrientation,unit:'mm',format:pageFormat,compress:true});
+    const start=(options?.start||1)-1,dx=Number(options?.dx)||0,dy=Number(options?.dy)||0;
+    // Rotate virtual landscape coordinates clockwise into a portrait PDF page.
+    // Coordinates in millimetres: (x, y) → (165-y, x). Text uses angle -90
+    // so the entire content follows the same rotation as the grid.
+    function labelText(lines,x,y,extra={}){
+      if(rotate90)pdf.text(lines,165-y,x,{...extra,angle:-90});
+      else pdf.text(lines,x,y,extra);
+    }
     for(let i=0;i<people.length;i++){
       const idx=i+start,page=Math.floor(idx/12),slot=idx%12;
-      if(page>0&&slot===0)pdf.addPage([204,165],'landscape');
+      if(page>0&&slot===0)pdf.addPage(pageFormat,pageOrientation);
       const col=slot%3,row=Math.floor(slot/3),left=2+68*col+dx,top=9+38*row+dy;
       const x=left+3,y=top+7.1;
       const name='Yth. '+people[i].name;
       pdf.setFont('helvetica','bold');pdf.setFontSize(8.3);
       const nm=pdf.splitTextToSize(name,57).slice(0,2);
-      pdf.text(nm,x,y,{baseline:'alphabetic',lineHeightFactor:1.05});
-      // Batas ruang label: 64 x 32 mm. Dinas di bawah nama, sebelum alamat.
-      // Maksimum total baris agar tidak melewati stiker saat dicetak 100%.
+      labelText(nm,x,y,{baseline:'alphabetic',lineHeightFactor:1.05});
       let nextY=y+nm.length*3.6+1.1;
       const dinas=String(people[i].dinas||'').trim();
       if(dinas){
         pdf.setFont('helvetica','bold');pdf.setFontSize(6.7);
         const instansiLines=pdf.splitTextToSize(dinas,57).slice(0,1);
-        pdf.text(instansiLines,x,nextY,{lineHeightFactor:1.05});
+        labelText(instansiLines,x,nextY,{lineHeightFactor:1.05});
         nextY+=3.4;
       }
       pdf.setFont('helvetica','normal');pdf.setFontSize(7.1);
       const addr=String(people[i].address||'');
       const maxAddressLines=Math.max(1,5-nm.length-(dinas?1:0));
       const lines=pdf.splitTextToSize(addr,57).slice(0,maxAddressLines);
-      pdf.text(lines,x,nextY+1.0,{lineHeightFactor:1.05});
+      labelText(lines,x,nextY+1.0,{lineHeightFactor:1.05});
     }
     return pdf.output('blob');
   }
@@ -20087,7 +20099,7 @@ document.addEventListener('visibilitychange',()=>{
       const all=await v255ResolveAddresses(v255LabelPeople(liteRowsSnapshot()));
       const people=all.filter(p=>p.address&&p.address!=='-');
       if(!people.length)throw new Error('Tidak ada alamat valid untuk dicetak. Lengkapi alamat di data penghasilan.');
-      const file=v255BuildPdf(people,v255Options()),name='Label_Amplop_103_'+v255Stamp()+'.pdf';
+      const file=v255BuildPdf(people,v255Options()),name='Label_Amplop_103_V257_'+v255Stamp()+'.pdf';
       v255Report(people.length+' label dibuat • '+(all.length-people.length)+' alamat kosong dilewati.');
       if(window.scoreDownloadBlobV248)window.scoreDownloadBlobV248(file,name,'application/pdf');
       else{const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),5000);}
