@@ -3248,7 +3248,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V255 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V256 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
   <button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
@@ -13155,7 +13155,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=255',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v255').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=256',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v256').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19707,6 +19707,7 @@ document.addEventListener('visibilitychange',()=>{
 .v255-label-cell strong{font-size:9px;display:block;margin-bottom:4px;line-height:1.15}
 .v255-label-cell span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.1;word-break:break-word}
 .v255-label-cell.empty{background:#f1f5f9;opacity:.6}
+.v255-label-cell .v256-label-dinas{font-weight:700;font-size:7.5px;line-height:1.1;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 2px}
 </style>
 <style id="v247-bulk-lite-style">
 #v247BulkLitePanel{display:none;margin:8px 0 12px;border:1px solid #bfdbfe;border-radius:14px;background:#fff;box-shadow:0 6px 20px rgba(15,23,42,.08);overflow:hidden}
@@ -19797,7 +19798,7 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V255 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V256 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
@@ -19917,7 +19918,7 @@ document.addEventListener('visibilitychange',()=>{
     if(panel)return panel;
     const list=document.getElementById('v9DebtorList');
     panel=document.createElement('section');panel.id='v247BulkLitePanel';
-    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat + Label <span class="v58-version-badge">V255</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
+    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat + Label <span class="v58-version-badge">V256</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
     const bar=document.getElementById('v237BulkBar');
     if(bar?.parentElement)bar.insertAdjacentElement('afterend',panel);else list?.parentElement?.insertBefore(panel,list);
     panel.querySelector('#v247LiteClose')?.addEventListener('click',()=>{if(!state.busy)panel.classList.remove('show');});
@@ -19988,15 +19989,29 @@ document.addEventListener('visibilitychange',()=>{
     }
     return '';
   }
+  // V256: ambil dinas hanya dari row/cifRef yang sudah berada di memori.
+  // Tidak ada API call atau pencarian penghasilan tambahan untuk data instansi.
+  function v256LabelDinas(row){
+    const fields=['dinas','DINAS','nama_dinas','NAMA_DINAS','namaDinas','instansi','INSTANSI','nama_instansi','NAMA_INSTANSI','skpd','SKPD'];
+    for(const source of [row?.cifRef,row]){
+      if(!source||typeof source!=='object')continue;
+      for(const key of fields){
+        const value=String(source[key]??'').trim();
+        if(value&&!['-','DINAS GENERAL','INPUT MANUAL'].includes(value.toUpperCase()))return value;
+      }
+    }
+    return '';
+  }
   function v255LabelPeople(entries){
     const result=[],seen=new Set();
     for(const e of entries){
       const row=e.row||{},cif=String(row?.cifRef?.cif||row?.cif||'').trim();
       const name=String(e.name||e.vars?.nama_debitur||nameOf(row)||'').trim();
       const address=String(e.vars?.alamat||v255SafeAddress(row)||'').trim();
+      const dinas=String(e.dinas||v256LabelDinas(row)||'').trim();
       const key=cif?'CIF:'+cif:'NAME:'+name.toUpperCase()+'|'+address.toUpperCase();
       if(seen.has(key))continue;seen.add(key);
-      result.push({name,address,row});
+      result.push({name,dinas,address,row});
     }
     return result;
   }
@@ -20008,7 +20023,7 @@ document.addEventListener('visibilitychange',()=>{
     const {start}=v255Options();
     const first=Array(start-1).fill(null).concat(people).slice(0,12);
     host.innerHTML=Array.from({length:12},(_,i)=>{
-      const p=first[i];return '<div class="v255-label-cell'+(p?'':' empty')+'"><strong>'+(p?esc('Yth. '+p.name):'Label '+(i+1))+'</strong><span>'+ (p?esc(p.address||'Alamat belum tersedia'):'—')+'</span></div>';
+      const p=first[i];return '<div class="v255-label-cell'+(p?'':' empty')+'"><strong>'+(p?esc('Yth. '+p.name):'Label '+(i+1))+'</strong>'+(p?.dinas?'<span class="v256-label-dinas">'+esc(p.dinas)+'</span>':'')+'<span>'+ (p?esc(p.address||'Alamat belum tersedia'):'—')+'</span></div>';
     }).join('');
     const blank=people.filter(p=>!p.address||p.address==='-').length;
     v255Report(people.length+' debitur unik • '+Math.ceil((people.length+start-1)/12)+' lembar • '+blank+' alamat belum tersedia. Preview halaman pertama.');
@@ -20042,10 +20057,21 @@ document.addEventListener('visibilitychange',()=>{
       pdf.setFont('helvetica','bold');pdf.setFontSize(8.3);
       const nm=pdf.splitTextToSize(name,57).slice(0,2);
       pdf.text(nm,x,y,{baseline:'alphabetic',lineHeightFactor:1.05});
+      // Batas ruang label: 64 x 32 mm. Dinas di bawah nama, sebelum alamat.
+      // Maksimum total baris agar tidak melewati stiker saat dicetak 100%.
+      let nextY=y+nm.length*3.6+1.1;
+      const dinas=String(people[i].dinas||'').trim();
+      if(dinas){
+        pdf.setFont('helvetica','bold');pdf.setFontSize(6.7);
+        const instansiLines=pdf.splitTextToSize(dinas,57).slice(0,1);
+        pdf.text(instansiLines,x,nextY,{lineHeightFactor:1.05});
+        nextY+=3.4;
+      }
       pdf.setFont('helvetica','normal');pdf.setFontSize(7.1);
       const addr=String(people[i].address||'');
-      const lines=pdf.splitTextToSize(addr,57).slice(0,Math.max(1,4-nm.length));
-      pdf.text(lines,x,y+nm.length*3.6+2.0,{lineHeightFactor:1.05});
+      const maxAddressLines=Math.max(1,5-nm.length-(dinas?1:0));
+      const lines=pdf.splitTextToSize(addr,57).slice(0,maxAddressLines);
+      pdf.text(lines,x,nextY+1.0,{lineHeightFactor:1.05});
     }
     return pdf.output('blob');
   }
