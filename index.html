@@ -3248,7 +3248,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <button type="button" class="v56-bulk-open" data-v56-open-bulk disabled><i class="fa-brands fa-whatsapp"></i> Bulk WA</button>
 </div>
 <div id="v238BulkLetterToolbar" class="v239-bulk-static-toolbar" data-v239-static="1">
-  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V249 LITE</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
+  <div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V255 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div>
   <button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>
 </div>
 <div class="v9-panel" style="margin-top:0"><div id="v9DebtorList" class="v9-list"></div></div></section>
@@ -10769,6 +10769,7 @@ function updateWaPreview() {
   window.__scoreOfferLetterBridgeV236={
     normalizeOfferType:v223NormalizeOfferType,
     letterVars:v223LetterVars,
+    resolveLabelAddress:v223ResolveIncomeAddress,
     getSignatory:v221GetSignatory,
     normalizeLetterCode:v226NormalizeLetterCode,
     issueNumber:v225IssueOfferLetterNumber,
@@ -13154,7 +13155,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=254',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v254').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=255',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v255').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -19689,6 +19690,24 @@ document.addEventListener('visibilitychange',()=>{
 .v237-bulk-mode tr[data-loan-id]{position:relative}.v237-table-check{display:none;align-items:center;justify-content:center;gap:4px}.v237-bulk-mode .v237-table-check{display:inline-flex}.v237-table-check input{width:16px;height:16px;accent-color:#0757c7}
 @media(max-width:560px){#v238BulkLetterToolbar{align-items:stretch}#v238BulkLetterToolbar .v237-bulk-trigger{width:100%;justify-content:center}}
 </style>
+<style id="v255-label103-style">
+#v255LabelControls{padding:11px 12px;border-top:1px solid #dbeafe;background:#f8fbff}
+#v255LabelControls .label-head{font-size:11px;font-weight:900;color:#1e3a8a;display:flex;align-items:center;gap:8px}
+#v255LabelControls .label-hint{font-size:9px;color:#475569;margin:5px 0 9px}
+#v255LabelControls .label-options{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+#v255LabelControls label{font-size:9px;font-weight:700;color:#334155}
+#v255LabelControls input,#v255LabelControls select{max-width:85px;border:1px solid #cbd5e1;background:white;border-radius:7px;padding:5px;font-size:11px}
+#v255LabelControls .label-actions{display:flex;gap:7px;flex-wrap:wrap}
+#v255LabelControls button{border:1px solid #2563eb;background:#fff;color:#1d4ed8;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:800}
+#v255LabelControls button:disabled{opacity:.5}
+#v255LabelControls #v255LabelOnly{background:#eff6ff}
+#v255LabelControls #v255LabelReport{font-size:9px;margin-top:7px;color:#475569}
+#v255LabelPreview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:9px 0;max-width:440px}
+.v255-label-cell{height:66px;padding:6px;border:1px dashed #94a3b8;border-radius:5px;overflow:hidden;background:#fff;color:#0f172a;font-size:8px}
+.v255-label-cell strong{font-size:9px;display:block;margin-bottom:4px;line-height:1.15}
+.v255-label-cell span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;line-height:1.1;word-break:break-word}
+.v255-label-cell.empty{background:#f1f5f9;opacity:.6}
+</style>
 <style id="v247-bulk-lite-style">
 #v247BulkLitePanel{display:none;margin:8px 0 12px;border:1px solid #bfdbfe;border-radius:14px;background:#fff;box-shadow:0 6px 20px rgba(15,23,42,.08);overflow:hidden}
 #v247BulkLitePanel.show{display:block}
@@ -19778,7 +19797,7 @@ document.addEventListener('visibilitychange',()=>{
     let tb=document.getElementById('v238BulkLetterToolbar');
     if(!tb){
       tb=document.createElement('div');tb.id='v238BulkLetterToolbar';tb.className='v239-bulk-static-toolbar';
-      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V249 LITE</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
+      tb.innerHTML='<div class="v238-copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat <span class="v58-version-badge">V255 LABEL</span></b><small><span data-v238-count>0 dipilih</span> • pilih beberapa kartu lalu download Surat Penawaran dalam ZIP.</small></div><button type="button" id="v243BulkSuratToggle" class="v237-bulk-trigger"><i class="fa-solid fa-file-zipper"></i> Bulk Surat</button>';
       list.parentElement?.insertBefore(tb,list);
     }
     const trigger=tb.querySelector('.v237-bulk-trigger');
@@ -19898,12 +19917,27 @@ document.addEventListener('visibilitychange',()=>{
     if(panel)return panel;
     const list=document.getElementById('v9DebtorList');
     panel=document.createElement('section');panel.id='v247BulkLitePanel';
-    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat Lite <span class="v58-version-badge">V249</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
+    panel.innerHTML='<div class="v247-lite-head"><div class="copy"><b><i class="fa-solid fa-file-zipper"></i> Bulk Surat + Label <span class="v58-version-badge">V255</span></b><small id="v247LiteSummary">Daftar kartu yang dipilih.</small></div><button type="button" id="v247LiteClose">Tutup</button></div><div class="v247-lite-list"><div class="v247-lite-row header"><div>Debitur</div><div>Jenis</div><div>Tenor</div><div>Plafond</div><div>Status</div></div><div id="v247LiteRows"></div></div><div class="v247-lite-foot"><div class="v247-lite-progress"><small id="v247LiteProgressText">Siap diproses</small><div class="v247-lite-track"><div class="v247-lite-fill" id="v247LiteProgressFill"></div></div></div><button type="button" class="v247-lite-cancel" id="v247LiteCancel">Batal</button><button type="button" class="v247-lite-download" id="v247LiteDownload">Download ZIP</button></div>';
     const bar=document.getElementById('v237BulkBar');
     if(bar?.parentElement)bar.insertAdjacentElement('afterend',panel);else list?.parentElement?.insertBefore(panel,list);
     panel.querySelector('#v247LiteClose')?.addEventListener('click',()=>{if(!state.busy)panel.classList.remove('show');});
     panel.querySelector('#v247LiteCancel')?.addEventListener('click',()=>{if(!state.busy)panel.classList.remove('show');});
     panel.querySelector('#v247LiteDownload')?.addEventListener('click',generateBulkLite);
+    const controls=document.createElement('div');controls.id='v255LabelControls';
+    controls.innerHTML=`<div class="label-head"><i class="fa-solid fa-tags"></i> Label Amplop No. 103 — 12 label/lembar</div>
+      <div class="label-hint">Label ukuran 64 × 32 mm, susunan 3 kolom × 4 baris, kertas 204 × 165 mm. Cetak 100% / Actual Size, jangan Fit to Page.</div>
+      <div class="label-options">
+        <label>Mulai label ke- <select id="v255LabelStart">${Array.from({length:12},(_,i)=>'<option value="'+(i+1)+'">'+(i+1)+'</option>').join('')}</select></label>
+        <label>Geser horizontal (mm) <input id="v255LabelOffsetX" type="number" min="-5" max="5" step="0.5" value="0"></label>
+        <label>Geser vertikal (mm) <input id="v255LabelOffsetY" type="number" min="-5" max="5" step="0.5" value="0"></label>
+      </div><div class="label-actions"><button type="button" id="v255LabelPreviewButton">Preview Label</button><button type="button" id="v255LabelOnly"><i class="fa-solid fa-file-pdf"></i> Download PDF Label Saja</button></div>
+      <div id="v255LabelReport" role="status">Label diambil dari debitur terpilih. Nama yang sama/CIF sama dibuat satu label.</div><div id="v255LabelPreview" aria-label="Preview tata letak label"></div>`;
+    panel.querySelector('.v247-lite-foot').before(controls);
+    controls.querySelector('#v255LabelPreviewButton')?.addEventListener('click',previewLabelsV255);
+    controls.querySelector('#v255LabelOnly')?.addEventListener('click',downloadLabelsOnlyV255);
+    controls.querySelector('#v255LabelStart')?.addEventListener('change',()=>previewLabelsV255());
+    const bulkButton=panel.querySelector('#v247LiteDownload');
+    if(bulkButton)bulkButton.textContent='Download ZIP Surat + Label';
     return panel;
   }
   function liteOfficeHint(row){
@@ -19937,9 +19971,103 @@ document.addEventListener('visibilitychange',()=>{
   window.v247BulkLitePreview=function(event){
     try{event?.preventDefault?.();event?.stopPropagation?.();}catch(e){}
     if(!state.selected.size){alert('Belum ada kartu Surat Penawaran yang dipilih.');return false;}
-    try{renderLitePanel(liteRowsSnapshot());}catch(e){console.error('[V248 Lite] preview',e);alert('Gagal menampilkan daftar bulk: '+(e?.message||e));}
+    try{renderLitePanel(liteRowsSnapshot());previewLabelsV255();}catch(e){console.error('[V248 Lite] preview',e);alert('Gagal menampilkan daftar bulk: '+(e?.message||e));}
     return false;
   };
+  // V255 — Label No. 103. Keep label preview independent of letter numbering and flags.
+  function v255Options(){
+    const num=(id,def)=>{const n=Number(document.getElementById(id)?.value);return Number.isFinite(n)?n:def;};
+    return {start:Math.max(1,Math.min(12,Math.round(num('v255LabelStart',1)))),
+      dx:Math.max(-5,Math.min(5,num('v255LabelOffsetX',0))),dy:Math.max(-5,Math.min(5,num('v255LabelOffsetY',0)))};
+  }
+  function v255SafeAddress(row){
+    const candidates=[row?.cifRef,row,row?.facilityRef];
+    const fields=['alamat','ALAMAT','alamat_rumah','ALAMAT_RUMAH','alamat_lengkap','ALAMAT_LENGKAP','alamat_domisili','address','ADDRESS'];
+    for(const c of candidates){if(!c||typeof c!=='object')continue;
+      for(const k of fields){const v=String(c[k]||'').trim();if(v&&v!=='-')return v;}
+    }
+    return '';
+  }
+  function v255LabelPeople(entries){
+    const result=[],seen=new Set();
+    for(const e of entries){
+      const row=e.row||{},cif=String(row?.cifRef?.cif||row?.cif||'').trim();
+      const name=String(e.name||e.vars?.nama_debitur||nameOf(row)||'').trim();
+      const address=String(e.vars?.alamat||v255SafeAddress(row)||'').trim();
+      const key=cif?'CIF:'+cif:'NAME:'+name.toUpperCase()+'|'+address.toUpperCase();
+      if(seen.has(key))continue;seen.add(key);
+      result.push({name,address,row});
+    }
+    return result;
+  }
+  function v255Report(s){const el=document.getElementById('v255LabelReport');if(el)el.textContent=s;}
+  function previewLabelsV255(){
+    if(state.busy)return;
+    const people=v255LabelPeople(liteRowsSnapshot()),host=document.getElementById('v255LabelPreview');
+    if(!host)return;
+    const {start}=v255Options();
+    const first=Array(start-1).fill(null).concat(people).slice(0,12);
+    host.innerHTML=Array.from({length:12},(_,i)=>{
+      const p=first[i];return '<div class="v255-label-cell'+(p?'':' empty')+'"><strong>'+(p?esc('Yth. '+p.name):'Label '+(i+1))+'</strong><span>'+ (p?esc(p.address||'Alamat belum tersedia'):'—')+'</span></div>';
+    }).join('');
+    const blank=people.filter(p=>!p.address||p.address==='-').length;
+    v255Report(people.length+' debitur unik • '+Math.ceil((people.length+start-1)/12)+' lembar • '+blank+' alamat belum tersedia. Preview halaman pertama.');
+  }
+  async function v255ResolveAddresses(people){
+    const resolver=bridge()?.resolveLabelAddress;
+    const out=[];
+    for(const p of people){
+      let address=p.address;
+      if((!address||address==='-')&&typeof resolver==='function'){
+        try{const a=String(resolver(p.row)||'').trim();if(a&&a!=='-')address=a;}catch(e){console.warn('[V255 label] lookup alamat',e);}
+      }
+      out.push({...p,address});
+      if(out.length%4===0)await new Promise(r=>setTimeout(r,0));
+    }
+    return out;
+  }
+  function v255BuildPdf(people,options){
+    if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum siap. Periksa koneksi internet.');
+    const {jsPDF}=window.jspdf;
+    // Label No.103: physical sheet 204×165 mm, 3 columns x 4 rows.
+    // Sticker 64×32 mm. Top/side margins, pitch can vary slightly by manufacturer.
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:[204,165],compress:true});
+    const start=(options?.start||1)-1,dx=options?.dx||0,dy=options?.dy||0;
+    for(let i=0;i<people.length;i++){
+      const idx=i+start,page=Math.floor(idx/12),slot=idx%12;
+      if(page>0&&slot===0)pdf.addPage([204,165],'landscape');
+      const col=slot%3,row=Math.floor(slot/3),left=2+68*col+dx,top=9+38*row+dy;
+      const x=left+3,y=top+7.1;
+      const name='Yth. '+people[i].name;
+      pdf.setFont('helvetica','bold');pdf.setFontSize(8.3);
+      const nm=pdf.splitTextToSize(name,57).slice(0,2);
+      pdf.text(nm,x,y,{baseline:'alphabetic',lineHeightFactor:1.05});
+      pdf.setFont('helvetica','normal');pdf.setFontSize(7.1);
+      const addr=String(people[i].address||'');
+      const lines=pdf.splitTextToSize(addr,57).slice(0,Math.max(1,4-nm.length));
+      pdf.text(lines,x,y+nm.length*3.6+2.0,{lineHeightFactor:1.05});
+    }
+    return pdf.output('blob');
+  }
+  function v255Stamp(){
+    const d=new Date(),pad=v=>String(v).padStart(2,'0');
+    return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())+'_'+Math.random().toString(36).slice(2,6).toUpperCase();
+  }
+  async function downloadLabelsOnlyV255(){
+    if(state.busy)return;
+    const button=document.getElementById('v255LabelOnly');
+    try{
+      if(button){button.disabled=true;button.textContent='Menyiapkan PDF label…';}
+      const all=await v255ResolveAddresses(v255LabelPeople(liteRowsSnapshot()));
+      const people=all.filter(p=>p.address&&p.address!=='-');
+      if(!people.length)throw new Error('Tidak ada alamat valid untuk dicetak. Lengkapi alamat di data penghasilan.');
+      const file=v255BuildPdf(people,v255Options()),name='Label_Amplop_103_'+v255Stamp()+'.pdf';
+      v255Report(people.length+' label dibuat • '+(all.length-people.length)+' alamat kosong dilewati.');
+      if(window.scoreDownloadBlobV248)window.scoreDownloadBlobV248(file,name,'application/pdf');
+      else{const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),5000);}
+    }catch(e){alert('Generate label gagal: '+(e?.message||e));}
+    finally{if(button){button.disabled=false;button.innerHTML='<i class="fa-solid fa-file-pdf"></i> Download PDF Label Saja';}}
+  }
   async function generateBulkLite(){
     if(state.busy)return;
     const snapshot=liteRowsSnapshot();if(!snapshot.length){alert('Belum ada surat yang dipilih.');return;}
@@ -19973,7 +20101,7 @@ document.addEventListener('visibilitychange',()=>{
           if(!issued?.number)throw new Error('Nomor surat gagal diterbitkan');
           setLiteStatus(entry.key,'Membuat PDF…','');
           const pdf=await window.v237BuildOfferLetterPdfBlob(entry.row,entry.type,issued,letterOverride);
-          successes.push({key:entry.key,blob:pdf.blob,name:pdf.filename,record:pdf.record,type:pdf.type});
+          successes.push({key:entry.key,blob:pdf.blob,name:pdf.filename,record:pdf.record,type:pdf.type,vars:pdf.vars,row:entry.row});
           setLiteStatus(entry.key,'Berhasil','ok');
         }catch(e){
           failures.push({key:entry.key,error:String(e?.message||e)});setLiteStatus(entry.key,'Gagal: '+String(e?.message||e).slice(0,60),'bad');
@@ -19982,8 +20110,20 @@ document.addEventListener('visibilitychange',()=>{
         await new Promise(r=>setTimeout(r,0));
       }
       if(!successes.length)throw new Error('Tidak ada PDF yang berhasil dibuat. Periksa status tiap baris.');
-      setLiteProgress(snapshot.length,snapshot.length,'Mengemas '+successes.length+' PDF ke ZIP…');
-      const zip=await makeZip(successes);
+      setLiteProgress(snapshot.length,snapshot.length,'Membuat PDF Label 103 dan mengemas ZIP…');
+      const zipFiles=successes.slice();
+      try{
+        const labelPeople=await v255ResolveAddresses(v255LabelPeople(successes.map(x=>({row:x.row,vars:x.vars,name:x.vars?.nama_debitur}))));
+        const printable=labelPeople.filter(p=>p.address&&p.address!=='-');
+        if(printable.length){
+          zipFiles.push({name:'Label_Amplop_No_103.pdf',blob:v255BuildPdf(printable,v255Options())});
+          v255Report(printable.length+' label masuk ZIP dari surat yang berhasil • '+(labelPeople.length-printable.length)+' alamat tidak tersedia dilewati.');
+        }else v255Report('Tidak ada alamat valid: ZIP hanya berisi surat. Periksa data penghasilan.');
+      }catch(labelError){
+        console.error('[V255] PDF label gagal dibuat:',labelError);
+        v255Report('Pembuatan label gagal: '+String(labelError?.message||labelError)+'; ZIP tetap berisi surat.');
+      }
+      const zip=await makeZip(zipFiles);
       const now=new Date();
       const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(now);
       const pv=t=>parts.find(x=>x.type===t)?.value||'';
