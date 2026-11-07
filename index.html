@@ -13189,7 +13189,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=267',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v267').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=268',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v268').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -17667,22 +17667,55 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function setOpen(open){const modal=el('v25AoMonitoringModal');modal?.classList.toggle('show',Boolean(open));modal?.setAttribute('aria-hidden',open?'false':'true');document.body.style.overflow=open?'hidden':'';}
   function setButtonLoading(button,loading,label){if(!button)return;if(loading){button.dataset.oldHtml=button.innerHTML;button.disabled=true;button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> '+label;}else{button.disabled=false;if(button.dataset.oldHtml)button.innerHTML=button.dataset.oldHtml;}}
 
+  // V268 fast-open: no serial Status -> Data roundtrip. The data endpoint checks
+  // authorization/configuration itself; status is consulted only on an error.
+  // The previous successful view stays visible while fresh data is requested.
+  let v268OpenTask=null;
+  let v268CurrentIdentity='';
+  function v268Identity(){const u=window.currentUser||{};return String(u.email||u.EMAIL||u.kodeAO||u.kode_ao||'').trim().toLowerCase()+'|'+currentRole()+'|'+String(u.branchId||u._BRANCH_ID||u.branch_id||u.branchName||'');}
+  function v268ClearOldSessionIfNeeded(){
+    const id=v268Identity();
+    if(id!==v268CurrentIdentity){
+      state.profile=null;state.userData=null;state.adminData=null;state.branchOfficeOptions=[];
+      v268CurrentIdentity=id;
+    }
+  }
   async function start(){
-    setStatus('Memeriksa konfigurasi laporan...');el('v25MonitoringRole').textContent=currentRole()||'-';
-    try{
-      const status=await api('getAoMonitoringStatus',{});
-      if(!status?.success)throw new Error(status?.error||'Status laporan tidak dapat dibaca.');
-      if(!status.configured){
-        if(isAdmin()){show('v25MonitoringConfig');setStatus(status.error||'Hubungkan Google Spreadsheet laporan untuk pertama kali.');}
-        else{show('');setStatus('Spreadsheet laporan belum dihubungkan oleh Admin/Supervisor.',true);}
-        return;
+    if(v268OpenTask)return v268OpenTask;
+    v268ClearOldSessionIfNeeded();
+    const admin=isAdmin();
+    el('v25MonitoringRole').textContent=currentRole()||'-';
+    show(admin?'v25MonitoringAdmin':'v25MonitoringAO');
+    if(admin&&state.adminData){renderAdmin();setStatus('Menampilkan laporan terakhir • menyegarkan data terbaru...');}
+    else if(!admin&&state.userData){renderAo();setStatus('Menampilkan laporan terakhir • menyegarkan data terbaru...');}
+    else setStatus('Menampilkan laporan • memuat data terbaru...');
+    const task=(async()=>{
+      try{
+        if(admin)await loadAdmin();
+        else await loadAo();
+      }catch(err){
+        console.warn('[V268 Fast Open] Data laporan belum tersedia:',err);
+        // Only request configuration status after a data error, not at every open.
+        try{
+          const status=await api('getAoMonitoringStatus',{});
+          if(status?.success&&!status.configured){
+            if(admin){show('v25MonitoringConfig');setStatus(status.error||'Hubungkan Google Spreadsheet laporan untuk pertama kali.',true);}
+            else{show('');setStatus('Spreadsheet laporan belum dihubungkan oleh Admin/Supervisor.',true);}
+            return;
+          }
+        }catch(statusErr){console.warn('[V268 Fast Open] Pemeriksaan konfigurasi:',statusErr);}
+        setStatus('Laporan gagal diperbarui: '+String(err?.message||err)+(state.adminData||state.userData?' • data sebelumnya tetap ditampilkan':''),true);
       }
-      if(isAdmin()){show('v25MonitoringAdmin');if(el('v25AdminSheetName'))el('v25AdminSheetName').textContent=status.spreadsheetName||'Google Spreadsheet';await loadAdmin();}
-      else{show('v25MonitoringAO');await loadAo();}
-    }catch(err){console.error('AO Monitoring start:',err);if(isAdmin())show('v25MonitoringConfig');setStatus(String(err?.message||err),true);}
+    })();
+    v268OpenTask=task;
+    try{return await task;}finally{if(v268OpenTask===task)v268OpenTask=null;}
   }
 
-  window.openAoMonitoring=async function(){if(currentRole()==='SELF_SERVICE'){alert('Menu laporan harian hanya tersedia untuk AO, Admin, atau Supervisor.');return;}setOpen(true);await start();};
+  window.openAoMonitoring=function(){
+    if(currentRole()==='SELF_SERVICE'){alert('Menu laporan harian hanya tersedia untuk AO, Admin, atau Supervisor.');return Promise.resolve();}
+    setOpen(true); // show immediately, before network request
+    return start();
+  };
   window.closeAoMonitoring=function(){setOpen(false);};
 
   async function saveConfig(){
@@ -17719,12 +17752,18 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     const r=await api('getAoMonitoringUserData',{});
     if(!r?.success)throw new Error(r?.error||'Data AO gagal dimuat.');
     state.profile=r.profile||{};state.userData=r;
-    // V160: endpoint monitoring AO pada beberapa deployment hanya mengirim kantor AO sendiri.
-    // Ambil daftar kantor dari klasemen Home AO yang sudah branch-scoped, lalu gabungkan dengan officeOptions server.
-    await loadBranchOfficeOptionsForAo();
+    // V268: render the AO report immediately. Office options from Home are
+    // supplementary and must never block the screen or its history.
     renderAo();
     const unitCount=officeOptions().length;
-    setStatus('Laporan AO siap • '+unitCount+' unit booking cabang tersedia • '+new Date().toLocaleString('id-ID'));
+    setStatus('Laporan AO siap • '+unitCount+' unit booking tersedia • '+new Date().toLocaleString('id-ID'));
+    loadBranchOfficeOptionsForAo().then(()=>{
+      if(!el('v25AoMonitoringModal')?.classList.contains('show'))return;
+      // Preserve current Unit Booking selection after background option refresh.
+      const selector=el('v25RealizationOffice'),selected=selector?.value||'';
+      populateOfficeSelects();
+      if(selector&&selected&&officeOptions().includes(selected))selector.value=selected;
+    }).catch(err=>console.warn('[V268] Unit booking tambahan:',err));
   }
   function renderAo(){populateOfficeSelects();if(el('v25RealizationOffice')&&!el('v25RealizationOffice').value&&state.userData?.user?.kantor)el('v25RealizationOffice').value=state.userData.user.kantor;
     const p=state.profile||{};if(el('v25AoIdentity'))el('v25AoIdentity').textContent=(p.nama||'-')+' • '+(p.email||'-')+' • '+(p.divisi||'Divisi belum diatur');if(el('v25RealizationDivision')){if(p.divisi)el('v25RealizationDivision').value=p.divisi;el('v25RealizationDivision').disabled=Boolean(p.divisi);}
