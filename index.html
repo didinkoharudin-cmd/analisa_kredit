@@ -3763,6 +3763,19 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
             <div class="v25-actions"><button id="v25SaveRealization" type="submit" class="v25-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi</button><button id="v25CancelRealizationEdit" type="button" class="v25-secondary v25-hidden">Batal Edit</button></div>
           </form>
         </div>
+        <!-- V267: AO can record monthly payoff only for own assigned office -->
+        <section id="v267AoPayoffSection" class="v25-card" aria-label="Pelunasan Putus Kantor AO">
+          <div class="v25-card-head"><div><h3><i class="fa-solid fa-building-columns"></i> Pelunasan Putus Kantor</h3><span>Nominal per bulan untuk unit kantor penempatan Anda</span></div></div>
+          <div class="v25-grid three">
+            <label class="v25-field">Periode Bulan<input id="v267AoPayoffMonth" type="month" readonly></label>
+            <label class="v25-field">Divisi<select id="v267AoPayoffDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label>
+            <label class="v25-field">Kantor<input id="v267AoPayoffOffice" type="text" readonly placeholder="Memuat unit AO..."></label>
+          </div>
+          <label class="v25-field">Pelunasan Putus (Rp)<input id="v267AoPayoffValue" type="text" inputmode="numeric" placeholder="0"></label>
+          <label class="v258-check" style="display:flex;gap:8px;align-items:center;font-size:11px;margin:10px 0"><input id="v267AoPayoffReplace" type="checkbox"> Koreksi nominal yang sudah disimpan</label>
+          <div class="v25-actions"><button type="button" id="v267AoPayoffSave" class="v25-primary">Simpan Pelunasan Putus</button><button type="button" id="v267AoPayoffRefresh" class="v25-secondary">Refresh</button></div>
+          <p id="v267AoPayoffStatus" class="v25-note" role="status" aria-live="polite">Data kantor diambil dari profil AO pada server.</p>
+        </section>
         <div class="v25-card"><div class="v25-card-head"><div><h3>Riwayat Realisasi Kredit Anda</h3><span id="v25AoHistoryCount">0 data</span></div><button id="v25RefreshAoMonitoring" class="v25-secondary" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button></div><div class="v25-table-wrap"><table class="v25-table"><thead><tr><th>Tanggal</th><th>Divisi</th><th>Kantor</th><th class="center">NoA New</th><th class="num">OS New</th><th class="center">NoA Mengulang</th><th class="num">OS Mengulang</th><th class="num">RunOff</th><th class="num">Total OS</th><th class="center">Aksi</th></tr></thead><tbody id="v25AoHistoryBody"></tbody></table></div></div>
         <div class="v25-card"><div class="v25-card-head"><div><h3>Arsip Aktivitas Harian Lama</h3><span>Input aktivitas baru dilakukan melalui My Activity</span></div></div><div class="v25-table-wrap"><table class="v25-table"><thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody id="v25AoActivityHistoryBody"></tbody></table></div></div>
       </section>
@@ -13176,7 +13189,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=265',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v265').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=267',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v267').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20631,11 +20644,41 @@ async function refresh(force=false,requestedMonth){
  try{const r=await api('getOfficePerformanceMonthly',{month:m});if(m!==month()){status('v258AdminStatus','Periode '+m+' • '+(r.runoffUploaded?'Runoff organik tersimpan':'Runoff organik belum diupload')+' • '+(r.offices?.length||0)+' kantor (Home tetap bulan berjalan)');populateOffices((r.offices||[]).map(x=>x.office));return;}lastResult=r;lastMonth=m;lastAt=Date.now();render(r);const runoffStat=r.runoffByDivision||{},kc=Number(runoffStat.KONSUMER?.rows||0),kr=Number(runoffStat.RITEL?.rows||0);status('v258AdminStatus','Sinkronisasi dashboard • '+m+' • Runoff Konsumer: '+kc+' baris • Ritel: '+kr+' baris'+(r.unassigned&&r.unassigned.runoffRows+r.unassigned.payoffRows?' • PERHATIAN: ada data lama belum diberi divisi.':''));if(r.configured&&el('v258SpreadsheetId'))el('v258SpreadsheetId').placeholder='Terhubung: '+(r.spreadsheetName||'Spreadsheet Laporan');}
  catch(e){status('v258HomeStatus',String(e.message||e),true);status('v258AdminStatus',String(e.message||e),true);}finally{loading=false;}
 }
+// V266: satukan alias kantor untuk dropdown Pelunasan Putus saja.
+// Value berupa nama kantor canonical sesuai scoreV258Office_ di backend;
+// label untuk pengguna tetap CABANG <nama> / KCP A <nama unit>.
+function v266BranchOfficeName(){
+ const source=String(lastResult?.branch||window.centralResolvedBranchKey||window.currentUser?.branchName||window.currentUser?.branch?.name||window.currentUser?.branchId||'').trim().toUpperCase();
+ const clean=source.replace(/[_-]+/g,' ').replace(/^(?:CABANG|KC|KANTOR CABANG)\s+/,'').replace(/\s+/g,' ').trim();
+ if(clean&&clean!=='DEFAULT'&&clean!=='CABANG')return clean;
+ const options=Array.from(document.querySelectorAll('#v27AdminRealizationOffice option,#cfgOfferLetterOffice option')).map(x=>normalize(x.value||x.textContent));
+ const explicit=options.find(x=>/^(?:CABANG|KC|KANTOR CABANG)\s+/.test(x));
+ return explicit?explicit.replace(/^(?:CABANG|KC|KANTOR CABANG)\s+/,'').trim():'';
+}
+function v266OfficeKey(value,branch){
+ let x=normalize(value).replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
+ if(!x)return '';
+ if(/^(?:KCP\s+A|KCP)\s+/.test(x))x=x.replace(/^(?:KCP\s+A|KCP)\s+/,'');
+ const unit=normalize(branch);
+ if(x==='CABANG'||x==='CABANG UTAMA'||x==='KC'||x==='KANTOR CABANG'||(unit&&(x===unit||x==='CABANG '+unit||x==='KC '+unit||x==='KANTOR CABANG '+unit)))return unit||'';
+ return x;
+}
 function populateOffices(list){
- const select=el('v258PayoffOffice');if(!select)return;const old=select.value;
+ const select=el('v258PayoffOffice');if(!select)return;
+ const branch=v266BranchOfficeName(),previous=v266OfficeKey(select.value,branch);
  const fromDOM=Array.from(document.querySelectorAll('#v27AdminRealizationOffice option,#cfgOfferLetterOffice option')).map(o=>o.value).filter(Boolean);
- const officeNames=[...new Set([...(list||[]),...fromDOM].map(normalize).filter(Boolean))].sort();
- select.innerHTML='<option value="">Pilih kantor...</option>'+officeNames.map(x=>'<option value="'+escape(x)+'">'+escape(x)+'</option>').join('');if(officeNames.includes(old))select.value=old;
+ const all=[...(Array.isArray(list)?list:[]),...fromDOM];
+ const unique=new Map();
+ for(const raw of all){
+  const key=v266OfficeKey(raw,branch);if(!key)continue;
+  // Jika kode cabang belum tersedia, jangan tampilkan opsi generik CABANG.
+  if(/^(?:CABANG|CABANG UTAMA|KC|KANTOR CABANG)$/.test(key))continue;
+  if(!unique.has(key))unique.set(key,key===branch?'CABANG '+key:'KCP A '+key);
+ }
+ if(branch&&!unique.has(branch))unique.set(branch,'CABANG '+branch);
+ const rows=[...unique].sort((a,b)=>(a[0]===branch?-1:b[0]===branch?1:a[1].localeCompare(b[1],'id')));
+ select.innerHTML='<option value="">Pilih kantor...</option>'+rows.map(([key,label])=>'<option value="'+escape(key)+'">'+escape(label)+'</option>').join('');
+ if(previous&&unique.has(previous))select.value=previous;
 }
 function dates(v){
  if(v instanceof Date&&!Number.isNaN(+v)){const d=v;return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
@@ -20766,6 +20809,71 @@ function bind(){
 window.v258OpenOfficeAdmin=async function(){if(typeof window.openAoMonitoring!=='function')return alert('Modul Laporan Harian belum siap.');await window.openAoMonitoring();setTimeout(()=>{el('v258OfficeAdmin')?.scrollIntoView({behavior:'smooth',block:'start'});populateOffices(lastResult?.offices?.map(x=>x.office)||[]);refresh(false);},100);};
 window.v258RefreshOfficeDashboard=refresh;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
+
+
+<script id="v267-ao-payoff-js">
+(function(){'use strict';
+ const el=id=>document.getElementById(id);
+ let office='',lockedDivision='',loading=false,loadedMonth='';
+ function month(){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',timeZone:'Asia/Jakarta'}).format(new Date()).replace(/^(\d{4})\/(\d{2})$/,'$1-$2');}
+ function currentMonth(){const p=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',timeZone:'Asia/Jakarta'}).formatToParts(new Date());return p.find(x=>x.type==='year').value+'-'+p.find(x=>x.type==='month').value;}
+ function role(){const u=window.currentUser||{};return String(u.role||u.ROLE||'').trim().toUpperCase();}
+ function money(v){return Number(String(v||'').replace(/[^0-9]/g,''))||0;}
+ function status(msg,err){const e=el('v267AoPayoffStatus');if(e){e.textContent=msg;e.style.color=err?'#b91c1c':'#475569';}}
+ async function api(scope,opts={}){
+   const token=window.googleCredential||'';
+   if(!token||typeof window.callApi!=='function')throw new Error('Sesi login belum tersedia.');
+   const action=scope==='OFFICE_DASHBOARD_AO_CONTEXT_V267'?'getParameters':'saveParameters';
+   const result=await window.callApi(action,token,Object.assign({},opts,{scope}));
+   if(!result?.success)throw new Error(result?.error||'Server tidak dapat memproses data pelunasan.');return result;
+ }
+ async function load(){
+   if(role()!=='AO'||!el('v267AoPayoffSection')||loading)return;
+   loading=true;status('Memuat kantor dan pelunasan putus dari server...');
+   try{
+     const m=currentMonth(),r=await api('OFFICE_DASHBOARD_AO_CONTEXT_V267',{month:m});
+     office=String(r.office||'');lockedDivision=String(r.lockedDivision||'');loadedMonth=m;
+     el('v267AoPayoffMonth').value=m;
+     el('v267AoPayoffOffice').value=r.officeLabel||office;
+     const sel=el('v267AoPayoffDivision');sel.disabled=!!lockedDivision;
+     if(lockedDivision)sel.value=lockedDivision;
+     const div=sel.value,entry=(r.payoffs||{})[div];
+     el('v267AoPayoffValue').value=entry?.exists?Math.round(Number(entry.amount)||0).toLocaleString('id-ID'):'';
+     el('v267AoPayoffReplace').checked=Boolean(entry?.exists);
+     el('v267AoPayoffSave').disabled=!office;
+     status((entry?.exists?'Tersimpan '+div+': Rp '+Math.round(Number(entry.amount)||0).toLocaleString('id-ID')+' • centang Koreksi jika ingin mengubah.':'Belum ada pelunasan putus untuk '+div+' bulan ini.')+' Kantor: '+(r.officeLabel||office)+'.');
+     sel.onchange=()=>{const x=(r.payoffs||{})[sel.value];el('v267AoPayoffValue').value=x?.exists?Math.round(Number(x.amount)||0).toLocaleString('id-ID'):'';el('v267AoPayoffReplace').checked=!!x?.exists;status(x?.exists?'Nominal '+sel.value+' telah tersimpan. Koreksi akan mengganti nilai sebelumnya.':'Belum ada nilai '+sel.value+' untuk periode ini.');};
+   }catch(e){status('Gagal memuat pelunasan putus: '+(e.message||e),true);el('v267AoPayoffSave').disabled=true;}
+   finally{loading=false;}
+ }
+ async function save(){
+   if(role()!=='AO'||loading)return;
+   const val=el('v267AoPayoffValue').value.trim(),m=currentMonth();
+   if(!office||loadedMonth!==m){status('Periode atau kantor berubah. Refresh dulu.',true);return;}
+   if(!val){status('Masukkan nominal pelunasan putus, atau isi 0 bila memang nihil.',true);return;}
+   const amount=money(val),division=el('v267AoPayoffDivision').value,replace=el('v267AoPayoffReplace').checked;
+   if(!Number.isSafeInteger(amount)||amount<0){status('Nominal tidak valid.',true);return;}
+   if(replace&&!confirm('Koreksi nominal '+division+' untuk '+office+' bulan '+m+'?'))return;
+   loading=true;el('v267AoPayoffSave').disabled=true;status('Menyimpan pelunasan putus ke server...');
+   try{
+     const r=await api('OFFICE_DASHBOARD_PAYOFF_V258',{month:m,division,office,amount,replace});
+     status('Tersimpan dan terkonfirmasi: '+r.division+' • '+r.office+' • Rp '+Number(r.amount||0).toLocaleString('id-ID'));
+     if(window.v258RefreshOfficeDashboard)window.v258RefreshOfficeDashboard(true);
+   }catch(e){status('Gagal menyimpan: '+String(e.message||e),true);}
+   finally{loading=false;el('v267AoPayoffSave').disabled=false;}
+   await load();
+ }
+ function init(){
+  el('v267AoPayoffSave')?.addEventListener('click',save);
+  el('v267AoPayoffRefresh')?.addEventListener('click',load);
+  el('v267AoPayoffValue')?.addEventListener('blur',e=>{if(e.target.value.trim())e.target.value=money(e.target.value).toLocaleString('id-ID')});
+  const section=el('v267AoPayoffSection');if(!section)return;
+  document.addEventListener('click',e=>{if(e.target.closest('#v25OpenAoMonitoring'))setTimeout(load,650)});
+  const panel=el('v25AoMonitoringModal');if(panel){const observer=new MutationObserver(()=>{if(panel.classList.contains('show')&&role()==='AO'&&(!office||loadedMonth!==currentMonth()))load()});observer.observe(panel,{attributes:true,attributeFilter:['class']});}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 
