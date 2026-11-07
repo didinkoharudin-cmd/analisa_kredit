@@ -13176,7 +13176,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=264',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v264').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=265',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v265').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20568,6 +20568,11 @@ document.addEventListener('visibilitychange',()=>{
 .v261-office strong{text-align:right;font-size:clamp(9px,2.5vw,12px);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 @media (min-width:920px){.v261-divisions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:370px){.v261-grid-head,.v261-office{grid-template-columns:minmax(60px,1fr) minmax(68px,.95fr) minmax(72px,.95fr);gap:3px}}
+/* V265: 3 KPI, 4 kolom dengan scroll horizontal hanya di layar sangat sempit. */
+.v261-kpis.v265-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.v265-grid-head,.v265-office{grid-template-columns:minmax(75px,1.1fr) repeat(3,minmax(80px,1fr))}
+.v265-runoff{color:#0b608f!important}
+@media(max-width:550px){.v261-kpis.v265-kpis{gap:4px}.v261-kpis.v265-kpis>div{padding:7px 5px}.v261-kpis.v265-kpis strong{font-size:clamp(10px,2.8vw,13px)}.v265-grid-head,.v265-office{gap:3px;grid-template-columns:minmax(66px,1.2fr) repeat(3,minmax(60px,1fr))}.v265-office strong{font-size:clamp(8px,2.1vw,11px)}}
 </style>
 
 <script id="v258-office-dashboard-js">
@@ -20603,13 +20608,16 @@ function render(data){
    const daily=Array.isArray(x.daily)?x.daily:[];
    const todayNet=daily.reduce((v,d)=>v+(String(d.date||'').slice(0,10)===date?(Number(d.net)||0):0),0);
    const monthNet=netThroughToday(daily,date);
-   return {office:x.office,todayNet,monthNet};
+   // Sisa runoff organik = jumlah angsuran pokok eksisting dari BESOK sampai akhir bulan.
+   // Tidak termasuk runoff mengulang dari realisasi AO, karena tidak ada proyeksi hari mendatang.
+   const remainingRunoff=daily.reduce((v,d)=>{const day=String(d.date||'').slice(0,10);return day>date&&day.slice(0,7)===m?v+(Number(d.runoffOrganik)||0):v;},0);
+   return {office:x.office,todayNet,monthNet,remainingRunoff};
   }).sort((a,b)=>b.monthNet-a.monthNet||String(a.office).localeCompare(String(b.office),'id'));
-  const todayNet=rows.reduce((v,x)=>v+x.todayNet,0),monthNet=rows.reduce((v,x)=>v+x.monthNet,0);
+  const todayNet=rows.reduce((v,x)=>v+x.todayNet,0),monthNet=rows.reduce((v,x)=>v+x.monthNet,0),remainingRunoff=rows.reduce((v,x)=>v+x.remainingRunoff,0);
   const section=el(id);if(!section)return;
-  section.innerHTML='<div class="v261-kpis"><div><small>Nett hari ini</small><strong class="'+growthClass(todayNet)+'">'+escape(rp(todayNet))+'</strong></div><div><small>Akumulasi bulan berjalan</small><strong class="'+growthClass(monthNet)+'">'+escape(rp(monthNet))+'</strong></div></div>'+
-   '<div class="v261-grid-head"><span>Kantor</span><span>Nett hari ini</span><span>Akumulasi</span></div>'+
-   (rows.length?rows.map(x=>'<div class="v261-office"><b>'+escape(x.office)+'</b><strong class="'+growthClass(x.todayNet)+'">'+escape(rp(x.todayNet))+'</strong><strong class="'+growthClass(x.monthNet)+'">'+escape(rp(x.monthNet))+'</strong></div>').join(''):'<div class="v258-muted">Belum ada data realisasi divisi ini.</div>');
+  section.innerHTML='<div class="v261-kpis v265-kpis"><div><small>Nett hari ini</small><strong class="'+growthClass(todayNet)+'">'+escape(rp(todayNet))+'</strong></div><div><small>Akumulasi bulan berjalan</small><strong class="'+growthClass(monthNet)+'">'+escape(rp(monthNet))+'</strong></div><div><small>Sisa runoff organik</small><strong class="v265-runoff">'+escape(rp(remainingRunoff))+'</strong></div></div>'+
+   '<div class="v261-grid-head v265-grid-head"><span>Kantor</span><span>Nett hari ini</span><span>Akumulasi</span><span>Sisa runoff</span></div>'+
+   (rows.length?rows.map(x=>'<div class="v261-office v265-office"><b>'+escape(x.office)+'</b><strong class="'+growthClass(x.todayNet)+'">'+escape(rp(x.todayNet))+'</strong><strong class="'+growthClass(x.monthNet)+'">'+escape(rp(x.monthNet))+'</strong><strong class="v265-runoff">'+escape(rp(x.remainingRunoff))+'</strong></div>').join(''):'<div class="v258-muted">Belum ada data realisasi divisi ini.</div>');
  });
  const legacy=data.unassigned||{};
  const notice=(Number(legacy.runoffRows)||0)+(Number(legacy.payoffRows)||0);
@@ -20707,24 +20715,20 @@ async function submit(action,payload,button,success){
  const old=button.textContent;button.disabled=true;button.textContent='Menyimpan...';try{
   const r=await api(action,payload);
   if(action==='uploadOfficeRunoffMonthly'){
-    if(r.schemaVersion!=='18.3.11.264'||r.verified!==true)throw new Error('Backend Central V264 belum aktif atau belum mengonfirmasi penyimpanan. Perbarui deployment Apps Script sebelum mengunggah ulang.');
-    const verified=await api('getOfficePerformanceMonthly',{month:payload.month,forceRefresh:true});
-    if(verified.schemaVersion!=='18.3.11.264')throw new Error('Hasil bacaan masih berasal dari backend lama. Periksa URL deployment Apps Script.');
-    const recap=verified.runoffByDivision?.[payload.division];
-    const count=Number(recap?.rows||0),total=Number(recap?.total||0);
-    if(count!==Number(r.rows)||Math.abs(total-Number(r.total||0))>0.001){
-     throw new Error('Server menerima upload, tetapi data yang dibaca kembali belum cocok: tersimpan '+r.rows+' baris/'+rp(r.total)+', terbaca '+count+' baris/'+rp(total)+'. Periksa sheet SCORE_RUNOFF_BULANAN dan versi backend.');
-    }
-    const msg='TERVERIFIKASI di '+String(r.spreadsheetName||'Spreadsheet Laporan')+' • '+r.division+' '+r.month+' • '+r.rows+' baris • '+r.offices+' kantor • '+rp(r.total)+(r.alreadyStored?' • Data sama sudah tersimpan sebelumnya':'');
+    if(r.schemaVersion!=='18.3.11.265'||r.verified!==true)throw new Error('Backend Central V265 belum aktif atau penyimpanan belum terverifikasi. Pastikan Web App sudah di-deploy versi terbaru.');
+    // Backend memverifikasi langsung dengan membaca ulang sheet yang baru ditulis.
+    // Tidak ada request verifikasi kedua di sini: request ganda pada mobile bisa timeout
+    // padahal data SUDAH tersimpan, dan menampilkan kesalahan palsu.
+    const msg='TERVERIFIKASI di '+String(r.spreadsheetName||'Spreadsheet Laporan')+' • '+r.division+' '+r.month+' • '+r.rows+' baris • '+r.offices+' kantor • '+rp(r.total)+(r.alreadyStored?' • Data sama sudah tersimpan, tidak ditulis ulang':'');
     status('v263RunoffSaveReceipt',msg);
-    lastAt=0;lastMonth='';lastResult=null;
-    if(payload.month===month()){render(verified);lastResult=verified;lastMonth=payload.month;lastAt=Date.now();}
     status('v258AdminStatus',msg);
+    lastAt=0;lastMonth='';lastResult=null;
+    // Refresh data dashboard hanya dilakukan oleh tombol Refresh, bukan menghalangi konfirmasi upload.
   }else{
     lastAt=0;await refresh(true,payload.month||el('v258AdminMonth')?.value||month());
     status('v258AdminStatus',success(r));
   }
- }catch(e){const msg=String(e?.message||e);status('v258AdminStatus',msg,true);if(action==='uploadOfficeRunoffMonthly')status('v263RunoffSaveReceipt','BELUM TERVERIFIKASI • '+msg,true);alert('Gagal verifikasi: '+msg);}finally{button.disabled=false;button.textContent=old;}
+ }catch(e){const msg=String(e?.message||e),timeout=/waktu lebih lama|timeout|timed out|time.?out|permintaan ke server/i.test(msg);const detail=timeout?'STATUS BELUM DIKETAHUI • Permintaan terputus sebelum respons konfirmasi. Data mungkin sudah tersimpan. Tekan Refresh dahulu; jangan langsung melakukan koreksi ulang.':('BELUM TERVERIFIKASI • '+msg);status('v258AdminStatus',detail,true);if(action==='uploadOfficeRunoffMonthly')status('v263RunoffSaveReceipt',detail,true);alert((timeout?'Konfirmasi tertunda: ':'Gagal verifikasi: ')+detail);}finally{button.disabled=false;button.textContent=old;}
 }
 function bind(){
  if(el('v258AdminMonth'))el('v258AdminMonth').value=month();
