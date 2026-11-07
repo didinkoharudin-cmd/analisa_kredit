@@ -13176,7 +13176,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=261',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v261').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=262',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v262').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20638,14 +20638,11 @@ function dates(v){
 function normalizedHeader(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
 // V260: terima format lama (Tanggal/Kantor/Runoff atau Tanggal + kantor)
 // dan format unggahan user: baris KANTOR, kolom tanggal 1..31, baris TOTAL.
+// V262: keep the template alias untouched. Server normalizes CABANG to the
+// authenticated branch office and validates against Master Unit Kantor.
 function v260OfficeFromMatrix(label){
  const raw=normalize(label);
- if(raw!=='CABANG'&&raw!=='CABANG UTAMA')return raw;
- const known=[...(lastResult?.offices||[]).map(o=>o.office),...Array.from(document.querySelectorAll('#v27AdminRealizationOffice option,#cfgOfferLetterOffice option,#v258PayoffOffice option')).map(o=>o.value)].map(normalize).filter(Boolean);
- const branchCandidate=known.find(x=>/^CABANG(?:\s|$)/.test(x))||known.find(x=>x==='KARAWANG');
- if(branchCandidate)return branchCandidate;
- const branch=normalize(window.centralResolvedBranchKey||window.currentUser?.branchName||window.currentUser?.branch?.name||'');
- return branch&&branch!=='DEFAULT'?(branch.startsWith('CABANG')?branch:'CABANG '+branch):'CABANG';
+ return (raw==='CABANG UTAMA'||raw==='KANTOR CABANG')?'CABANG':raw;
 }
 function v260CellAmount(raw,office,day){
  if(raw===null||raw===undefined||String(raw).trim()==='')return null;
