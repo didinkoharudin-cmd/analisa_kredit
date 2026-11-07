@@ -3226,9 +3226,11 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 <section id="v258OfficePerformance" class="v258-office-dash" aria-label="Dashboard Pencapaian Kantor">
   <div class="v258-title"><div><b><i class="fa-solid fa-building-columns"></i> Dashboard Pencapaian Kantor</b><small id="v258HomePeriod">Bulan berjalan • laporan realisasi kantor</small></div><button type="button" id="v258HomeRefresh" title="Perbarui pencapaian kantor"><i class="fa-solid fa-rotate"></i></button></div>
   <div id="v258HomeStatus" class="v258-muted">Memuat pencapaian masing-masing kantor...</div>
-  <div class="v259-summary"><div><small>Nett hari ini</small><strong id="v259DailyTotal">Rp 0</strong></div><div><small>Akumulasi bulan berjalan</small><strong id="v259MonthlyTotal">Rp 0</strong></div></div>
-  <div class="v259-column-head"><span>Kantor</span><span>Nett hari ini</span><span>Akumulasi</span></div>
-  <div id="v258OfficeRows" class="v258-offices" aria-live="polite"></div>
+  <div id="v261DivisionBoards" class="v261-divisions" aria-live="polite">
+    <section class="v261-division" aria-label="Realisasi Konsumer"><h3>Divisi Konsumer</h3><div id="v261Consumer"></div></section>
+    <section class="v261-division" aria-label="Realisasi Ritel"><h3>Divisi Ritel</h3><div id="v261Retail"></div></section>
+  </div>
+  <div id="v258OfficeRows" hidden></div>
 </section>
 <!-- V78.1 VERIFIED OFFER FUNNEL — dashboard AO / Admin -->
 <div id="v781OfferFunnel" class="v781-funnel" hidden>
@@ -3767,10 +3769,10 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
 
       <section id="v25MonitoringAdmin" class="v25-hidden">
 <section id="v258OfficeAdmin" class="v258-admin">
-  <div class="v258-admin-head"><div><h3><i class="fa-solid fa-building"></i> Dashboard Pencapaian Kantor — Parameter Bulanan <small>V258</small></h3><p>Runoff organik diupload sekali pada awal bulan. Pelunasan putus diisi per kantor. Periode baru aktif otomatis pada tanggal 1.</p></div><button id="v258AdminRefresh" type="button">Refresh</button></div>
+  <div class="v258-admin-head"><div><h3><i class="fa-solid fa-building"></i> Dashboard Pencapaian Kantor — Parameter Bulanan <small>V261</small></h3><p>Runoff organik diupload sekali pada awal bulan. Pelunasan putus diisi per kantor. Periode baru aktif otomatis pada tanggal 1.</p></div><button id="v258AdminRefresh" type="button">Refresh</button></div>
   <div class="v258-admin-fields"><label>Periode bulanan<input type="month" id="v258AdminMonth"></label><label>Spreadsheet Laporan Harian (konfigurasi awal)<input id="v258SpreadsheetId" type="text" placeholder="URL / ID spreadsheet Realisasi (sekali saja)"></label><button type="button" id="v258Configure">Hubungkan</button></div>
-  <div class="v258-admin-cols"><div class="v258-admin-box"><b>1. Upload Runoff Organik Harian (Excel)</b><p>Kolom: Tanggal, Kantor, Runoff (Organik). Mendukung juga Tanggal + kolom per kantor. Maksimal satu upload per bulan.</p><input type="file" id="v258RunoffFile" accept=".xlsx,.xls,.csv"><div id="v258RunoffPreview" class="v258-muted">Belum ada file dipilih.</div><label class="v258-check"><input id="v258ReplaceRunoff" type="checkbox"> Ganti upload bulan ini (koreksi)</label><button type="button" id="v258UploadRunoff">Simpan Runoff Bulanan</button><button type="button" id="v258DownloadTemplate">Unduh Template Excel</button></div>
-  <div class="v258-admin-box"><b>2. Pelunasan Putus (Awal Bulan)</b><p>Nominal pengurang satu kali per kantor pada bulan berjalan.</p><label>Kantor<select id="v258PayoffOffice"><option value="">Pilih kantor...</option></select></label><label>Pelunasan Putus (Rp)<input id="v258PayoffValue" type="text" inputmode="numeric" placeholder="0"></label><label class="v258-check"><input id="v258ReplacePayoff" type="checkbox"> Koreksi nilai kantor yang sudah tersimpan</label><button type="button" id="v258SavePayoff">Simpan Pelunasan Putus</button></div></div>
+  <div class="v258-admin-cols"><div class="v258-admin-box"><b>1. Upload Runoff Organik Harian (Excel)</b><label>Divisi<select id="v261RunoffDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label><p>Format Excel: baris KANTOR, kolom 1–31 (sesuai template Anda). Format Tanggal/Kantor/Runoff lama tetap didukung. Maksimal satu upload per bulan.</p><input type="file" id="v258RunoffFile" accept=".xlsx,.xls,.csv"><div id="v258RunoffPreview" class="v258-muted">Belum ada file dipilih.</div><label class="v258-check"><input id="v258ReplaceRunoff" type="checkbox"> Ganti upload bulan ini (koreksi)</label><button type="button" id="v258UploadRunoff">Simpan Runoff Bulanan</button><button type="button" id="v258DownloadTemplate">Unduh Template Excel</button></div>
+  <div class="v258-admin-box"><b>2. Pelunasan Putus (Awal Bulan)</b><label>Divisi<select id="v261PayoffDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label><p>Nominal pengurang satu kali per kantor pada bulan berjalan.</p><label>Kantor<select id="v258PayoffOffice"><option value="">Pilih kantor...</option></select></label><label>Pelunasan Putus (Rp)<input id="v258PayoffValue" type="text" inputmode="numeric" placeholder="0"></label><label class="v258-check"><input id="v258ReplacePayoff" type="checkbox"> Koreksi nilai kantor yang sudah tersimpan</label><button type="button" id="v258SavePayoff">Simpan Pelunasan Putus</button></div></div>
   <div id="v258AdminStatus" class="v258-muted">Data tersimpan per cabang dan periode. Tidak perlu upload saat login.</div>
 </section>
 
@@ -13174,7 +13176,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=259',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v259').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=261',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v261').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20549,6 +20551,23 @@ document.addEventListener('visibilitychange',()=>{
 .v258-office-dash{background:#fff;border:1px solid #d9e5f1;border-radius:16px;margin:12px 0;padding:12px;box-shadow:0 3px 14px #174a8210;color:#14324f}.v258-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.v258-title b{font-size:12px;font-weight:900}.v258-title small{display:block;font-size:9px;color:#64748b;margin-top:3px}.v258-title button{border:0;background:#e7f3fd;border-radius:9px;padding:8px;color:#0a5996}.v258-muted{font-size:10px;color:#65758a;margin:7px 0}.v258-muted.error{color:#b91c1c}.v258-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}.v258-kpis>div{background:#eff6ff;border-radius:11px;padding:10px 9px;min-width:0}.v258-kpis small{display:block;font-size:9px;color:#62738d}.v258-kpis strong{display:block;font-size:13px;color:#143a66;overflow-wrap:anywhere;margin-top:3px}.v258-kpis .v258-net{background:#ddf6ec}.v258-kpis .v258-net strong{color:#096446}.v258-office-item{border:1px solid #e0eaf5;border-radius:11px;padding:9px;margin:7px 0}.v258-office-item summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:7px}.v258-office-item summary::-webkit-details-marker{display:none}.v258-office-item summary b{font-size:11px}.v258-office-item summary strong{font-size:11px;white-space:nowrap}.v258-progress{height:5px;background:#ecf1f7;border-radius:5px;margin:8px 0;overflow:hidden}.v258-progress>span{display:block;height:100%;background:#118bca}.v258-office-math{font-size:9px;color:#596e82;display:flex;flex-wrap:wrap;gap:3px 8px}.v258-day-table{width:100%;border-collapse:collapse;margin-top:9px;font-size:9px}.v258-day-table th,.v258-day-table td{padding:5px;border-bottom:1px solid #e2e8f0;text-align:right}.v258-day-table th:first-child,.v258-day-table td:first-child{text-align:left}.v258-note{font-size:9px;color:#64748b;line-height:1.55;margin-top:9px}
 .v258-admin{padding:12px;border:1px solid #beddf0;border-radius:13px;background:#eff8ff;margin:12px 0}.v258-admin-head{display:flex;justify-content:space-between;align-items:start;gap:7px}.v258-admin-head h3{font-size:12px;font-weight:800;color:#075985;margin:0}.v258-admin-head h3 small{color:#0284c7}.v258-admin-head p,.v258-admin-box p{font-size:9px;color:#59718a;line-height:1.5;margin:5px 0 8px}.v258-admin button{background:#075d9e;color:white;border:0;border-radius:9px;padding:9px 11px;font-size:10px;font-weight:800;margin:5px 4px 5px 0}.v258-admin-fields{display:grid;grid-template-columns:1fr 1.5fr auto;gap:7px;align-items:end;margin:10px 0}.v258-admin label{display:block;font-size:9px;color:#365875;font-weight:700}.v258-admin input:not([type=checkbox]),.v258-admin select{display:block;width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:8px;padding:8px;margin-top:4px;background:white;font-size:11px;color:#0f172a}.v258-admin-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}.v258-admin-box{padding:11px;border-radius:11px;background:white;border:1px solid #dbeafe}.v258-admin-box>b{font-size:11px;color:#19406a}.v258-admin-box label{margin:7px 0}.v258-admin .v258-check{display:flex;gap:7px;align-items:center;font-weight:500}.v258-admin .v258-check input{margin:0}.v258-admin .v258-muted{white-space:pre-wrap}
 @media(max-width:560px){.v258-admin-cols{grid-template-columns:1fr}.v258-admin-fields{grid-template-columns:1fr}.v258-kpis strong{font-size:12px}}
+
+.v261-divisions{display:grid;grid-template-columns:1fr;gap:12px}
+.v261-division{background:#fff;border:1px solid #dbe7f3;border-radius:12px;padding:10px;min-width:0}
+.v261-division h3{font-size:12px;color:#075985;font-weight:800;margin:0 0 8px}
+.v261-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:8px}
+.v261-kpis>div{background:#f2f7fc;border-radius:9px;padding:9px;min-width:0}
+.v261-kpis small{color:#64748b;display:block;font-size:9px;margin-bottom:3px}
+.v261-kpis strong{font-size:clamp(12px,3vw,16px);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.v261-grid-head,.v261-office{display:grid;grid-template-columns:minmax(80px,1.2fr) minmax(90px,1fr) minmax(90px,1fr);gap:6px;align-items:center}
+.v261-grid-head{font-size:9px;color:#64748b;border-bottom:1px solid #e2e8f0;padding:6px 2px}
+.v261-grid-head span:not(:first-child){text-align:right}
+.v261-office{padding:9px 2px;border-bottom:1px solid #ecf1f5;font-size:10px}
+.v261-office:last-child{border-bottom:0}
+.v261-office b{color:#14324f;overflow-wrap:anywhere}
+.v261-office strong{text-align:right;font-size:clamp(9px,2.5vw,12px);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+@media (min-width:920px){.v261-divisions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:370px){.v261-grid-head,.v261-office{grid-template-columns:minmax(60px,1fr) minmax(68px,.95fr) minmax(72px,.95fr);gap:3px}}
 </style>
 
 <script id="v258-office-dashboard-js">
@@ -20575,29 +20594,33 @@ function netThroughToday(daily,cutoff){return (Array.isArray(daily)?daily:[]).re
 },0);}
 function render(data){
  const m=data.month||month(),date=todayWib(),p=el('v258HomePeriod');
- if(p)p.textContent=new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric',timeZone:'Asia/Jakarta'}).format(new Date(m+'-01T12:00:00+07:00'))+' • '+date.slice(8,10)+' hari ini (WIB)';
- const container=el('v258OfficeRows');
- if(!data.configured){status('v258HomeStatus','Dashboard belum dihubungkan Admin ke spreadsheet Laporan Harian.');container.innerHTML='';return;}
- const rows=Array.isArray(data.offices)?data.offices:[];
- const view=rows.map(x=>{
+ if(p)p.textContent=new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric',timeZone:'Asia/Jakarta'}).format(new Date(m+'-01T12:00:00+07:00'))+' • per divisi';
+ if(!data.configured){status('v258HomeStatus','Dashboard belum dihubungkan Admin ke spreadsheet Laporan Harian.');['v261Consumer','v261Retail'].forEach(id=>{if(el(id))el(id).innerHTML='';});return;}
+ const dataRows=Array.isArray(data.offices)?data.offices:[];
+ const sections=[['KONSUMER','v261Consumer'],['RITEL','v261Retail']];
+ sections.forEach(([division,id])=>{
+  const rows=dataRows.filter(x=>String(x.division||'').toUpperCase()===division).map(x=>{
    const daily=Array.isArray(x.daily)?x.daily:[];
-   const todayNet=daily.reduce((n,d)=>n+(String(d.date||'').slice(0,10)===date?(Number(d.net)||0):0),0);
+   const todayNet=daily.reduce((v,d)=>v+(String(d.date||'').slice(0,10)===date?(Number(d.net)||0):0),0);
    const monthNet=netThroughToday(daily,date);
    return {office:x.office,todayNet,monthNet};
- }).sort((a,b)=>b.monthNet-a.monthNet||String(a.office).localeCompare(String(b.office),'id'));
- const totalToday=view.reduce((n,x)=>n+x.todayNet,0),totalMonth=view.reduce((n,x)=>n+x.monthNet,0);
- const dailyEl=el('v259DailyTotal'),monthEl=el('v259MonthlyTotal');
- if(dailyEl){dailyEl.textContent=rp(totalToday);dailyEl.className=growthClass(totalToday);}
- if(monthEl){monthEl.textContent=rp(totalMonth);monthEl.className=growthClass(totalMonth);}
- status('v258HomeStatus',view.length+' kantor • data sampai '+date.split('-').reverse().join('/')+' • '+(data.runoffUploaded?'runoff organik tersedia':'runoff organik belum diupload'));
- container.innerHTML=view.length?view.map(x=>'<div class="v259-office-row"><b>'+escape(x.office)+'</b><strong class="'+growthClass(x.todayNet)+'">'+escape(rp(x.todayNet))+'</strong><strong class="'+growthClass(x.monthNet)+'">'+escape(rp(x.monthNet))+'</strong></div>').join(''):'<div class="v258-muted">Belum ada data kantor bulan berjalan.</div>';
- populateOffices(rows.map(x=>x.office));
+  }).sort((a,b)=>b.monthNet-a.monthNet||String(a.office).localeCompare(String(b.office),'id'));
+  const todayNet=rows.reduce((v,x)=>v+x.todayNet,0),monthNet=rows.reduce((v,x)=>v+x.monthNet,0);
+  const section=el(id);if(!section)return;
+  section.innerHTML='<div class="v261-kpis"><div><small>Nett hari ini</small><strong class="'+growthClass(todayNet)+'">'+escape(rp(todayNet))+'</strong></div><div><small>Akumulasi bulan berjalan</small><strong class="'+growthClass(monthNet)+'">'+escape(rp(monthNet))+'</strong></div></div>'+
+   '<div class="v261-grid-head"><span>Kantor</span><span>Nett hari ini</span><span>Akumulasi</span></div>'+
+   (rows.length?rows.map(x=>'<div class="v261-office"><b>'+escape(x.office)+'</b><strong class="'+growthClass(x.todayNet)+'">'+escape(rp(x.todayNet))+'</strong><strong class="'+growthClass(x.monthNet)+'">'+escape(rp(x.monthNet))+'</strong></div>').join(''):'<div class="v258-muted">Belum ada data realisasi divisi ini.</div>');
+ });
+ const legacy=data.unassigned||{};
+ const notice=(Number(legacy.runoffRows)||0)+(Number(legacy.payoffRows)||0);
+ status('v258HomeStatus',dataRows.length+' baris kantor/divisi • data sampai '+date.split('-').reverse().join('/')+(notice?' • '+notice+' penyesuaian lama belum diberi divisi; mohon alokasikan ulang di Admin.':''),false);
+ populateOffices([...new Set(dataRows.map(x=>x.office))]);
 }
 
 async function refresh(force=false,requestedMonth){
  const m=requestedMonth||month();if(loading)return;if(!force&&lastResult&&lastMonth===m&&Date.now()-lastAt<90000){render(lastResult);return;}
  if(!credential())return;loading=true;status('v258HomeStatus','Memuat data bulan '+m+'...');
- try{const r=await api('getOfficePerformanceMonthly',{month:m});if(m!==month()){status('v258AdminStatus','Periode '+m+' • '+(r.runoffUploaded?'Runoff organik tersimpan':'Runoff organik belum diupload')+' • '+(r.offices?.length||0)+' kantor (Home tetap bulan berjalan)');populateOffices((r.offices||[]).map(x=>x.office));return;}lastResult=r;lastMonth=m;lastAt=Date.now();render(r);status('v258AdminStatus','Sinkronisasi berhasil • '+m+' • '+(r.runoffUploaded?'Runoff organik tersimpan':'Runoff organik belum diupload'));if(r.configured&&el('v258SpreadsheetId'))el('v258SpreadsheetId').placeholder='Terhubung: '+(r.spreadsheetName||'Spreadsheet Laporan');}
+ try{const r=await api('getOfficePerformanceMonthly',{month:m});if(m!==month()){status('v258AdminStatus','Periode '+m+' • '+(r.runoffUploaded?'Runoff organik tersimpan':'Runoff organik belum diupload')+' • '+(r.offices?.length||0)+' kantor (Home tetap bulan berjalan)');populateOffices((r.offices||[]).map(x=>x.office));return;}lastResult=r;lastMonth=m;lastAt=Date.now();render(r);status('v258AdminStatus','Sinkronisasi berhasil • '+m+' • '+(r.runoffUploaded?'Runoff organik tersimpan':'Runoff organik belum diupload')+(r.unassigned&&r.unassigned.runoffRows+r.unassigned.payoffRows?' • PERHATIAN: ada data lama belum diberi divisi, unggah/koreksi ulang.':''));if(r.configured&&el('v258SpreadsheetId'))el('v258SpreadsheetId').placeholder='Terhubung: '+(r.spreadsheetName||'Spreadsheet Laporan');}
  catch(e){status('v258HomeStatus',String(e.message||e),true);status('v258AdminStatus',String(e.message||e),true);}finally{loading=false;}
 }
 function populateOffices(list){
@@ -20613,16 +20636,64 @@ function dates(v){
  const a=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);return a?`${a[3]}-${String(a[2]).padStart(2,'0')}-${String(a[1]).padStart(2,'0')}`:'';
 }
 function normalizedHeader(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
-function parseRows(sheet){
- const arr=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:''});const start=arr.findIndex(x=>Array.isArray(x)&&x.some(v=>/tanggal|tgl|date/i.test(String(v))));if(start<0)throw new Error('Kolom Tanggal tidak ditemukan dalam Excel.');
+// V260: terima format lama (Tanggal/Kantor/Runoff atau Tanggal + kantor)
+// dan format unggahan user: baris KANTOR, kolom tanggal 1..31, baris TOTAL.
+function v260OfficeFromMatrix(label){
+ const raw=normalize(label);
+ if(raw!=='CABANG'&&raw!=='CABANG UTAMA')return raw;
+ const known=[...(lastResult?.offices||[]).map(o=>o.office),...Array.from(document.querySelectorAll('#v27AdminRealizationOffice option,#cfgOfferLetterOffice option,#v258PayoffOffice option')).map(o=>o.value)].map(normalize).filter(Boolean);
+ const branchCandidate=known.find(x=>/^CABANG(?:\s|$)/.test(x))||known.find(x=>x==='KARAWANG');
+ if(branchCandidate)return branchCandidate;
+ const branch=normalize(window.centralResolvedBranchKey||window.currentUser?.branchName||window.currentUser?.branch?.name||'');
+ return branch&&branch!=='DEFAULT'?(branch.startsWith('CABANG')?branch:'CABANG '+branch):'CABANG';
+}
+function v260CellAmount(raw,office,day){
+ if(raw===null||raw===undefined||String(raw).trim()==='')return null;
+ if(typeof raw==='number'){if(!Number.isFinite(raw)||raw<0)throw new Error('Nominal runoff '+office+' tanggal '+day+' tidak valid.');return raw;}
+ let value=String(raw).trim();
+ // Format mata uang Indonesia dan desimal mengikuti parser existing.
+ if(!/^-?(?:Rp\s*)?[\d.,\s]+$/i.test(value))throw new Error('Nominal runoff '+office+' tanggal '+day+' harus berupa angka.');
+ const amount=money(value);
+ if(!Number.isFinite(amount)||amount<0)throw new Error('Runoff negatif tidak diperbolehkan: '+office+' tanggal '+day);
+ return amount;
+}
+function v260MatrixRows(arr,headerRow,period){
+ const header=arr[headerRow]||[];
+ const days=header.map((v,j)=>({day:typeof v==='number'&&Number.isInteger(v)?v:/^\d{1,2}$/.test(String(v||'').trim())?Number(String(v).trim()):0,col:j})).filter(x=>x.day>=1&&x.day<=31);
+ const unique=new Set(days.map(x=>x.day));
+ if(unique.size<2||unique.size!==days.length)throw new Error('Header tanggal 1–31 tidak valid atau mengandung tanggal ganda.');
+ const idx=header.findIndex(x=>/^kantor$/i.test(String(x||'').trim()));
+ if(idx<0)throw new Error('Kolom KANTOR tidak ditemukan.');
+ const [yy,mm]=period.split('-').map(Number),daysInMonth=new Date(yy,mm,0).getDate(),out=[],seen=new Set();
+ for(let i=headerRow+1;i<arr.length;i++){
+  const row=arr[i]||[],original=String(row[idx]??'').trim();if(!original)continue;
+  if(/^(TOTAL|JUMLAH|GRAND\s*TOTAL|SUBTOTAL)$/i.test(original))continue;
+  const office=v260OfficeFromMatrix(original);
+  if(seen.has(office))throw new Error('Nama kantor '+office+' muncul lebih dari sekali (baris '+(i+1)+').');seen.add(office);
+  for(const {day,col} of days){
+   const raw=row[col];if(raw===null||raw===undefined||String(raw).trim()==='')continue;
+   if(day>daysInMonth)continue; // tanggal 29-31 tidak ada pada bulan yang dipilih
+   const amount=v260CellAmount(raw,office,day);
+   if(amount!==null)out.push({date:period+'-'+String(day).padStart(2,'0'),office,amount});
+  }
+ }
+ if(!out.length)throw new Error('Template KANTOR ditemukan, tetapi belum ada nominal runoff harian yang diisi. Isi angka pada sel tanggal masing-masing kantor, lalu upload ulang.');
+ return out;
+}
+function parseRows(sheet,period){
+ const arr=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:''});
+ // Format lampiran: row1 boleh kosong, row2 KANTOR | 1 | 2 ... | 31.
+ const matrixRow=arr.findIndex(row=>Array.isArray(row)&&row.some(x=>/^kantor$/i.test(String(x||'').trim()))&&row.filter(x=>typeof x==='number'&&x>=1&&x<=31||/^\d{1,2}$/.test(String(x||'').trim())).length>=2);
+ if(matrixRow>=0)return v260MatrixRows(arr,matrixRow,period);
+ const start=arr.findIndex(x=>Array.isArray(x)&&x.some(v=>/tanggal|tgl|date/i.test(String(v))));if(start<0)throw new Error('Tidak ditemukan header KANTOR + tanggal 1–31 atau kolom Tanggal pada Excel.');
  const h=arr[start].map(normalizedHeader),dateIdx=h.findIndex(x=>['tanggal','tgl','date'].includes(x)),officeIdx=h.findIndex(x=>['kantor','namakantor','unit','unitkantor','office'].includes(x)),runIdx=h.findIndex(x=>['runoff','runoffharian','nominalrunoff'].includes(x));
  if(dateIdx<0)throw new Error('Tidak ada kolom Tanggal.');const out=[];
  for(let i=start+1;i<arr.length;i++){
-  const r=arr[i],date=dates(r[dateIdx]);if(!date)continue;
-  if(officeIdx>=0&&runIdx>=0){const office=normalize(r[officeIdx]),amount=money(r[runIdx]);if(office&&amount>=0)out.push({date,office,amount});}
-  else h.forEach((x,j)=>{if(j===dateIdx||!x)return;const office=normalize(arr[start][j]),raw=r[j];if(raw===''||raw===null||raw===undefined)return;const amount=money(raw);if(amount>=0)out.push({date,office,amount});});
+  const r=arr[i]||[],date=dates(r[dateIdx]);if(!date)continue;
+  if(officeIdx>=0&&runIdx>=0){const office=v260OfficeFromMatrix(r[officeIdx]),raw=r[runIdx];if(raw===''||raw===null||raw===undefined||!office)continue;const amount=v260CellAmount(raw,office,date);if(amount!==null)out.push({date,office,amount});}
+  else h.forEach((x,j)=>{if(j===dateIdx||!x)return;const office=v260OfficeFromMatrix(arr[start][j]),raw=r[j];if(raw===''||raw===null||raw===undefined)return;const amount=v260CellAmount(raw,office,date);if(amount!==null)out.push({date,office,amount});});
  }
- if(!out.length)throw new Error('Tidak ditemukan angka runoff dengan Tanggal dan Kantor.');return out;
+ if(!out.length)throw new Error('Tidak ditemukan nominal runoff yang dapat diunggah.');return out;
 }
 async function previewFile(){
  const file=el('v258RunoffFile')?.files?.[0];runoffRows=[];if(!file)return;
@@ -20630,7 +20701,7 @@ async function previewFile(){
  if(file.size>5e6)return status('v258RunoffPreview','File maksimal 5 MB.',true);
  if(typeof XLSX==='undefined')return status('v258RunoffPreview','Library Excel belum dimuat. Periksa koneksi.',true);
  status('v258RunoffPreview','Membaca file Excel...');
- try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});let errors=[];for(const name of wb.SheetNames){try{runoffRows=parseRows(wb.Sheets[name]);break;}catch(e){errors.push(name+': '+e.message)}}if(!runoffRows.length)throw new Error(errors.join('; '));
+ try{const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:true});const period=el('v258AdminMonth')?.value||month();let errors=[];for(const name of wb.SheetNames){try{runoffRows=parseRows(wb.Sheets[name],period);break;}catch(e){errors.push(name+': '+e.message)}}if(!runoffRows.length)throw new Error(errors.join('; '));
  const mm=el('v258AdminMonth')?.value||month(),offices=new Set(runoffRows.map(x=>x.office)),outOfMonth=runoffRows.filter(x=>x.date.slice(0,7)!==mm);
  status('v258RunoffPreview',runoffRows.length+' baris • '+offices.size+' kantor • total '+rp(runoffRows.reduce((n,x)=>n+x.amount,0))+(outOfMonth.length?'\nPERHATIAN: '+outOfMonth.length+' baris di luar bulan '+mm:''),!!outOfMonth.length);
  }catch(e){status('v258RunoffPreview',String(e.message||e),true);runoffRows=[];}
@@ -20645,6 +20716,7 @@ function bind(){
  el('v258AdminRefresh')?.addEventListener('click',()=>refresh(true,el('v258AdminMonth').value));
  el('v258AdminMonth')?.addEventListener('change',()=>{runoffRows=[];status('v258RunoffPreview','Pilih file untuk periode baru.');refresh(true,el('v258AdminMonth').value)});
  el('v258RunoffFile')?.addEventListener('change',previewFile);
+ el('v261RunoffDivision')?.addEventListener('change',()=>{if(runoffRows.length)status('v258RunoffPreview',runoffRows.length+' baris siap diunggah untuk divisi '+el('v261RunoffDivision').value);});
  el('v258Configure')?.addEventListener('click',()=>{
   const id=el('v258SpreadsheetId').value.trim();if(!id)return alert('Isi URL atau ID spreadsheet Laporan Harian yang sama.');
   submit('configureOfficePerformance',{spreadsheetId:id},el('v258Configure'),r=>'Spreadsheet '+(r.spreadsheetName||'')+' berhasil dihubungkan.');
@@ -20652,16 +20724,16 @@ function bind(){
  el('v258UploadRunoff')?.addEventListener('click',()=>{
   const mm=el('v258AdminMonth').value,invalid=runoffRows.filter(x=>x.date.slice(0,7)!==mm);if(!runoffRows.length)return alert('Pilih file Excel dan pastikan preview berhasil.');if(invalid.length)return alert('Ada tanggal di luar bulan '+mm+'. Perbaiki Excel lebih dahulu.');
   const replace=el('v258ReplaceRunoff').checked;if(replace&&!confirm('Ganti seluruh data runoff periode '+mm+'?'))return;
-  submit('uploadOfficeRunoffMonthly',{month:mm,rows:runoffRows,replace},el('v258UploadRunoff'),r=>'Runoff organik '+r.month+' disimpan: '+r.rows+' baris / '+r.offices+' kantor.');
+  submit('uploadOfficeRunoffMonthly',{month:mm,division:el('v261RunoffDivision').value,rows:runoffRows,replace},el('v258UploadRunoff'),r=>'Runoff organik '+r.division+' '+r.month+' disimpan: '+r.rows+' baris / '+r.offices+' kantor.');
  });
  el('v258SavePayoff')?.addEventListener('click',()=>{
   const office=el('v258PayoffOffice').value,amount=money(el('v258PayoffValue').value),replace=el('v258ReplacePayoff').checked,mm=el('v258AdminMonth').value;
   if(!office)return alert('Pilih nama kantor.');if(amount<0)return alert('Nilai tidak boleh negatif.');if(replace&&!confirm('Perbarui pelunasan putus '+office+' untuk '+mm+'?'))return;
-  submit('saveOfficePayoffMonthly',{month:mm,office,amount,replace},el('v258SavePayoff'),r=>'Pelunasan putus '+r.office+' berhasil disimpan: '+rp(r.amount));
+  submit('saveOfficePayoffMonthly',{month:mm,division:el('v261PayoffDivision').value,office,amount,replace},el('v258SavePayoff'),r=>'Pelunasan putus '+r.division+' '+r.office+' berhasil disimpan: '+rp(r.amount));
  });
  el('v258PayoffValue')?.addEventListener('blur',e=>e.target.value=money(e.target.value).toLocaleString('id-ID'));
  el('v258DownloadTemplate')?.addEventListener('click',()=>{
-  if(typeof XLSX==='undefined')return alert('Library Excel belum siap.');const m=month(),rows=[{Tanggal:m+'-01',Kantor:'KLARI',Runoff:0},{Tanggal:m+'-01',Kantor:'CIKAMPEK',Runoff:0}];const w=XLSX.utils.book_new(),sh=XLSX.utils.json_to_sheet(rows);sh['!cols']=[{wch:15},{wch:27},{wch:20}];XLSX.utils.book_append_sheet(w,sh,'Runoff Harian');XLSX.writeFile(w,'Template_Runoff_Kantor_'+m+'.xlsx');
+  if(typeof XLSX==='undefined')return alert('Library Excel belum siap.');const m=el('v258AdminMonth')?.value||month(),offices=['CABANG','CIKAMPEK','CILAMAYA','KLARI','PEMDA','RENGASDENGKLOK','TELAGASARI'];const data=[[],['KANTOR',...Array.from({length:31},(_,i)=>i+1)],...offices.map(x=>[x]),['TOTAL']];const w=XLSX.utils.book_new(),sh=XLSX.utils.aoa_to_sheet(data);sh['!cols']=[{wch:25},...Array.from({length:31},()=>({wch:15}))];XLSX.utils.book_append_sheet(w,sh,'Runoff Harian');XLSX.writeFile(w,'Template_Runoff_Kantor_'+m+'.xlsx');
  });
  document.addEventListener('click',e=>{if(e.target.closest('[data-v9-page="home"],#v25OpenAoMonitoring,#v25RefreshAdminMonitoring'))setTimeout(()=>{if(e.target.closest('#v25OpenAoMonitoring'))populateOffices(lastResult?.offices?.map(x=>x.office)||[]);refresh(false);},300);});
  window.addEventListener('focus',()=>{if(document.visibilityState==='visible'&&Date.now()-lastAt>120000)refresh(true)});
