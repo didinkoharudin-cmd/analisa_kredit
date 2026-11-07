@@ -3776,6 +3776,18 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
           <div class="v25-actions"><button type="button" id="v267AoPayoffSave" class="v25-primary">Simpan Pelunasan Putus</button><button type="button" id="v267AoPayoffRefresh" class="v25-secondary">Refresh</button></div>
           <p id="v267AoPayoffStatus" class="v25-note" role="status" aria-live="polite">Data kantor diambil dari profil AO pada server.</p>
         </section>
+        <section id="v269AoClaimSection" class="v25-card" aria-label="Pelunasan Klaim Asuransi AO">
+          <div class="v25-card-head"><div><h3><i class="fa-solid fa-file-shield"></i> Pelunasan Klaim Asuransi</h3><span>Pengurang nett bulanan kantor penempatan AO</span></div></div>
+          <div class="v25-grid three">
+            <label class="v25-field">Periode Bulan<input id="v269AoClaimMonth" type="month" readonly></label>
+            <label class="v25-field">Divisi<select id="v269AoClaimDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label>
+            <label class="v25-field">Kantor<input id="v269AoClaimOffice" type="text" readonly placeholder="Memuat unit AO..."></label>
+          </div>
+          <label class="v25-field">Pelunasan Klaim Asuransi (Rp)<input id="v269AoClaimValue" type="text" inputmode="numeric" placeholder="0"></label>
+          <label class="v258-check" style="display:flex;gap:8px;align-items:center;font-size:11px;margin:10px 0"><input id="v269AoClaimReplace" type="checkbox"> Koreksi nominal yang sudah disimpan</label>
+          <div class="v25-actions"><button type="button" id="v269AoClaimSave" class="v25-primary">Simpan Klaim Asuransi</button><button type="button" id="v269AoClaimRefresh" class="v25-secondary">Refresh</button></div>
+          <p id="v269AoClaimStatus" class="v25-note" role="status" aria-live="polite">Data kantor diambil dari profil AO pada server.</p>
+        </section>
         <div class="v25-card"><div class="v25-card-head"><div><h3>Riwayat Realisasi Kredit Anda</h3><span id="v25AoHistoryCount">0 data</span></div><button id="v25RefreshAoMonitoring" class="v25-secondary" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button></div><div class="v25-table-wrap"><table class="v25-table"><thead><tr><th>Tanggal</th><th>Divisi</th><th>Kantor</th><th class="center">NoA New</th><th class="num">OS New</th><th class="center">NoA Mengulang</th><th class="num">OS Mengulang</th><th class="num">RunOff</th><th class="num">Total OS</th><th class="center">Aksi</th></tr></thead><tbody id="v25AoHistoryBody"></tbody></table></div></div>
         <div class="v25-card"><div class="v25-card-head"><div><h3>Arsip Aktivitas Harian Lama</h3><span>Input aktivitas baru dilakukan melalui My Activity</span></div></div><div class="v25-table-wrap"><table class="v25-table"><thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Hasil</th><th>Keterangan</th></tr></thead><tbody id="v25AoActivityHistoryBody"></tbody></table></div></div>
       </section>
@@ -3785,7 +3797,8 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
   <div class="v258-admin-head"><div><h3><i class="fa-solid fa-building"></i> Dashboard Pencapaian Kantor — Parameter Bulanan <small>V261</small></h3><p>Runoff organik diupload sekali pada awal bulan. Pelunasan putus diisi per kantor. Periode baru aktif otomatis pada tanggal 1.</p></div><button id="v258AdminRefresh" type="button">Refresh</button></div>
   <div class="v258-admin-fields"><label>Periode bulanan<input type="month" id="v258AdminMonth"></label><label>Spreadsheet Laporan Harian (konfigurasi awal)<input id="v258SpreadsheetId" type="text" placeholder="URL / ID spreadsheet Realisasi (sekali saja)"></label><button type="button" id="v258Configure">Hubungkan</button></div>
   <div class="v258-admin-cols"><div class="v258-admin-box"><b>1. Upload Runoff Organik Harian (Excel)</b><label>Divisi<select id="v261RunoffDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label><p>Format Excel: baris KANTOR, kolom tanggal sesuai bulan terpilih (28/29/30/31). Kolom di luar bulan akan diabaikan. Format Tanggal/Kantor/Runoff lama tetap didukung. Maksimal satu upload per bulan.</p><input type="file" id="v258RunoffFile" accept=".xlsx,.xls,.csv"><div id="v258RunoffPreview" class="v258-muted">Belum ada file dipilih.</div><div id="v263RunoffSaveReceipt" class="v258-muted" role="status" aria-live="polite">Belum ada konfirmasi penyimpanan dari server.</div><label class="v258-check"><input id="v258ReplaceRunoff" type="checkbox"> Ganti upload bulan ini (koreksi)</label><button type="button" id="v258UploadRunoff">Simpan Runoff Bulanan</button><button type="button" id="v258DownloadTemplate">Unduh Template Excel</button></div>
-  <div class="v258-admin-box"><b>2. Pelunasan Putus (Awal Bulan)</b><label>Divisi<select id="v261PayoffDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label><p>Nominal pengurang satu kali per kantor pada bulan berjalan.</p><label>Kantor<select id="v258PayoffOffice"><option value="">Pilih kantor...</option></select></label><label>Pelunasan Putus (Rp)<input id="v258PayoffValue" type="text" inputmode="numeric" placeholder="0"></label><label class="v258-check"><input id="v258ReplacePayoff" type="checkbox"> Koreksi nilai kantor yang sudah tersimpan</label><button type="button" id="v258SavePayoff">Simpan Pelunasan Putus</button></div></div>
+  <div class="v258-admin-box"><b>2. Pelunasan Putus (Tanggal Input)</b><label>Divisi<select id="v261PayoffDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label><p>Pengurang satu kali pada tanggal input pertama dalam bulan terkait. Koreksi nominal tidak mengubah tanggal efektif.</p><label>Kantor<select id="v258PayoffOffice"><option value="">Pilih kantor...</option></select></label><label>Pelunasan Putus (Rp)<input id="v258PayoffValue" type="text" inputmode="numeric" placeholder="0"></label><label class="v258-check"><input id="v258ReplacePayoff" type="checkbox"> Koreksi nilai kantor yang sudah tersimpan</label><button type="button" id="v258SavePayoff">Simpan Pelunasan Putus</button></div>
+  <div class="v258-admin-box"><b>3. Pelunasan Klaim Asuransi (Tanggal Input)</b><label>Divisi<select id="v269ClaimDivision"><option value="KONSUMER">Konsumer</option><option value="RITEL">Ritel</option></select></label><p>Pengurang nett satu kali pada tanggal input pertama dalam bulan terkait, terpisah dari Pelunasan Putus.</p><label>Kantor<select id="v269ClaimOffice"><option value="">Pilih kantor...</option></select></label><label>Pelunasan Klaim Asuransi (Rp)<input id="v269ClaimValue" type="text" inputmode="numeric" placeholder="0"></label><label class="v258-check"><input id="v269ClaimReplace" type="checkbox"> Koreksi nilai yang sudah tersimpan</label><button type="button" id="v269ClaimSave">Simpan Pelunasan Klaim Asuransi</button></div></div>
   <div id="v258AdminStatus" class="v258-muted">Data tersimpan per cabang dan periode. Tidak perlu upload saat login.</div>
 </section>
 
@@ -13189,7 +13202,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=268',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v268').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=270',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v270').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20637,7 +20650,7 @@ const month=()=>{const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jak
 const status=(id,msg,error=false)=>{const n=el(id);if(n){n.textContent=msg;n.classList.toggle('error',error)}};
 let lastAt=0,lastMonth='',loading=false,lastResult=null,runoffRows=[],adminLoading=false;
 const credential=()=>window.googleCredential||'';
-async function api(action,payload={}){if(!credential())throw new Error('Login belum siap.');if(typeof window.callApi!=='function')throw new Error('API SCORE belum tersedia.');const scopes={getOfficePerformanceMonthly:['getParameters','OFFICE_DASHBOARD_V258'],configureOfficePerformance:['saveParameters','OFFICE_DASHBOARD_CONFIG_V258'],uploadOfficeRunoffMonthly:['saveParameters','OFFICE_DASHBOARD_RUNOFF_V258'],saveOfficePayoffMonthly:['saveParameters','OFFICE_DASHBOARD_PAYOFF_V258']};const route=scopes[action];if(!route)throw new Error('Aksi dashboard tidak dikenali.');const r=await window.callApi(route[0],credential(),Object.assign({},payload,{scope:route[1]}));if(!r?.success)throw new Error(r?.error||'Backend Dashboard Kantor belum siap. Pastikan parameter central V258 dideploy.');return r;}
+async function api(action,payload={}){if(!credential())throw new Error('Login belum siap.');if(typeof window.callApi!=='function')throw new Error('API SCORE belum tersedia.');const scopes={getOfficePerformanceMonthly:['getParameters','OFFICE_DASHBOARD_V258'],configureOfficePerformance:['saveParameters','OFFICE_DASHBOARD_CONFIG_V258'],uploadOfficeRunoffMonthly:['saveParameters','OFFICE_DASHBOARD_RUNOFF_V258'],saveOfficePayoffMonthly:['saveParameters','OFFICE_DASHBOARD_PAYOFF_V258'],saveOfficeInsuranceClaimMonthly:['saveParameters','OFFICE_DASHBOARD_INSURANCE_CLAIM_V269']};const route=scopes[action];if(!route)throw new Error('Aksi dashboard tidak dikenali.');const r=await window.callApi(route[0],credential(),Object.assign({},payload,{scope:route[1]}));if(!r?.success)throw new Error(r?.error||'Backend Dashboard Kantor belum siap. Pastikan parameter central V258 dideploy.');return r;}
 // V259: Home hanya menampilkan nett harian dan akumulasi bulan berjalan.
 // Komponen pengurang tetap dihitung di backend V258, bukan dihitung ulang di UI.
 function todayWib(){
@@ -20718,6 +20731,8 @@ function populateOffices(list){
  const rows=[...unique].sort((a,b)=>(a[0]===branch?-1:b[0]===branch?1:a[1].localeCompare(b[1],'id')));
  select.innerHTML='<option value="">Pilih kantor...</option>'+rows.map(([key,label])=>'<option value="'+escape(key)+'">'+escape(label)+'</option>').join('');
  if(previous&&unique.has(previous))select.value=previous;
+ const claimSelect=el('v269ClaimOffice');
+ if(claimSelect){const selected=v266OfficeKey(claimSelect.value,branch);claimSelect.innerHTML=select.innerHTML;if(selected&&unique.has(selected))claimSelect.value=selected;}
 }
 function dates(v){
  if(v instanceof Date&&!Number.isNaN(+v)){const d=v;return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
@@ -20832,9 +20847,17 @@ function bind(){
  el('v258SavePayoff')?.addEventListener('click',()=>{
   const office=el('v258PayoffOffice').value,amount=money(el('v258PayoffValue').value),replace=el('v258ReplacePayoff').checked,mm=el('v258AdminMonth').value;
   if(!office)return alert('Pilih nama kantor.');if(amount<0)return alert('Nilai tidak boleh negatif.');if(replace&&!confirm('Perbarui pelunasan putus '+office+' untuk '+mm+'?'))return;
-  submit('saveOfficePayoffMonthly',{month:mm,division:el('v261PayoffDivision').value,office,amount,replace},el('v258SavePayoff'),r=>'Pelunasan putus '+r.division+' '+r.office+' berhasil disimpan: '+rp(r.amount));
+  submit('saveOfficePayoffMonthly',{month:mm,division:el('v261PayoffDivision').value,office,amount,replace},el('v258SavePayoff'),r=>'Pelunasan putus '+r.division+' '+r.office+' • '+(r.effectiveDate||'')+' berhasil disimpan: '+rp(r.amount));
  });
- el('v258PayoffValue')?.addEventListener('blur',e=>e.target.value=money(e.target.value).toLocaleString('id-ID'));
+ el('v269ClaimSave')?.addEventListener('click',()=>{
+  const office=el('v269ClaimOffice').value,raw=el('v269ClaimValue').value.trim(),amount=money(raw),replace=el('v269ClaimReplace').checked,mm=el('v258AdminMonth').value;
+  if(!office)return alert('Pilih nama kantor.');if(!raw||!Number.isSafeInteger(amount)||amount<0)return alert('Nominal klaim asuransi tidak valid.');
+  if(replace&&!confirm('Perbarui pelunasan klaim asuransi '+office+' untuk '+mm+'?'))return;
+  submit('saveOfficeInsuranceClaimMonthly',{month:mm,division:el('v269ClaimDivision').value,office,amount,replace},el('v269ClaimSave'),r=>'Pelunasan klaim asuransi '+r.division+' '+r.office+' • '+(r.effectiveDate||'')+' berhasil disimpan: '+rp(r.amount));
+ });
+ // V269: format titik ribuan saat mengetik tanpa mengubah nilai numerik yang dikirim.
+ function bindThousands(id){const input=el(id);if(!input)return;input.addEventListener('input',()=>{const before=input.selectionStart||0,raw=input.value,prior=raw.slice(0,before).replace(/\D/g,'').length,digits=raw.replace(/\D/g,'');input.value=digits?Number(digits).toLocaleString('id-ID'):'';let i=0,j=0;while(i<input.value.length&&j<prior){if(/\d/.test(input.value[i]))j++;i++;}input.setSelectionRange(i,i);});input.addEventListener('blur',()=>{if(input.value)input.value=money(input.value).toLocaleString('id-ID');});}
+ bindThousands('v258PayoffValue');bindThousands('v269ClaimValue');
  el('v258DownloadTemplate')?.addEventListener('click',()=>{
   if(typeof XLSX==='undefined')return alert('Library Excel belum siap.');const m=el('v258AdminMonth')?.value||month(),[yy,mm]=m.split('-').map(Number),daysInMonth=new Date(yy,mm,0).getDate(),offices=['CABANG','CIKAMPEK','CILAMAYA','KLARI','PEMDA','RENGASDENGKLOK','TELAGASARI'];const data=[[],['KANTOR',...Array.from({length:daysInMonth},(_,i)=>i+1)],...offices.map(x=>[x]),['TOTAL']];const w=XLSX.utils.book_new(),sh=XLSX.utils.aoa_to_sheet(data);sh['!cols']=[{wch:25},...Array.from({length:daysInMonth},()=>({wch:15}))];XLSX.utils.book_append_sheet(w,sh,'Runoff Harian');XLSX.writeFile(w,'Template_Runoff_Kantor_'+m+'.xlsx');
  });
@@ -20882,9 +20905,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
      el('v267AoPayoffValue').value=entry?.exists?Math.round(Number(entry.amount)||0).toLocaleString('id-ID'):'';
      el('v267AoPayoffReplace').checked=Boolean(entry?.exists);
      el('v267AoPayoffSave').disabled=!office;
+     // Klaim asuransi memakai profil kantor/divisi dan request context yang sama.
+     el('v269AoClaimMonth').value=m;el('v269AoClaimOffice').value=r.officeLabel||office;
+     const claimDiv=el('v269AoClaimDivision');claimDiv.disabled=!!lockedDivision;
+     if(lockedDivision)claimDiv.value=lockedDivision;
+     const claimData=r.insuranceClaims||{},claimEntry=claimData[claimDiv.value];
+     el('v269AoClaimValue').value=claimEntry?.exists?Math.round(Number(claimEntry.amount)||0).toLocaleString('id-ID'):'';
+     el('v269AoClaimReplace').checked=!!claimEntry?.exists;
+     el('v269AoClaimSave').disabled=!office;
+     const claimStatus=el('v269AoClaimStatus');if(claimStatus)claimStatus.textContent=claimEntry?.exists?'Klaim asuransi '+claimDiv.value+' tersimpan: Rp '+Number(claimEntry.amount||0).toLocaleString('id-ID'):'Belum ada pelunasan klaim asuransi bulan ini.';
+     claimDiv.onchange=()=>{const x=claimData[claimDiv.value];el('v269AoClaimValue').value=x?.exists?Number(x.amount||0).toLocaleString('id-ID'):'';el('v269AoClaimReplace').checked=!!x?.exists;};
      status((entry?.exists?'Tersimpan '+div+': Rp '+Math.round(Number(entry.amount)||0).toLocaleString('id-ID')+' • centang Koreksi jika ingin mengubah.':'Belum ada pelunasan putus untuk '+div+' bulan ini.')+' Kantor: '+(r.officeLabel||office)+'.');
      sel.onchange=()=>{const x=(r.payoffs||{})[sel.value];el('v267AoPayoffValue').value=x?.exists?Math.round(Number(x.amount)||0).toLocaleString('id-ID'):'';el('v267AoPayoffReplace').checked=!!x?.exists;status(x?.exists?'Nominal '+sel.value+' telah tersimpan. Koreksi akan mengganti nilai sebelumnya.':'Belum ada nilai '+sel.value+' untuk periode ini.');};
-   }catch(e){status('Gagal memuat pelunasan putus: '+(e.message||e),true);el('v267AoPayoffSave').disabled=true;}
+   }catch(e){status('Gagal memuat pelunasan putus/klaim asuransi: '+(e.message||e),true);el('v267AoPayoffSave').disabled=true;el('v269AoClaimSave').disabled=true;}
    finally{loading=false;}
  }
  async function save(){
@@ -20898,14 +20931,32 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    loading=true;el('v267AoPayoffSave').disabled=true;status('Menyimpan pelunasan putus ke server...');
    try{
      const r=await api('OFFICE_DASHBOARD_PAYOFF_V258',{month:m,division,office,amount,replace});
-     status('Tersimpan dan terkonfirmasi: '+r.division+' • '+r.office+' • Rp '+Number(r.amount||0).toLocaleString('id-ID'));
+     status('Tersimpan dan terkonfirmasi: '+r.division+' • '+r.office+' • '+(r.effectiveDate||'')+' • Rp '+Number(r.amount||0).toLocaleString('id-ID'));
      if(window.v258RefreshOfficeDashboard)window.v258RefreshOfficeDashboard(true);
    }catch(e){status('Gagal menyimpan: '+String(e.message||e),true);}
    finally{loading=false;el('v267AoPayoffSave').disabled=false;}
    await load();
  }
+ async function saveClaim(){
+   if(role()!=='AO'||loading)return;
+   const raw=el('v269AoClaimValue').value.trim(),m=currentMonth();
+   if(!office||loadedMonth!==m){el('v269AoClaimStatus').textContent='Periode/kantor berubah. Refresh dulu.';return;}
+   if(!raw){el('v269AoClaimStatus').textContent='Masukkan nominal klaim atau 0 bila nihil.';return;}
+   const amount=money(raw),division=el('v269AoClaimDivision').value,replace=el('v269AoClaimReplace').checked;
+   if(!Number.isSafeInteger(amount)||amount<0){el('v269AoClaimStatus').textContent='Nominal tidak valid.';return;}
+   if(replace&&!confirm('Koreksi pelunasan klaim asuransi '+division+' untuk '+office+' bulan '+m+'?'))return;
+   loading=true;el('v269AoClaimSave').disabled=true;el('v269AoClaimStatus').textContent='Menyimpan klaim asuransi...';
+   try{const r=await api('OFFICE_DASHBOARD_INSURANCE_CLAIM_V269',{month:m,division,office,amount,replace});el('v269AoClaimStatus').textContent='Tersimpan: '+r.division+' • '+r.office+' • '+(r.effectiveDate||'')+' • Rp '+Number(r.amount||0).toLocaleString('id-ID');if(window.v258RefreshOfficeDashboard)window.v258RefreshOfficeDashboard(true);}
+   catch(e){el('v269AoClaimStatus').textContent='Gagal menyimpan: '+(e.message||e);}
+   finally{loading=false;el('v269AoClaimSave').disabled=false;}
+   await load();
+ }
+ function formatThousands(id){const x=el(id);if(!x)return;x.addEventListener('input',()=>{const pos=x.selectionStart||0,prior=x.value.slice(0,pos).replace(/\D/g,'').length,digits=x.value.replace(/\D/g,'');x.value=digits?Number(digits).toLocaleString('id-ID'):'';let i=0,n=0;while(i<x.value.length&&n<prior){if(/\d/.test(x.value[i]))n++;i++;}x.setSelectionRange(i,i);});x.addEventListener('blur',()=>{if(x.value)x.value=money(x.value).toLocaleString('id-ID');});}
  function init(){
   el('v267AoPayoffSave')?.addEventListener('click',save);
+  el('v269AoClaimSave')?.addEventListener('click',saveClaim);
+  el('v269AoClaimRefresh')?.addEventListener('click',load);
+  formatThousands('v267AoPayoffValue');formatThousands('v269AoClaimValue');
   el('v267AoPayoffRefresh')?.addEventListener('click',load);
   el('v267AoPayoffValue')?.addEventListener('blur',e=>{if(e.target.value.trim())e.target.value=money(e.target.value).toLocaleString('id-ID')});
   const section=el('v267AoPayoffSection');if(!section)return;
