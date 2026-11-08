@@ -13202,7 +13202,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=270',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v270').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=271',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v271').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -20638,6 +20638,15 @@ document.addEventListener('visibilitychange',()=>{
 .v265-grid-head,.v265-office{grid-template-columns:minmax(75px,1.1fr) repeat(3,minmax(80px,1fr))}
 .v265-runoff{color:#0b608f!important}
 @media(max-width:550px){.v261-kpis.v265-kpis{gap:4px}.v261-kpis.v265-kpis>div{padding:7px 5px}.v261-kpis.v265-kpis strong{font-size:clamp(10px,2.8vw,13px)}.v265-grid-head,.v265-office{gap:3px;grid-template-columns:minmax(66px,1.2fr) repeat(3,minmax(60px,1fr))}.v265-office strong{font-size:clamp(8px,2.1vw,11px)}}
+/* V271 — Lima kartu KPI per divisi, dua kolom agar angka tidak pecah di HP. */
+.v258-office-dash .v261-kpis.v265-kpis.v271-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.v258-office-dash .v271-kpis>div{min-width:0;padding:10px;border-radius:10px}
+.v258-office-dash .v271-kpis>div:last-child{grid-column:1/-1}
+.v258-office-dash .v271-kpis small{font-size:10px;line-height:1.35;min-height:2.5em}
+.v258-office-dash .v271-kpis strong{display:block;font-size:clamp(11px,2.65vw,16px);letter-spacing:-.035em;white-space:nowrap;overflow-x:auto;overflow-wrap:normal;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.v258-office-dash .v271-kpis strong::-webkit-scrollbar{display:none}
+.v258-office-dash .v271-kpis .v271-disbursement{font-weight:850}
+@media(max-width:400px){.v258-office-dash .v271-kpis>div{padding:9px 7px}.v258-office-dash .v271-kpis strong{font-size:clamp(10px,2.7vw,13px)}}
 </style>
 
 <script id="v258-office-dashboard-js">
@@ -20662,6 +20671,13 @@ function growthClass(v){const n=Number(v)||0;return n<0?'v259-negative':n>0?'v25
 function netThroughToday(daily,cutoff){return (Array.isArray(daily)?daily:[]).reduce((sum,d)=>{
  const date=String(d.date||'').slice(0,10);return date&&date<=cutoff?sum+(Number(d.net)||0):sum;
 },0);}
+// V271: pencairan sebelum pengurang organik / pelunasan putus / klaim.
+// Runoff Mengulang tetap dikurangkan karena merupakan pelunasan fasilitas lama
+// yang melekat pada realisasi mengulang, bukan runoff organik kredit eksisting.
+function v271DisbursementDay(d){return (Number(d?.gross)||0)-(Number(d?.runoffMengulang)||0);}
+function v271DisbursementThroughToday(daily,cutoff){return (Array.isArray(daily)?daily:[]).reduce((sum,d)=>{
+ const day=String(d?.date||'').slice(0,10);return day&&day<=cutoff?sum+v271DisbursementDay(d):sum;
+},0);}
 function render(data){
  const m=data.month||month(),date=todayWib(),p=el('v258HomePeriod');
  if(p)p.textContent=new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric',timeZone:'Asia/Jakarta'}).format(new Date(m+'-01T12:00:00+07:00'))+' • per divisi';
@@ -20673,14 +20689,24 @@ function render(data){
    const daily=Array.isArray(x.daily)?x.daily:[];
    const todayNet=daily.reduce((v,d)=>v+(String(d.date||'').slice(0,10)===date?(Number(d.net)||0):0),0);
    const monthNet=netThroughToday(daily,date);
+   // V271: dua KPI pencairan dihitung hanya dari realisasi dan runoff mengulang.
+   // Ketiga pengurang lainnya hanya masuk ke nett, bukan ke kartu pencairan.
+   const todayDisbursement=daily.reduce((v,d)=>v+(String(d.date||'').slice(0,10)===date?v271DisbursementDay(d):0),0);
+   const monthDisbursement=v271DisbursementThroughToday(daily,date);
    // Sisa runoff organik = jumlah angsuran pokok eksisting dari BESOK sampai akhir bulan.
    // Tidak termasuk runoff mengulang dari realisasi AO, karena tidak ada proyeksi hari mendatang.
    const remainingRunoff=daily.reduce((v,d)=>{const day=String(d.date||'').slice(0,10);return day>date&&day.slice(0,7)===m?v+(Number(d.runoffOrganik)||0):v;},0);
-   return {office:x.office,todayNet,monthNet,remainingRunoff};
+   return {office:x.office,todayNet,monthNet,todayDisbursement,monthDisbursement,remainingRunoff};
   }).sort((a,b)=>b.monthNet-a.monthNet||String(a.office).localeCompare(String(b.office),'id'));
   const todayNet=rows.reduce((v,x)=>v+x.todayNet,0),monthNet=rows.reduce((v,x)=>v+x.monthNet,0),remainingRunoff=rows.reduce((v,x)=>v+x.remainingRunoff,0);
+  const todayDisbursement=rows.reduce((v,x)=>v+x.todayDisbursement,0),monthDisbursement=rows.reduce((v,x)=>v+x.monthDisbursement,0);
   const section=el(id);if(!section)return;
-  section.innerHTML='<div class="v261-kpis v265-kpis"><div><small>Nett hari ini</small><strong class="'+growthClass(todayNet)+'">'+escape(rp(todayNet))+'</strong></div><div><small>Akumulasi bulan berjalan</small><strong class="'+growthClass(monthNet)+'">'+escape(rp(monthNet))+'</strong></div><div><small>Sisa runoff organik</small><strong class="v265-runoff">'+escape(rp(remainingRunoff))+'</strong></div></div>'+
+  section.innerHTML='<div class="v261-kpis v265-kpis v271-kpis">'+
+   '<div><small>Pencairan hari ini</small><strong class="v271-disbursement '+growthClass(todayDisbursement)+'">'+escape(rp(todayDisbursement))+'</strong></div>'+
+   '<div><small>Akumulasi pencairan bulan ini</small><strong class="v271-disbursement '+growthClass(monthDisbursement)+'">'+escape(rp(monthDisbursement))+'</strong></div>'+
+   '<div><small>Nett hari ini</small><strong class="'+growthClass(todayNet)+'">'+escape(rp(todayNet))+'</strong></div>'+
+   '<div><small>Akumulasi bulan berjalan</small><strong class="'+growthClass(monthNet)+'">'+escape(rp(monthNet))+'</strong></div>'+
+   '<div><small>Sisa runoff organik</small><strong class="v265-runoff">'+escape(rp(remainingRunoff))+'</strong></div></div>'+
    '<div class="v261-grid-head v265-grid-head"><span>Kantor</span><span>Nett hari ini</span><span>Akumulasi</span><span>Sisa runoff</span></div>'+
    (rows.length?rows.map(x=>'<div class="v261-office v265-office"><b>'+escape(x.office)+'</b><strong class="'+growthClass(x.todayNet)+'">'+escape(rp(x.todayNet))+'</strong><strong class="'+growthClass(x.monthNet)+'">'+escape(rp(x.monthNet))+'</strong><strong class="v265-runoff">'+escape(rp(x.remainingRunoff))+'</strong></div>').join(''):'<div class="v258-muted">Belum ada data realisasi divisi ini.</div>');
  });
