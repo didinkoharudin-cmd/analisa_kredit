@@ -13202,7 +13202,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=271',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v271').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=272',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v272').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -17623,6 +17623,43 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
 })();
 </script>
 
+
+<script id="v272-realization-division-standings-helper">
+// V272: same AO may appear in both divisions if realisations exist in both.
+(function(){
+'use strict';
+function norm(x){return String(x||'').trim().toUpperCase().replace(/\s+/g,' ')}
+function identity(x){return String(x?.email||x?.aoEmail||'').trim().toLowerCase()||norm(x?.kodeAO||x?.kode_ao||'')||norm(x?.nama||x?.name||'')}
+function matchMeta(row,base){
+ const candidates=[];
+ for(const div of ['Konsumer','Ritel'])candidates.push(...(base?.standings?.[div]?.rows||[]));
+ candidates.push(...(base?.aoOptions||[]));
+ const em=String(row.email||'').toLowerCase(),code=norm(row.kodeAO),name=norm(row.nama);
+ return candidates.find(x=>em&&String(x.email||x.aoEmail||'').toLowerCase()===em)
+   ||candidates.find(x=>code&&norm(x.kodeAO||x.kode_ao)===code)
+   ||candidates.find(x=>name&&norm(x.nama||x.name)===name)||{};
+}
+window.v272ApplyAoDivisionStandings=function(base,remote){
+ if(!base||!remote||remote.success!==true||remote.schemaVersion!=='18.3.11.272'||!Array.isArray(remote.rows))return base;
+ const standings={...(base.standings||{})};
+ for(const div of ['Konsumer','Ritel']){
+   const rows=remote.rows.filter(x=>norm(x.divisi)===norm(div)).map(x=>{
+      const meta=matchMeta(x,base),target=Number(meta.target)||0,actual=Number(x.totalRealisasi)||0;
+      const progress=target>0?actual/target*100:0;
+      return {...meta,...x,nama:x.nama||meta.nama||'-',grade:Number(meta.grade)||0,
+        target:target,netToday:Number(x.netToday)||0,akumulasi:Number(x.akumulasi)||0,totalRealisasi:actual,
+        selisihTarget:target-actual,progress,photoUrl:meta.photoUrl||'',
+        kantor:x.kantor||meta.kantor||'-'};
+   }).sort((a,b)=>Number(b.totalRealisasi||0)-Number(a.totalRealisasi||0)||String(a.nama).localeCompare(String(b.nama),'id'));
+   const totals=rows.reduce((s,x)=>{for(const k of ['target','netToday','akumulasi','totalRealisasi','selisihTarget'])s[k]+=Number(x[k])||0;return s;},{target:0,netToday:0,akumulasi:0,totalRealisasi:0,selisihTarget:0,progress:0});
+   totals.progress=totals.target>0?totals.totalRealisasi/totals.target*100:0;
+   standings[div]={...(standings[div]||{}),rows,totals};
+ }
+ return {...base,standings,divisionSource:'REALISASI_V272'};
+};
+})();
+</script>
+
 <script id="v1831125-ao-monitoring-controller">
 (function(){
   'use strict';
@@ -17744,7 +17781,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   function formatMoneyInput(input){if(!input)return;const n=parseMoney(input.value);input.value=n.toLocaleString('id-ID');}
   function recalc(){const noa=num(el('v25NoaNew')?.value)+num(el('v25NoaRepeat')?.value),os=parseMoney(el('v25OsNew')?.value)+parseMoney(el('v25OsRepeat')?.value)-parseMoney(el('v25RunOff')?.value);if(el('v25TotalNoa'))el('v25TotalNoa').value=noa.toLocaleString('id-ID');if(el('v25TotalOs'))el('v25TotalOs').value=rp(os);}
   function realizationPayload(){return {row:state.editingRow,tanggal:el('v25RealizationDate')?.value||'',divisi:el('v25RealizationDivision')?.value||'',namaKantor:el('v25RealizationOffice')?.value||'',noaNew:num(el('v25NoaNew')?.value),osNew:parseMoney(el('v25OsNew')?.value),noaMengulang:num(el('v25NoaRepeat')?.value),osMengulang:parseMoney(el('v25OsRepeat')?.value),runOff:parseMoney(el('v25RunOff')?.value)};}
-  function resetRealizationForm(){state.editingRow=null;el('v25RealizationForm')?.reset();if(el('v25RealizationDate'))el('v25RealizationDate').value=today();if(el('v25RealizationDivision')){if(state.profile?.divisi)el('v25RealizationDivision').value=state.profile.divisi;el('v25RealizationDivision').disabled=Boolean(state.profile?.divisi);}populateOfficeSelects();const defaultOffice=String(state.userData?.user?.kantor||state.profile?.kantor||'').trim();if(el('v25RealizationOffice')&&defaultOffice&&officeOptions().includes(defaultOffice))el('v25RealizationOffice').value=defaultOffice;['v25OsNew','v25OsRepeat','v25RunOff'].forEach(id=>{if(el(id))el(id).value='0';});['v25NoaNew','v25NoaRepeat'].forEach(id=>{if(el(id))el(id).value='0';});if(el('v25RealizationFormTitle'))el('v25RealizationFormTitle').textContent='Input Realisasi Kredit Anda';if(el('v25RealizationEditBadge'))el('v25RealizationEditBadge').textContent='Tersimpan atas akun AO yang sedang login';el('v25CancelRealizationEdit')?.classList.add('v25-hidden');if(el('v25SaveRealization'))el('v25SaveRealization').innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi';recalc();}
+  function resetRealizationForm(){state.editingRow=null;el('v25RealizationForm')?.reset();if(el('v25RealizationDate'))el('v25RealizationDate').value=today();if(el('v25RealizationDivision')){if(state.profile?.divisi)el('v25RealizationDivision').value=state.profile.divisi;el('v25RealizationDivision').disabled=false;}populateOfficeSelects();const defaultOffice=String(state.userData?.user?.kantor||state.profile?.kantor||'').trim();if(el('v25RealizationOffice')&&defaultOffice&&officeOptions().includes(defaultOffice))el('v25RealizationOffice').value=defaultOffice;['v25OsNew','v25OsRepeat','v25RunOff'].forEach(id=>{if(el(id))el(id).value='0';});['v25NoaNew','v25NoaRepeat'].forEach(id=>{if(el(id))el(id).value='0';});if(el('v25RealizationFormTitle'))el('v25RealizationFormTitle').textContent='Input Realisasi Kredit Anda';if(el('v25RealizationEditBadge'))el('v25RealizationEditBadge').textContent='Tersimpan atas akun AO yang sedang login';el('v25CancelRealizationEdit')?.classList.add('v25-hidden');if(el('v25SaveRealization'))el('v25SaveRealization').innerHTML='<i class="fa-solid fa-floppy-disk"></i> Simpan Realisasi';recalc();}
   function recalcAdminRealization(){const noa=num(el('v27AdminNoaNew')?.value)+num(el('v27AdminNoaRepeat')?.value),os=parseMoney(el('v27AdminOsNew')?.value)+parseMoney(el('v27AdminOsRepeat')?.value)-parseMoney(el('v27AdminRunOff')?.value);if(el('v27AdminTotalNoa'))el('v27AdminTotalNoa').value=noa.toLocaleString('id-ID');if(el('v27AdminTotalOs'))el('v27AdminTotalOs').value=rp(os);}
   function adminRealizationPayload(){return {row:state.adminEditingRow,aoEmail:el('v27AdminRealizationAo')?.value||'',tanggal:el('v27AdminRealizationDate')?.value||'',divisi:el('v27AdminRealizationDivision')?.value||'',namaKantor:el('v27AdminRealizationOffice')?.value||'',noaNew:num(el('v27AdminNoaNew')?.value),osNew:parseMoney(el('v27AdminOsNew')?.value),noaMengulang:num(el('v27AdminNoaRepeat')?.value),osMengulang:parseMoney(el('v27AdminOsRepeat')?.value),runOff:parseMoney(el('v27AdminRunOff')?.value)};}
   function clearAdminRealizationAmounts(){['v27AdminOsNew','v27AdminOsRepeat','v27AdminRunOff','v27AdminNoaNew','v27AdminNoaRepeat'].forEach(id=>{if(el(id))el(id).value='0';});recalcAdminRealization();}
@@ -17757,7 +17794,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
   }
   function renderAoDivisionManagement(){const rows=adminAoRows(),unassigned=rows.filter(x=>!x.divisi).length,consumer=rows.filter(x=>x.divisi==='Konsumer').length,retail=rows.filter(x=>x.divisi==='Ritel').length,body=el('v28AoDivisionBody');if(el('v28AoDivisionSummary'))el('v28AoDivisionSummary').textContent='Konsumer '+consumer+' AO • Ritel '+retail+' AO • Belum diatur '+unassigned+' AO';if(body)body.innerHTML=rows.length?rows.map(x=>'<tr><td><b>'+esc(x.nama)+'</b></td><td>'+esc(x.email)+'</td><td><span style="display:inline-flex;padding:4px 9px;border-radius:999px;font-weight:900;background:'+(x.divisi==='Konsumer'?'#dbeafe':x.divisi==='Ritel'?'#d1fae5':'#fee2e2')+';color:'+(x.divisi==='Konsumer'?'#1d4ed8':x.divisi==='Ritel'?'#047857':'#b91c1c')+'">'+esc(x.divisi||'Belum diatur')+'</span></td><td>'+esc(x.kantor||'Belum diatur')+'</td><td class="center">'+num(x.grade)+'</td><td class="num">'+esc(rp(x.target))+'</td></tr>').join(''):'<tr><td colspan="6" class="center" style="padding:18px;color:#94a3b8">Belum ada data AO pada sheet users.</td></tr>';}
   function selectedAdminAo(selectId){const email=el(selectId)?.value||'';return adminAoRows().find(x=>x.email===email)||null;}
-  function syncAdminRealizationDivision(){const ao=selectedAdminAo('v27AdminRealizationAo'),select=el('v27AdminRealizationDivision');if(!select)return;if(ao?.divisi)select.value=ao.divisi;select.disabled=Boolean(ao?.divisi);populateOfficeSelects();if(el('v27AdminRealizationOffice')&&ao?.kantor)el('v27AdminRealizationOffice').value=ao.kantor;}
+  function syncAdminRealizationDivision(){const ao=selectedAdminAo('v27AdminRealizationAo'),select=el('v27AdminRealizationDivision');if(!select)return;if(ao?.divisi)select.value=ao.divisi;select.disabled=false;populateOfficeSelects();if(el('v27AdminRealizationOffice')&&ao?.kantor)el('v27AdminRealizationOffice').value=ao.kantor;}
   function syncDivisionEditor(){const ao=selectedAdminAo('v28DivisionAo');if(el('v28DivisionValue'))el('v28DivisionValue').value=ao?.divisi||'';if(el('v28OfficeValue'))el('v28OfficeValue').value=ao?.kantor||'';if(el('v28GradeValue'))el('v28GradeValue').value=num(ao?.grade);if(el('v28TargetValue'))el('v28TargetValue').value=num(ao?.target).toLocaleString('id-ID');}
 
   async function loadAo(){
@@ -17779,7 +17816,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     }).catch(err=>console.warn('[V268] Unit booking tambahan:',err));
   }
   function renderAo(){populateOfficeSelects();if(el('v25RealizationOffice')&&!el('v25RealizationOffice').value&&state.userData?.user?.kantor)el('v25RealizationOffice').value=state.userData.user.kantor;
-    const p=state.profile||{};if(el('v25AoIdentity'))el('v25AoIdentity').textContent=(p.nama||'-')+' • '+(p.email||'-')+' • '+(p.divisi||'Divisi belum diatur');if(el('v25RealizationDivision')){if(p.divisi)el('v25RealizationDivision').value=p.divisi;el('v25RealizationDivision').disabled=Boolean(p.divisi);}
+    const p=state.profile||{};if(el('v25AoIdentity'))el('v25AoIdentity').textContent=(p.nama||'-')+' • '+(p.email||'-')+' • '+(p.divisi||'Divisi belum diatur');if(el('v25RealizationDivision')){if(p.divisi)el('v25RealizationDivision').value=p.divisi;el('v25RealizationDivision').disabled=false;}
     const rows=Array.isArray(state.userData?.realizations)?state.userData.realizations:[],acts=Array.isArray(state.userData?.activities)?state.userData.activities:[];
     if(el('v25AoHistoryCount'))el('v25AoHistoryCount').textContent=rows.length.toLocaleString('id-ID')+' data • Total '+rp(state.userData?.totalOs||0);
     const body=el('v25AoHistoryBody');if(body)body.innerHTML=rows.length?rows.map(x=>'<tr><td>'+esc(x.tanggal)+'</td><td>'+esc(x.divisi)+'</td><td>'+esc(x.namaKantor)+'</td><td class="center">'+num(x.noaNew).toLocaleString('id-ID')+'</td><td class="num">'+esc(rp(x.osNew))+'</td><td class="center">'+num(x.noaMengulang).toLocaleString('id-ID')+'</td><td class="num">'+esc(rp(x.osMengulang))+'</td><td class="num">'+esc(rp(x.runOff))+'</td><td class="num"><b>'+esc(rp(x.totalOs))+'</b></td><td class="center"><button type="button" class="v25-secondary v25-edit-realization" data-row="'+Number(x.row)+'" style="min-height:30px;padding:5px 8px"><i class="fa-solid fa-pen"></i></button> <button type="button" class="v25-danger v25-delete-realization" data-row="'+Number(x.row)+'" style="min-height:30px;padding:5px 8px"><i class="fa-solid fa-trash"></i></button></td></tr>').join(''):'<tr><td colspan="10" class="center" style="padding:22px;color:#94a3b8">Belum ada realisasi.</td></tr>';
@@ -17805,7 +17842,18 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     setStatus('Memuat realisasi, aktivitas, dan klasemen '+(state.standingMode==='CUSTOM'?'periode '+monthDisplay(payload.periodStartMonth)+' – '+monthDisplay(payload.periodEndMonth):dateDisplay(date))+'...');
     const r=await api('getAoMonitoringAdminData',payload);if(!r?.success)throw new Error(r?.error||'Dashboard klasemen gagal dimuat.');state.adminData=r;state.standingMode=r.standingPeriod?.mode||state.standingMode;
     if(el('v44StandingStartMonth'))el('v44StandingStartMonth').value=r.standingPeriod?.startMonth||date.slice(0,7);if(el('v44StandingEndMonth'))el('v44StandingEndMonth').value=r.standingPeriod?.endMonth||date.slice(0,7);
-    if(el('v25AdminSheetName'))el('v25AdminSheetName').textContent=(r.spreadsheetName||'Google Spreadsheet')+' • '+dateDisplay(date);renderAdmin();setStatus('Dashboard klasemen diperbarui • '+new Date().toLocaleString('id-ID'));
+    if(el('v25AdminSheetName'))el('v25AdminSheetName').textContent=(r.spreadsheetName||'Google Spreadsheet')+' • '+dateDisplay(date);renderAdmin();setStatus('Memuat klasemen berdasarkan divisi pada sheet Realisasi...');
+    // V272: keep fast-open V268. Update the ranking asynchronously, without blocking menus.
+    const runId=state.v272StandingRequestId=(state.v272StandingRequestId||0)+1;
+    const period=r.standingPeriod||{};
+    const first=period.mode==='CUSTOM'?String(period.startMonth||date.slice(0,7))+'-01':String(period.startDate||date.slice(0,7)+'-01');
+    const last=period.mode==='CUSTOM'?(()=>{const end=String(period.endMonth||date.slice(0,7));const d=new Date(end+'-01T12:00:00+07:00');return end+'-'+String(new Date(d.getFullYear(),d.getMonth()+1,0).getDate()).padStart(2,'0');})():String(period.endDate||date);
+    api('getParameters',{scope:'OFFICE_DASHBOARD_V258',includeAoStandingsV272:true,month:date.slice(0,7),standingStart:first,standingEnd:last,forceRefresh:false}).then(extra=>{
+      if(runId!==state.v272StandingRequestId||state.adminData!==r)return;
+      if(!extra?.success||extra?.schemaVersion!=='18.3.11.272')throw new Error(extra?.error||'Backend Central V272 belum aktif.');
+      state.adminData=window.v272ApplyAoDivisionStandings(r,extra);renderStandingDivision('Konsumer','v26KlasemenKonsumerBody','v26KlasemenKonsumerFoot','v26KlasemenKonsumerDate');renderStandingDivision('Ritel','v26KlasemenRitelBody','v26KlasemenRitelFoot','v26KlasemenRitelDate');
+      setStatus('Klasemen berdasarkan transaksi Realisasi • '+new Date().toLocaleString('id-ID'));
+    }).catch(err=>{if(runId===state.v272StandingRequestId)setStatus('Klasemen lama ditampilkan; sinkronisasi klasemen V272 belum berhasil: '+String(err?.message||err),true);});
   }
   async function applyStandingPeriod(){try{await loadAdmin('CUSTOM');}catch(err){setStatus(String(err?.message||err),true);alert('Periode klasemen tidak dapat ditampilkan: '+String(err?.message||err));}}
   async function useActiveStandingPeriod(){try{await loadAdmin('ACTIVE');}catch(err){setStatus(String(err?.message||err),true);alert('Periode aktif tidak dapat ditampilkan: '+String(err?.message||err));}}
@@ -18534,7 +18582,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="v71-home-standing-js">
 (function(){
 'use strict';
-const CACHE_KEY='v72HomeAoStandingsCache';
+const CACHE_KEY='v272HomeAoStandingsCache';
 const CACHE_MS=5*60*1000;
 const AUTO_MS=2800;
 const RESUME_MS=6500;
@@ -18547,7 +18595,7 @@ function pct(v){return Number(v||0).toLocaleString('id-ID',{maximumFractionDigit
 function safePhoto(v){const x=String(v||'').trim();return /^https:\/\//i.test(x)?x:''}
 function monthLabel(targetDate){try{return new Intl.DateTimeFormat('id-ID',{month:'long',year:'numeric'}).format(new Date(String(targetDate)+'T12:00:00'))}catch(e){return String(targetDate||'').slice(0,7)}}
 function saveCache(data){try{localStorage.setItem(CACHE_KEY,JSON.stringify({savedAt:Date.now(),data:data}))}catch(e){}}
-function readCache(){try{const x=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(x?.data&&Date.now()-Number(x.savedAt||0)<CACHE_MS)return x}catch(e){}return null}
+function readCache(){try{const x=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(x?.data?.divisionSource==='REALISASI_V272'&&Date.now()-Number(x.savedAt||0)<CACHE_MS)return x}catch(e){}return null}
 function setTabs(){document.querySelectorAll('#v71StandingTabs [data-v71-division]').forEach(b=>b.classList.toggle('active',b.dataset.v71Division===state.division))}
 function rowsForDivision(){
   const st=state.data?.standings||{};
@@ -18568,7 +18616,7 @@ function render(){
   wrap.hidden=false;setTabs();if(period)period.textContent=monthLabel(state.data.targetDate)+' • semua AO • realisasi bulan berjalan';if(err){err.hidden=true;err.textContent='';}
   const rows=rowsForDivision();
   if(!rows.length){stopAuto();list.innerHTML='<div class="v71-standing-empty">Belum ada data klasemen '+esc(state.division==='ALL'?'AO':state.division)+' untuk bulan berjalan.</div>';return;}
-  list.innerHTML=rows.map((x,i)=>{const photo=safePhoto(x.photoUrl),progress=Number(x.progress||0),bar=Math.max(0,Math.min(100,progress)),rank=i+1,rankCls=rank<=3?' top'+rank:'';return '<article class="v71-ao-card" data-index="'+i+'" title="Peringkat '+rank+(state.division==='ALL'?' seluruh AO':' '+esc(state.division))+'"><span class="v71-ao-rank'+rankCls+'">#'+rank+'</span><div class="v71-ao-photo">'+(photo?'<img src="'+esc(photo)+'" alt="Foto '+esc(x.nama||'AO')+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">':'')+'<span>'+esc(initials(x.nama))+'</span></div><div class="v71-ao-name">'+esc(x.nama||'-')+'</div><div class="v71-ao-real-label">Realisasi</div><div class="v71-ao-real">'+esc(rpShort(x.totalRealisasi))+'</div><div class="v71-progress-row"><div class="v71-progress-track"><i style="width:'+bar+'%"></i></div><b>'+esc(pct(progress))+'</b></div></article>'}).join('');
+  list.innerHTML=rows.map((x,i)=>{const photo=safePhoto(x.photoUrl),progress=Number(x.progress||0),bar=Math.max(0,Math.min(100,progress)),rank=i+1,rankCls=rank<=3?' top'+rank:'';return '<article class="v71-ao-card" data-index="'+i+'" title="Peringkat '+rank+(state.division==='ALL'?' seluruh AO':' '+esc(state.division))+'"><span class="v71-ao-rank'+rankCls+'">#'+rank+'</span><div class="v71-ao-photo">'+(photo?'<img src="'+esc(photo)+'" alt="Foto '+esc(x.nama||'AO')+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">':'')+'<span>'+esc(initials(x.nama))+'</span></div><div class="v71-ao-name">'+esc(x.nama||'-')+'</div><div class="v71-ao-real-label">'+esc(x.division||'')+' • Realisasi</div><div class="v71-ao-real">'+esc(rpShort(x.totalRealisasi))+'</div><div class="v71-progress-row"><div class="v71-progress-track"><i style="width:'+bar+'%"></i></div><b>'+esc(pct(progress))+'</b></div></article>'}).join('');
   requestAnimationFrame(()=>{state.centerIndex=0;scrollToCard(0,false);startAuto()});
 }
 function scheduleRetry(delay){clearTimeout(state.retryTimer);if(state.retryCount>=12)return;state.retryCount++;state.retryTimer=setTimeout(()=>load(true),Math.max(800,Number(delay)||1500));}
@@ -18587,7 +18635,15 @@ async function load(force){
   try{
     const r=await window.callApi('getAoHomeStandings',credential,{});
     if(!r?.success)throw new Error(r?.error||'Klasemen gagal dimuat.');
-    state.data=r;state.loadedAt=Date.now();state.division='ALL';state.retryCount=0;state.lastError='';clearTimeout(state.retryTimer);saveCache(r);render();
+    state.data=r;state.loadedAt=Date.now();state.division='ALL';state.retryCount=0;state.lastError='';clearTimeout(state.retryTimer);render();
+    // V272: do not block first paint. Query standings from the Realisasi sheet,
+    // and replace the old user-division classification when the result arrives.
+    const snapshot=r;
+    window.callApi('getParameters',credential,{scope:'OFFICE_DASHBOARD_V258',includeAoStandingsV272:true,month:String(r.targetDate||'').slice(0,7)||new Date().toISOString().slice(0,7),standingStart:String(r.targetDate||'').slice(0,7)+'-01',standingEnd:String(r.targetDate||new Date().toISOString().slice(0,10)).slice(0,10)}).then(extra=>{
+      if(state.data!==snapshot)return;
+      if(!extra?.success||extra?.schemaVersion!=='18.3.11.272')throw new Error(extra?.error||'Backend V272 tidak mengembalikan klasemen.');
+      state.data=window.v272ApplyAoDivisionStandings(snapshot,extra);state.loadedAt=Date.now();saveCache(state.data);render();
+    }).catch(e=>{console.warn('[V272 Home Standings]',e);if(err){err.hidden=false;err.textContent='Klasemen per divisi belum tersinkron dari sheet Realisasi: '+String(e?.message||e);}});
   }catch(e){
     state.lastError=String(e?.message||e||'Klasemen gagal dimuat.');console.warn('[V76.5 Home Standing]',e);
     wrap.hidden=false;
