@@ -3544,10 +3544,9 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <div class="v17-sim-section-title"><span><i class="fa-solid fa-file-invoice-dollar"></i></span> Data Fasilitas <em>Opsional untuk akurasi</em></div>
         <div class="v17-sim-grid two">
           <label>Nomor Fasilitas<input id="v117ManualLoanNo" type="text" placeholder="Opsional"></label>
-          <label>Angsuran Eksisting<input id="v117ManualExistingInst" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
-          <label>Baki Debet<input id="v117ManualBaki" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
-          <label>Bunga Berjalan<input id="v117ManualRunningInterest" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
-          <label>Musisi Asuransi<input id="v117ManualMusisi" type="number" inputmode="numeric" min="0" step="100000" value="0"></label>
+          <label>Baki Debet<input id="v117ManualBaki" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"></label>
+          <label>Bunga Berjalan<input id="v117ManualRunningInterest" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"></label>
+          <label>Musisi Asuransi<input id="v117ManualMusisi" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"></label>
         </div>
       </div>
       <div class="v17-sim-rule-strip"><span>Wajib: nama, tanggal lahir, dan jumlah penghasilan.</span><span>Nomor WA, dinas, serta rincian fasilitas bersifat opsional.</span><span>Data manual tidak masuk database kredit/penghasilan; hasil simulasi valid otomatis dicatat sebagai prospek berstatus SIMULASI.</span></div>
@@ -13202,7 +13201,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=271',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v271').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=273',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v273').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -14774,7 +14773,7 @@ function v119HandleMoneyInput(event){
 function v116SubmitManualDebtor(event){
   event?.preventDefault();
   const val=id=>String(document.getElementById(id)?.value||'').trim();
-  const num=id=>Math.max(0,Number(document.getElementById(id)?.value||0));
+  // V273: formulir fasilitas manual menampilkan pemisah titik, nilai perhitungan tetap angka rupiah utuh.
   const money=id=>Math.max(0,v119ParseMoney(document.getElementById(id)?.value));
   v117SyncManualScenario();
   const name=val('v116ManualName'),birthRaw=val('v116ManualBirth'),incomeAmount=money('v117ManualIncome'),rule=simProductRule();
@@ -14789,7 +14788,7 @@ function v116SubmitManualDebtor(event){
   const facilities=[];
   if(simState.offer!=='NEW'){
     const renewalG2c=simState.product==='G2C'&&simState.offer==='MENGULANG';
-    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':simState.product,sumber_penghasilan:renewalG2c?'GAJI':source,angsuran_eksisting:num('v117ManualExistingInst'),baki_debet:num('v117ManualBaki'),bunga_berjalan:num('v117ManualRunningInterest'),musisi_asuransi:num('v117ManualMusisi')});
+    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':simState.product,sumber_penghasilan:renewalG2c?'GAJI':source,angsuran_eksisting:0,baki_debet:money('v117ManualBaki'),bunga_berjalan:money('v117ManualRunningInterest'),musisi_asuransi:money('v117ManualMusisi')});
   }
   const deb={__manual:true,cif:'MANUAL-'+Date.now(),nama:name,no_hp:val('v116ManualPhone'),tgl_lahir:dob,bup,status_pegawai:status,dinas:val('v116ManualDinas')||'Input Manual',kode_ao:login.kodeAO||login.kode_ao||'',income:incomes,facilities};
   document.getElementById('v116SimManualCard').style.display='none';
