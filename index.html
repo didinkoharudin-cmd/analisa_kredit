@@ -3543,8 +3543,16 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
       <div id="v117ManualFacility" class="v117-manual-facility" style="display:none">
         <div class="v17-sim-section-title"><span><i class="fa-solid fa-file-invoice-dollar"></i></span> Data Fasilitas <em>Opsional untuk akurasi</em></div>
         <div class="v17-sim-grid two">
+          <label id="v276ManualG2cPayoffProductWrap" style="display:none">Produk Fasilitas yang Dilunasi
+            <select id="v276ManualG2cPayoffProduct"><option value="G6B">G6B</option></select>
+            <small style="display:block;margin-top:4px;font-weight:500;color:#64748b">G2C MENGULANG • pilih produk kredit eksisting, tidak terbatas G6B</small>
+          </label>
+          <label id="v276ManualG2cPayoffSourceWrap" style="display:none">Sumber Angsuran Fasilitas
+            <select id="v276ManualG2cPayoffSource"><option value="GAJI">GAJI</option><option value="SERTIFIKASI">SERTIFIKASI</option><option value="TPP">TPP</option><option value="PENSIUN">PENSIUN</option><option value="THT">THT</option></select>
+            <small style="display:block;margin-top:4px;font-weight:500;color:#64748b">Hanya angsuran yang bersumber GAJI dilepas dari RPC gaji aktif</small>
+          </label>
           <label>Nomor Fasilitas<input id="v117ManualLoanNo" type="text" placeholder="Opsional"></label>
-          <label id="v274ManualExistingInstallmentWrap" style="display:none">Angsuran Eksisting<input id="v274ManualExistingInstallment" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"><small style="display:block;margin-top:4px;font-weight:500;color:#64748b">Khusus TOPUP • menjadi pengurang RPC</small></label>
+          <label id="v274ManualExistingInstallmentWrap" style="display:none"><span id="v276ManualExistingInstallmentLabel">Angsuran Eksisting</span><input id="v274ManualExistingInstallment" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"><small id="v276ManualExistingInstallmentHint" style="display:block;margin-top:4px;font-weight:500;color:#64748b">Khusus TOPUP • menjadi pengurang RPC</small></label>
           <label data-v275-manual-settlement="1">Baki Debet<input id="v117ManualBaki" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"></label>
           <label data-v275-manual-settlement="1">Bunga Berjalan<input id="v117ManualRunningInterest" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"></label>
           <label data-v275-manual-settlement="1">Musisi Asuransi<input id="v117ManualMusisi" type="text" inputmode="numeric" pattern="[0-9.]*" autocomplete="off" data-v119-money placeholder="0" value="0"></label>
@@ -3619,7 +3627,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
       <div id="v35G2cRpcInfo" class="v17-sim-existing" style="display:none">
         <div><small>Gaji Aktif dari Database</small><b id="v35G2cActiveIncome">Rp 0</b></div>
         <div><small>Angsuran Eksisting Sumber GAJI</small><b id="v35G2cExistingSalaryInst">Rp 0</b></div>
-        <div><small>Angsuran G6B yang Dilunasi</small><b id="v36G2cReleasedInstallment">Rp 0</b></div>
+        <div><small>Angsuran GAJI yang Dilunasi</small><b id="v36G2cReleasedInstallment">Rp 0</b></div>
         <div><small>Sisa RPC Gaji Aktif</small><b id="v35G2cActiveCapacity">Rp 0</b></div>
         <div><small>RPC Gaji Pensiun 90%</small><b id="v35G2cPensionCapacity">Rp 0</b></div>
         <div><small>Fase Bayar dari Gaji Aktif</small><b id="v35G2cActiveMonths">0 bulan</b></div>
@@ -13202,7 +13210,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=275',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v275').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=276',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v276').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -14029,7 +14037,7 @@ function v18SpecialUI(){
  }else if(simState.product==='G2C'){
    if(rate)rate.style.display='';if(gp)gp.style.display='none';if(pen)pen.style.display='none';
    if(inst)inst.childNodes[0].nodeValue='Angsuran G2C\n          ';
-   if(i){i.style.display='block';i.innerHTML='<b>G2C PraPensiun:</b> mendukung NEW dan MENGULANG fasilitas G6B–GAJI–PNS. Untuk MENGULANG, angsuran G6B yang dilunasi dilepas dari kewajiban gaji aktif. Kapasitas tetap dibatasi nilai terendah antara sisa RPC gaji aktif dan 90% estimasi gaji pensiun. Tenor maksimal 180 bulan dan jatuh tempo maksimal usia 70 tahun.'}
+   if(i){i.style.display='block';i.innerHTML='<b>G2C PraPensiun:</b> mendukung NEW dan MENGULANG dengan pelunasan fasilitas produk kredit lainnya. Pada MENGULANG, saldo pokok dan bunga dari seluruh fasilitas terpilih menjadi pengurang pencairan bersih; hanya angsuran fasilitas bersumber GAJI yang dilepas dari kewajiban gaji aktif. Kapasitas G2C dibatasi nilai terendah antara sisa RPC gaji aktif dan 90% estimasi gaji pensiun. Tenor maksimal 180 bulan dan jatuh tempo maksimal usia 70 tahun.'}
  }else{
    if(rate)rate.style.display='none';if(gp)gp.style.display='block';if(pen)pen.style.display='block';
    if(inst)inst.childNodes[0].nodeValue='Angsuran Saat Pensiun\n          ';
@@ -14507,8 +14515,12 @@ function simIsMultiExcludedProduct(value){
   return code.startsWith('G2H') || code.startsWith('G7G');
 }
 
+// V276: G2C MENGULANG tidak dibatasi hanya fasilitas G6B-GAJI.
+// Pengecualian G2H/G7G tetap sama dengan aturan multi-pelunasan existing.
 function simIsG2cRenewFacility(f){
-  return simProductCodeFromFacility(f)==='G6B' && simFacilitySource(f)==='GAJI';
+  if(!f || typeof f!=='object')return false;
+  const product=simProductCodeFromFacility(f)||f?.tipe_pinjaman;
+  return Boolean(String(product||'').trim()) && !simIsMultiExcludedProduct(product);
 }
 
 function simMultiRenewEnabled(){
@@ -14562,7 +14574,7 @@ function simRenderMultiFacilityList(){
   const facilities=simMultiEligibleFacilities(simState.debtor);
   if(!facilities.length){
     list.innerHTML=simState.product==='G2C'
-      ? '<div class="v9-empty">Tidak ada fasilitas G6B-GAJI-PNS yang dapat dilunasi untuk pengajuan G2C MENGULANG.</div>'
+      ? '<div class="v9-empty">Tidak ada fasilitas kredit yang tersedia untuk dilunasi pada G2C MENGULANG. Fasilitas G2H dan G7G tetap dikecualikan.</div>'
       : '<div class="v9-empty">Tidak ada fasilitas yang dapat digabungkan. G2H dan G7G dikecualikan.</div>';
     simState.facilities=[];simState.facility=null;simUpdateMultiFacilitySummary();return;
   }
@@ -14725,6 +14737,38 @@ function v117PopulateManualProducts(){
   else if(target.options.length)target.selectedIndex=0;
 }
 
+function v276SyncManualG2cPayoffSource(){
+  const code=String(document.getElementById('v276ManualG2cPayoffProduct')?.value||'').trim();
+  const target=document.getElementById('v276ManualG2cPayoffSource');
+  if(!target||!code)return;
+  const normalized=simFacilitySource({tipe_pinjaman:code});
+  const sourceValues=[...target.options].map(o=>o.value);
+  target.value=sourceValues.includes(normalized)?normalized:'GAJI';
+}
+
+// V276: pilihan jenis fasilitas yang akan dilunasi pada simulasi manual G2C.
+// Sumber pelunasan nanti diambil dari produk tersebut agar pelepasan RPC akurat.
+function v276ManualG2cSettlementProducts(){
+  const select=document.getElementById('v276ManualG2cPayoffProduct');
+  if(!select)return;
+  const old=String(select.value||'G6B').trim().toUpperCase();
+  const codes=[...new Set(['G6B','G6J','J9K','J9J','G2C','G2B','G6K','G6L','G6M','G6N','THT',...Object.keys(productParams||{})])]
+    .map(v=>String(v||'').trim().toUpperCase())
+    .filter(v=>v && !v.includes('BUNDLING') && !simIsMultiExcludedProduct(v))
+    .sort((a,b)=>a.localeCompare(b,'id'));
+  if(!codes.includes('G6B'))codes.unshift('G6B');
+  if(select.dataset.v276Options===codes.join('|'))return;
+  select.replaceChildren();
+  codes.forEach(code=>{
+    const opt=document.createElement('option');
+    opt.value=code;opt.textContent=code;
+    select.appendChild(opt);
+  });
+  select.value=codes.includes(old)?old:'G6B';
+  select.dataset.v276Options=codes.join('|');
+  v276SyncManualG2cPayoffSource();
+}
+
 function v117SyncManualScenario(){
   const product=document.getElementById('v117ManualProduct'),offer=document.getElementById('v117ManualOffer');
   if(!product||!offer)return;
@@ -14742,8 +14786,20 @@ function v117SyncManualScenario(){
   document.getElementById('v117ManualFacility').style.display=simState.offer==='NEW'?'none':'block';
   // V274: Angsuran eksisting hanya berlaku untuk simulasi manual TOPUP.
   // NEW tidak memiliki fasilitas; MENGULANG tidak menggunakan kolom ini.
+  const g2cRenew=simState.product==='G2C'&&simState.offer==='MENGULANG';
+  const g2cProductWrap=document.getElementById('v276ManualG2cPayoffProductWrap');
+  if(g2cProductWrap)g2cProductWrap.style.display=g2cRenew?'':'none';
+  const g2cSourceWrap=document.getElementById('v276ManualG2cPayoffSourceWrap');
+  if(g2cSourceWrap)g2cSourceWrap.style.display=g2cRenew?'':'none';
+  if(g2cRenew)v276ManualG2cSettlementProducts();
   const existingWrap=document.getElementById('v274ManualExistingInstallmentWrap');
-  if(existingWrap) existingWrap.style.display=simState.offer==='TOPUP'?'':'none';
+  if(existingWrap)existingWrap.style.display=(simState.offer==='TOPUP'||g2cRenew)?'':'none';
+  const existingLabel=document.getElementById('v276ManualExistingInstallmentLabel');
+  if(existingLabel)existingLabel.textContent=g2cRenew?'Angsuran Fasilitas yang Dilunasi':'Angsuran Eksisting';
+  const existingHint=document.getElementById('v276ManualExistingInstallmentHint');
+  if(existingHint)existingHint.textContent=g2cRenew
+    ? 'Opsional • jika fasilitas bersumber GAJI, angsuran dilepas dari pengurang RPC aktif'
+    : 'Khusus TOPUP • menjadi pengurang RPC';
   // V275: TOPUP manual hanya memerlukan angsuran eksisting sebagai pengurang RPC.
   // Baki debet, bunga berjalan, dan musisi asuransi hanya relevan pada MENGULANG.
   // Biarkan nilainya saat berpindah skenario; submit TOPUP wajib mengabaikannya.
@@ -14799,16 +14855,22 @@ function v116SubmitManualDebtor(event){
   const facilities=[];
   if(simState.offer!=='NEW'){
     const renewalG2c=simState.product==='G2C'&&simState.offer==='MENGULANG';
-    // V274: Rp dengan titik ribuan diubah kembali menjadi angka rupiah utuh.
-    // Jangan membawa nilai TOPUP ke skenario MENGULANG saat user mengganti pilihan.
-    const manualExisting=simState.offer==='TOPUP'?money('v274ManualExistingInstallment'):0;
-    if(!Number.isSafeInteger(manualExisting)){
-      alert('Angsuran Eksisting harus berupa nominal rupiah yang valid.');return;
+    // V276: manual G2C MENGULANG bisa melunasi produk selain G6B.
+    // Sumber fasilitas diturunkan dari produk kredit yang dipilih, bukan dipaksa GAJI.
+    const settledProduct=renewalG2c?val('v276ManualG2cPayoffProduct'):simState.product;
+    if(renewalG2c && (!settledProduct || simIsMultiExcludedProduct(settledProduct))){
+      alert('Pilih produk fasilitas yang dapat dilunasi (selain G2H/G7G).');return;
     }
-    // V275: nilai pelunasan yang tersembunyi tidak boleh memengaruhi TOPUP,
-    // termasuk jika pengguna sebelumnya mengisi MENGULANG lalu beralih ke TOPUP.
+    const manualExisting=(simState.offer==='TOPUP'||renewalG2c)?money('v274ManualExistingInstallment'):0;
+    if(!Number.isSafeInteger(manualExisting)){
+      alert('Angsuran fasilitas harus berupa nominal rupiah yang valid.');return;
+    }
+    const settledSource=renewalG2c
+      ? val('v276ManualG2cPayoffSource')
+      : source;
+    // V275: TOPUP wajib mengabaikan baki, bunga, dan musisi yang disembunyikan.
     const isRenewal=simState.offer==='MENGULANG';
-    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:renewalG2c?'G6B':simState.product,sumber_penghasilan:renewalG2c?'GAJI':source,angsuran_eksisting:manualExisting,baki_debet:isRenewal?money('v117ManualBaki'):0,bunga_berjalan:isRenewal?money('v117ManualRunningInterest'):0,musisi_asuransi:isRenewal?money('v117ManualMusisi'):0});
+    facilities.push({no_pinjaman:val('v117ManualLoanNo')||'MANUAL-FASILITAS',tipe_pinjaman:settledProduct,sumber_penghasilan:settledSource,angsuran_eksisting:manualExisting,baki_debet:isRenewal?money('v117ManualBaki'):0,bunga_berjalan:isRenewal?money('v117ManualRunningInterest'):0,musisi_asuransi:isRenewal?money('v117ManualMusisi'):0});
   }
   const deb={__manual:true,cif:'MANUAL-'+Date.now(),nama:name,no_hp:val('v116ManualPhone'),tgl_lahir:dob,bup,status_pegawai:status,dinas:val('v116ManualDinas')||'Input Manual',kode_ao:login.kodeAO||login.kode_ao||'',income:incomes,facilities};
   document.getElementById('v116SimManualCard').style.display='none';
@@ -15073,14 +15135,14 @@ function v18SpecialRecalc(resetGross){
  const d=simState.debtor,c=v18Special();if(!d||!c)return;
  const isG2cRenew=simState.product==='G2C'&&simState.offer==='MENGULANG';
  const settlement=simSettlementTotals();
- const releasedG6bInstallment=isG2cRenew?simSelectedInstallmentForSource('GAJI'):0;
+ const releasedSalaryInstallment=isG2cRenew?simSelectedInstallmentForSource('GAJI'):0;
  document.getElementById('v17SimTopupInfo').style.display='none';
  document.getElementById('v17SimRenewInfo').style.display=isG2cRenew?'grid':'none';
  const musisiWrap=document.getElementById('v17SimMusisiRefundWrap');if(musisiWrap)musisiWrap.style.display=isG2cRenew?'block':'none';
  if(isG2cRenew){
    document.getElementById('v17SimBaki').textContent=simMoney(settlement.baki);
    document.getElementById('v17SimRunningInterest').textContent=simMoney(settlement.bunga);
-   const countEl=document.getElementById('v17SimRenewFacilityCount');if(countEl)countEl.textContent=settlement.count+' fasilitas G6B';
+   const countEl=document.getElementById('v17SimRenewFacilityCount');if(countEl)countEl.textContent=settlement.count+' fasilitas';
  }
  const income=v18Num(document.getElementById('v18SpecialIncome')?.value||0);
  const insurancePromoUsed=simInsurancePromoEligible()&&document.getElementById('v17SimPromoUse')?.value==='YES';
@@ -15100,7 +15162,7 @@ function v18SpecialRecalc(resetGross){
    inst=0;
    document.getElementById('v17SimRate').value='9.50';
  }else if(simState.product==='G2C'){
-   const capacity=g2cCapacityDetails(d,income,tenor,releasedG6bInstallment);
+   const capacity=g2cCapacityDetails(d,income,tenor,releasedSalaryInstallment);
    const rpc=capacity.maxInstallment;
    const ratePct=Math.max(0,Number(document.getElementById('v17SimRate')?.value||c.rate||12)+promoSpreadPct);
    maxGross=simGrossFromInstallment(rpc,tenor,ratePct/100);
@@ -15179,7 +15241,7 @@ function v18SpecialRecalc(resetGross){
  document.getElementById('v17CostInsuranceBase').textContent=simMoney(fees.biayaAsuransiBase);
  const dr=document.getElementById('v17CostDiscountRow');if(dr)dr.style.display=Number(fees.diskonAsuransi||0)>0?'flex':'none';
  document.getElementById('v17CostInsuranceDiscount').textContent='- '+simMoney(fees.diskonAsuransi||0);
- const g2cCapacity=g2cCapacityDetails(d,income,tenor,releasedG6bInstallment);
+ const g2cCapacity=g2cCapacityDetails(d,income,tenor,releasedSalaryInstallment);
  const g2cActiveIncome=g2cCapacity.activeIncome,g2cExisting=g2cCapacity.activeExisting;
  const g2cActiveCapacity=g2cCapacity.activeCapacity,g2cPensionCapacity=g2cCapacity.pensionCapacity;
  document.getElementById('v17RemainingIncomeLabel').textContent=simState.product==='G2H-THT-PNS'?'Sisa Uang THT':(simState.product==='G2C'?'Sisa Gaji Aktif / Pensiun':'Sisa Gaji Pensiun');
@@ -15359,7 +15421,7 @@ function simCurrentSnapshot(){
   if(v18IsSpecial()){
     const gross=v18Num(document.getElementById('v17SimGross')?.value||0),tenor=Number(document.getElementById('v17SimTenor')?.value||0),fees=simState.v18Fees||{};
     const settlement=simState.product==='G2C'?simSettlementTotals():{facilities:[],count:0,baki:0,bunga:0,musisi:0,installment:0};
-    const releasedG6bInstallment=simState.product==='G2C'&&simState.offer==='MENGULANG'
+    const releasedSalaryInstallment=simState.product==='G2C'&&simState.offer==='MENGULANG'
       ? simSelectedInstallmentForSource('GAJI')
       : 0;
     const baseSpecialRate=simState.product==='G7G-GRACE PERIOD-PNS'
@@ -15374,7 +15436,7 @@ function simCurrentSnapshot(){
     const specialIncome=v18Num(document.getElementById('v18SpecialIncome')?.value||0);
     const pensionIncome=simState.product==='G2C'?specialIncome:0;
     const remainingTht=simState.product==='G2H-THT-PNS'?Math.max(0,specialIncome-gross):null;
-    const g2c=simState.product==='G2C'?g2cCapacityDetails(deb,pensionIncome,tenor,releasedG6bInstallment):null;
+    const g2c=simState.product==='G2C'?g2cCapacityDetails(deb,pensionIncome,tenor,releasedSalaryInstallment):null;
     if(simState.product==='G2C'&&(!g2c.activeIncome||!g2c.pensionIncome||g2c.maxInstallment<=0||gross<=0||tenor<=0)) return null;
     if(simState.product==='G2C'&&simState.offer==='MENGULANG'&&!settlement.facilities.length) return null;
     return {
@@ -15431,7 +15493,7 @@ function simWaMessage(){
   if(simState.product==='G2C'&&s.g2c){
     extra=`\n• Gaji Aktif: *${simMoney(s.g2c.activeIncome)}*`+
           `\n• Estimasi Gaji Pensiun: *${simMoney(s.g2c.pensionIncome)}*`+
-          (simState.offer==='MENGULANG'?`\n• Angsuran G6B yang Dilunasi: *${simMoney(s.g2c.releasedInstallment)}*`:'')+
+          (simState.offer==='MENGULANG'?`\n• Angsuran GAJI yang Dilunasi: *${simMoney(s.g2c.releasedInstallment)}*`:'')+
           `\n• Sisa RPC Gaji Aktif: *${simMoney(s.g2c.activeCapacity)}*`+
           `\n• RPC Gaji Pensiun 90%: *${simMoney(s.g2c.pensionCapacity)}*`+
           `\n• Fase Gaji Aktif: *${s.g2c.activeMonths} bulan*`+
@@ -15532,7 +15594,8 @@ function simActivityRecords(snapshot,phone){
       estimasi_gaji_pensiun:Number(snapshot.g2c?.pensionIncome||0),
       rpc_gaji_aktif:Number(snapshot.g2c?.activeCapacity||0),
       rpc_gaji_pensiun:Number(snapshot.g2c?.pensionCapacity||0),
-      angsuran_g6b_dilunasi:Number(snapshot.g2c?.releasedInstallment||0),
+      angsuran_g6b_dilunasi:Number(snapshot.g2c?.releasedInstallment||0), // field legacy untuk kompatibilitas
+      angsuran_gaji_dilunasi:Number(snapshot.g2c?.releasedInstallment||0),
       fase_gaji_aktif_bulan:Number(snapshot.g2c?.activeMonths||0),
       fase_gaji_pensiun_bulan:Number(snapshot.g2c?.pensionMonths||0)
     };
@@ -15644,7 +15707,7 @@ function simBuildCaptureCanvas(){
       if(simState.product==='G2C'&&s.g2c){
         txt('Gaji Aktif',simMoney(s.g2c.activeIncome),cy);cy+=50;
         txt('Estimasi Gaji Pensiun',simMoney(s.g2c.pensionIncome),cy);cy+=50;
-        if(simState.offer==='MENGULANG'){txt('Angsuran G6B yang Dilunasi',simMoney(s.g2c.releasedInstallment),cy);cy+=50;}
+        if(simState.offer==='MENGULANG'){txt('Angsuran GAJI yang Dilunasi',simMoney(s.g2c.releasedInstallment),cy);cy+=50;}
         txt('Batas Angsuran G2C',simMoney(Math.min(s.g2c.activeCapacity,s.g2c.pensionCapacity)),cy);cy+=50;
         txt('Fase Aktif / Pensiun',s.g2c.activeMonths+' / '+s.g2c.pensionMonths+' bulan',cy);cy+=50;
       }else if(simState.product==='G2H-THT-PNS'){
@@ -15850,6 +15913,7 @@ function simBind(){
   document.getElementById('v116ManualCancel')?.addEventListener('click',v116CloseManualDebtor);
   document.getElementById('v117ManualProduct')?.addEventListener('change',v117SyncManualScenario);
   document.getElementById('v117ManualOffer')?.addEventListener('change',v117SyncManualScenario);
+  document.getElementById('v276ManualG2cPayoffProduct')?.addEventListener('change',v276SyncManualG2cPayoffSource);
   document.querySelectorAll('#v116SimManualCard [data-v119-money]').forEach(input=>{
     input.addEventListener('input',v119HandleMoneyInput);
     input.addEventListener('blur',v119HandleMoneyInput);
