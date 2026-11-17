@@ -13210,7 +13210,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=276',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v276').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=277',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v277').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -14012,6 +14012,14 @@ function v18Special(){
 }
 function v18IsSpecial(){return !!v18Special()}
 function v18RemainingWorkMonths(d){const bup=Number(d?.bup||60);const dob=d?.tgl_lahir;if(!(dob instanceof Date)||isNaN(dob))return null;const now=new Date(),bd=new Date(dob);bd.setFullYear(bd.getFullYear()+bup);let m=(bd.getFullYear()-now.getFullYear())*12+(bd.getMonth()-now.getMonth());const a=new Date(now);a.setMonth(a.getMonth()+m);if(bd>a)m++;return Math.max(0,m)}
+// V18.3.11.277 — GP G7G dihitung sampai bulan transisi angsuran pensiun.
+// Tambahan satu periode berlaku hanya untuk G7G; produk G2C/G2H tetap
+// memakai v18RemainingWorkMonths() tanpa perubahan.
+function v277G7GGraceMonths(d,tenor){
+ const remaining=v18RemainingWorkMonths(d);
+ if(remaining===null||remaining<=0)return 0;
+ return Math.min(Math.max(0,Math.floor(Number(tenor)||0)),remaining+1);
+}
 function v18Eligible(d){const c=v18Special();if(!c)return true;if(String(d.status_pegawai||'').toUpperCase()!=='PNS')return false;const m=v18RemainingWorkMonths(d);return m!==null&&m>0&&m<=c.eligibility}
 function v18AddProducts(){const el=document.getElementById('v17SimProduct');if(!el)return;Object.keys(V18_SPECIAL_PRODUCTS).forEach(k=>{if(![...el.options].some(o=>o.value===k)){const o=document.createElement('option');o.value=k;o.textContent=k;el.appendChild(o)}})}
 function v18MonthsUntilAge(d,age){
@@ -15181,7 +15189,13 @@ function v18SpecialRecalc(resetGross){
    // eksisting bersumber PENSIUN; jalur khusus ini tidak memakai simAvailableInstallment().
    const manualTopupExisting=d?.__manual&&simState.offer==='TOPUP'
      ? Math.max(0,simSourceTotalInstallment(d,'PENSIUN')) : 0;
-   const grace=Math.min(tenor,v18RemainingWorkMonths(d)||0),pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12,rpc=Math.max(0,income*.90-manualTopupExisting);
+   // V277: 25 bulan GP pada skenario DOB 30/10/1970, BUP 58,
+   // tenor 120 (per 17/11/2026); sisa tenor pensiun 95 bulan.
+   const grace=v277G7GGraceMonths(d,tenor),pmonths=Math.max(1,tenor-grace),r=(pensionRatePct/100)/12,rpc=Math.max(0,income*.90-manualTopupExisting);
+   const g7gInfo=document.getElementById('v18SpecialInfo');
+   if(g7gInfo){
+     g7gInfo.innerHTML='<b>G7G:</b> RPC 90% gaji pensiun. GP <b>'+grace+' bulan</b> (bunga '+graceRatePct.toLocaleString('id-ID')+'% p.a., sederhana); angsuran pensiun <b>'+pmonths+' bulan</b> (bunga '+pensionRatePct.toLocaleString('id-ID')+'% p.a.). Jatuh tempo maksimal usia 70 tahun.';
+   }
    if(r===0){
      maxGross=rpc*pmonths;
      if(resetGross)gross=maxGross;
@@ -15194,8 +15208,12 @@ function v18SpecialRecalc(resetGross){
      inst=gross*r/(1-Math.pow(1+r,-pmonths));
    }
    if(d?.__manual&&simState.offer==='TOPUP'&&maxGross<=0)gross=0;
+   // V277: bunga GP FLAT per bulan atas plafond gross, dibulatkan
+   // per bulan dahulu, lalu dikalikan jumlah bulan GP (bukan bunga berbunga).
+   // Contoh: round(217.000.000 x 8% / 12) x 25 = 36.166.675.
    const rg=(graceRatePct/100)/12;
-   upfront=rg===0?0:gross*(Math.pow(1+rg,grace)-1);
+   const graceInterestPerMonth=Math.round(gross*rg);
+   upfront=graceInterestPerMonth*grace;
  }
  document.getElementById('v17SimGross').value=v18Fmt(gross);simState.maxGross=maxGross;
  const promo=simPromoPct();
