@@ -13210,7 +13210,7 @@ if('serviceWorker' in navigator){
       }
 
       swRegistered=true;
-      navigator.serviceWorker.register('./service-worker.js?v=277',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v277').map(k=>caches.delete(k)));}catch(e){};return reg;})
+      navigator.serviceWorker.register('./service-worker.js?v=278',{updateViaCache:'none'}).then(async reg=>{try{await reg.update()}catch(e){};try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!=='score-pwa-v278').map(k=>caches.delete(k)));}catch(e){};return reg;})
         .catch(err=>{
           swRegistered=false;
           console.warn('Service worker:',err);
@@ -18291,6 +18291,51 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     doc.setTextColor(255,255,255);doc.setFont('helvetica','normal');doc.setFontSize(6.8);let ty=y+14;
     lines.forEach(line=>{const wrapped=doc.splitTextToSize(String(line),w-8);doc.text(wrapped,x+4,ty);ty+=wrapped.length*3.5+1;});
   }
+  // V278: kontak AO dibuat lebih menonjol pada seluruh PDF Tabel Angsuran.
+  // Tinggi dan posisi panel sama dengan versi lama; tidak menggeser tabel atau catatan.
+  function drawAoContactBox(doc,x,y,w,h,contact,color){
+    doc.setFillColor(...color);
+    doc.roundedRect(x,y,w,h,3,3,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');doc.setFontSize(8);
+    pdfText(doc,'HUBUNGI ACCOUNT OFFICER',x+4,y+6.8);
+    const pad=4,innerWidth=w-(pad*2),textX=x+pad+2.5,textWidth=innerWidth-5;
+    function fitContactLine(value,preferredSize,minimumSize){
+      const raw=String(value??'-').trim()||'-';
+      let size=preferredSize;
+      doc.setFont('helvetica','bold');doc.setFontSize(size);
+      while(doc.getTextWidth(raw)>textWidth&&size>minimumSize){
+        size=Math.max(minimumSize,Math.round((size-.2)*10)/10);
+        doc.setFontSize(size);
+      }
+      // Hanya ketika data ekstrem panjang: hindari teks keluar kotak.
+      let visible=raw;
+      if(doc.getTextWidth(visible)>textWidth){
+        while(visible.length>1&&doc.getTextWidth(visible+'...')>textWidth)visible=visible.slice(0,-1);
+        visible=visible+'...';
+      }
+      return visible;
+    }
+    function contactRow(label,value,offset,preferredSize){
+      doc.setFillColor(236,253,250); // mint terang; nama dan WA lebih kontras
+      doc.roundedRect(x+pad,y+offset,innerWidth,10.2,1.8,1.8,'F');
+      doc.setFont('helvetica','bold');doc.setFontSize(5.3);
+      doc.setTextColor(15,100,92);
+      pdfText(doc,label,textX,y+offset+3.1);
+      const fitted=fitContactLine(value,preferredSize,7.2);
+      doc.setTextColor(8,75,70);
+      pdfText(doc,fitted,textX,y+offset+8.25);
+    }
+    contactRow('NAMA AO',contact.name,9.2,10.7);
+    contactRow('WHATSAPP AO',contact.phone,20.5,10.7);
+    doc.setFont('helvetica','normal');doc.setFontSize(5.8);
+    doc.setTextColor(255,255,255);
+    const email='Email: '+String(contact.email||'-');
+    let emailText=email;
+    while(emailText.length>1&&doc.getTextWidth(emailText)>w-8){emailText=emailText.slice(0,-1);}
+    if(emailText.length<email.length)emailText=emailText.replace(/.{0,3}$/,'...');
+    pdfText(doc,emailText,x+pad,y+h-2.5);
+  }
   function generatePdf(product,offer,contact,download){
     if(!window.jspdf?.jsPDF)throw new Error('Library PDF belum tersedia. Hubungkan perangkat ke internet dan buka ulang aplikasi.');
     const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
@@ -18306,7 +18351,7 @@ window.v39OpenLiveChat=openChat;window.v39OpenChatWith=async function(email){awa
     let y=(doc.lastAutoTable?.finalY||145)+6;
     if(y>154){doc.addPage();y=14;}
     drawInfoBox(doc,10,y,174,38,'PERSYARATAN UMUM',REQUIREMENTS.map((item,index)=>(index+1)+'. '+item),blue);
-    drawInfoBox(doc,189,y,98,38,'HUBUNGI ACCOUNT OFFICER',['Nama: '+contact.name,'WhatsApp: '+contact.phone,'Email: '+(contact.email||'-')],teal);
+    drawAoContactBox(doc,189,y,98,38,contact,teal);
     let note='Perhitungan merupakan estimasi berdasarkan parameter bunga saat brosur dibuat. Hasil akhir mengikuti verifikasi, ketentuan bank, usia, RPC, dan biaya yang berlaku.';
     if(product.special==='G7G')note+=' Angsuran G7G pada tabel adalah estimasi fase pensiun; masa grace period dihitung pada simulasi debitur.';
     if(String(product.code).toUpperCase()==='G2C')note+=' G2C tetap tunduk pada RPC gaji aktif dan estimasi gaji pensiun.';
