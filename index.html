@@ -2840,6 +2840,25 @@ window.isAppDesktopViewport = function () { return !window.isAppMobileViewport()
   .v17-sim-multi-facility-item b{display:block;color:#172554;font-size:10px}
   .v17-sim-multi-facility-item small{display:block;color:#64748b;font-size:9px;margin-top:2px}
   .v17-sim-multi-facility-summary{margin-top:7px;padding:8px 10px;border-radius:10px;background:#ecfdf5;color:#047857;font-size:10px;font-weight:800}
+  /* V279: nominal pelunasan editable secara lokal pada pengajuan MENGULANG */
+  .v279-payoff-card{border:1px solid #dbe4f0;border-radius:13px;padding:8px;background:#fff;min-width:0}
+  .v279-payoff-card:has(input[type="checkbox"]:checked){border-color:#34d399;background:#f0fdf4}
+  .v279-payoff-card .v17-sim-multi-facility-item{border:0!important;background:transparent!important;padding:3px 2px 7px!important;cursor:pointer}
+  .v279-payoff-card .v17-sim-multi-facility-item:has(input:checked){background:transparent!important}
+  .v279-payoff-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:6px}
+  .v279-payoff-fields label{min-width:0;display:block!important;color:#475569;font-size:11px!important;font-weight:700!important;line-height:1.35}
+  .v279-payoff-fields input[data-v279-field]{display:block!important;box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;height:42px!important;margin-top:5px!important;padding:9px 10px!important;border:1px solid #bfdbfe!important;border-radius:10px!important;background:#fff!important;color:#0e4ca3!important;font-size:15px!important;font-weight:800!important;text-align:left!important;accent-color:auto!important}
+  .v279-payoff-fields input[data-v279-field]:focus{outline:2px solid #60a5fa!important;outline-offset:1px}
+  .v279-payoff-fields input[data-v279-field]:disabled{background:#f1f5f9!important;color:#94a3b8!important;border-color:#e2e8f0!important}
+  .v279-payoff-note{font-size:10px;color:#64748b;line-height:1.5;margin-top:7px}
+  #v279SimSinglePayoff{margin-top:10px}
+  #v279SimPayoffDetails{margin-top:13px;background:#f8fafc;border:1px solid #dbe4f0;border-radius:13px;padding:12px}
+  #v279SimPayoffDetails h4{font-size:13px!important;font-weight:900!important;color:#172554;margin:0 0 8px}
+  #v279SimPayoffRows{display:grid;gap:10px;max-height:330px;overflow:auto}
+  .v279-calc-payoff{background:white;padding:10px;border:1px solid #e2e8f0;border-radius:11px}
+  .v279-calc-payoff-title{font-size:11px;font-weight:900;color:#172554;overflow-wrap:anywhere}
+  @media(max-width:370px){.v279-payoff-fields{gap:6px}.v279-payoff-fields input[data-v279-field]{font-size:13px!important;padding:8px!important}}
+
   .v20-photo-modal{position:fixed!important;inset:0!important;z-index:900000!important;background:rgba(15,23,42,.72);display:none;align-items:center;justify-content:center;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px));isolation:isolate}
   .v20-photo-card{width:min(100%,520px);max-height:calc(100dvh - 28px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;border-radius:22px;box-shadow:0 24px 70px rgba(15,23,42,.35);padding:18px;position:relative}
   .v20-photo-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.v20-photo-head h3{margin:0;color:#172554;font-size:16px}.v20-photo-close{border:0;width:34px;height:34px;border-radius:50%;background:#f1f5f9;color:#475569}
@@ -3512,6 +3531,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <label>Fasilitas Kredit
           <select id="v17SimFacility"></select>
         </label>
+        <div id="v279SimSinglePayoff" style="display:none"></div>
         <div id="v17SimMultiFacilityWrap" style="display:none;margin-top:10px">
           <div style="font-size:10px;font-weight:800;color:#334155;margin-bottom:6px">Pilih fasilitas yang akan dilunasi</div>
           <div id="v17SimMultiFacilityList" class="v17-sim-multi-facility-list"></div>
@@ -3623,6 +3643,11 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <div><small>Total Bunga Berjalan</small><b id="v17SimRunningInterest">Rp 0</b></div>
         <div><small>Fasilitas Dilunasi</small><b id="v17SimRenewFacilityCount">0 fasilitas</b></div>
       </div>
+      <section id="v279SimPayoffDetails" style="display:none" aria-label="Nominal pelunasan yang dapat disesuaikan">
+        <h4>Rincian Pelunasan — Dapat Diedit</h4>
+        <div id="v279SimPayoffRows"></div>
+        <div class="v279-payoff-note">Perubahan nominal hanya berlaku pada simulasi ini. Nilai sumber database tidak diubah.</div>
+      </section>
 
       <div id="v35G2cRpcInfo" class="v17-sim-existing" style="display:none">
         <div><small>Gaji Aktif dari Database</small><b id="v35G2cActiveIncome">Rp 0</b></div>
@@ -3685,6 +3710,7 @@ body.app-locked #mobileV9Home,body.app-locked #v9BottomNav{visibility:hidden!imp
         <div id="v17CostSavingRow"><span>Tabungan Wajib</span><b id="v17CostSaving">Rp 0</b></div>
         <div id="v17CostBakiRow" style="display:none"><span>Pelunasan Sisa Pokok</span><b id="v17CostBaki">Rp 0</b></div>
         <div id="v17CostInterestRow" style="display:none"><span>Bunga Berjalan</span><b id="v17CostInterest">Rp 0</b></div>
+        <div id="v279CostRenewalInterestRow" style="display:none"><span>Bunga Pelunasan Fasilitas</span><b id="v279CostRenewalInterest">Rp 0</b></div>
         <div id="v17CostMusisiRow" style="display:none"><span>Pengembalian Musisi Asuransi</span><b id="v17CostMusisi">Rp 0</b></div>
         <div id="v17CostNotaryRow" style="display:none"><span>Biaya Notaris</span><b id="v17CostNotary">Rp 0</b></div>
         <div class="total"><span>Total Potongan</span><b id="v17CostTotal">Rp 0</b></div>
@@ -13834,6 +13860,7 @@ const simState={
   offer:'NEW',
   facility:null,
   facilities:[],
+  settlementEdits:new WeakMap(), // V279: overlay nominal saja, bukan mutasi fasilitas sumber
   maxTenor:0,
   maxGross:0,
   age:0,
@@ -14550,16 +14577,93 @@ function simSelectedFacilities(){
   return simState.facility?[simState.facility]:[];
 }
 
+// V279: gunakan nominal hasil edit sebagai sumber tunggal untuk kalkulasi,
+// share WA, download gambar dan hasil PDF tanpa menyentuh cifDatabase.
+function simSettlementValue(f,field){
+  if(!f || typeof f!=='object') return 0;
+  const edited=simState.settlementEdits.get(f);
+  const n=edited && Object.prototype.hasOwnProperty.call(edited,field)
+    ? edited[field] : Number(f[field]||0);
+  return Number.isFinite(n) && n>=0 ? n : 0;
+}
 function simSettlementTotals(){
-  const facilities=simSelectedFacilities();
+  const facilities=simSelectedFacilities().map(f=>({
+    ...f,
+    baki_debet:simSettlementValue(f,'baki_debet'),
+    bunga_berjalan:simSettlementValue(f,'bunga_berjalan')
+  }));
   return {
     facilities,
     count:facilities.length,
-    baki:facilities.reduce((s,f)=>s+Number(f?.baki_debet||0),0),
-    bunga:facilities.reduce((s,f)=>s+Number(f?.bunga_berjalan||0),0),
+    baki:facilities.reduce((s,f)=>s+f.baki_debet,0),
+    bunga:facilities.reduce((s,f)=>s+f.bunga_berjalan,0),
     musisi:facilities.reduce((s,f)=>s+Number(f?.musisi_asuransi||0),0),
     installment:facilities.reduce((s,f)=>s+Number(f?.angsuran_eksisting||0),0)
   };
+}
+
+function simPayoffMoneyInput(f,index,field){
+  const text=field==='baki_debet'?'Sisa Pokok (Rp)':'Bunga Berjalan (Rp)';
+  return `<label>${text}<input data-v279-field="${field}" data-v279-index="${index}" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" value="${v18Fmt(simSettlementValue(f,field))}" aria-label="${text}, fasilitas ${String(f.no_pinjaman||'').replace(/[&"<>]/g,'')}"></label>`;
+}
+function simPayoffFields(f,index){
+  return `<div class="v279-payoff-fields">${simPayoffMoneyInput(f,index,'baki_debet')}${simPayoffMoneyInput(f,index,'bunga_berjalan')}</div>`;
+}
+function simRenderSinglePayoff(){
+  const el=document.getElementById('v279SimSinglePayoff');
+  if(!el) return;
+  const show=simState.offer==='MENGULANG' && !simMultiRenewEnabled() && Boolean(simState.facility);
+  el.style.display=show?'block':'none';
+  el.innerHTML=show?`<div class="v279-payoff-card"><div class="v279-calc-payoff-title">Nominal Pelunasan • ${String(simState.facility.no_pinjaman||'-')}</div>${simPayoffFields(simState.facility,0)}<div class="v279-payoff-note">Dapat disesuaikan; tidak mengubah database.</div></div>`:'';
+}
+function simRenderCalcPayoff(){
+  const box=document.getElementById('v279SimPayoffDetails');
+  const rows=document.getElementById('v279SimPayoffRows');
+  if(!box||!rows) return;
+  const facilities=simSelectedFacilities();
+  const show=simState.offer==='MENGULANG' && facilities.length>0;
+  box.style.display=show?'block':'none';
+  rows.innerHTML=show?facilities.map((f,i)=>`<div class="v279-calc-payoff"><div class="v279-calc-payoff-title">${String(f.no_pinjaman||'-')} • ${String(f.tipe_pinjaman||'-')}</div>${simPayoffFields(f,i)}</div>`).join(''):'';
+}
+function simPayoffInputChanged(target){
+  if(!target?.matches?.('input[data-v279-field]')) return;
+  const index=Number(target.dataset.v279Index);
+  const field=target.dataset.v279Field;
+  const facilities=simMultiRenewEnabled()?simMultiEligibleFacilities(simState.debtor):simSelectedFacilities();
+  // Di tahap kalkulasi index selalu merujuk urutan fasilitas yang DIPILIH,
+  // sedangkan tahap pencarian multi index merujuk semua fasilitas eligible.
+  const inCalc=Boolean(target.closest('#v279SimPayoffRows'));
+  const f=inCalc?simSelectedFacilities()[index]:facilities[index];
+  if(!f || !['baki_debet','bunga_berjalan'].includes(field)) return;
+  const digits=String(target.value||'').replace(/[^0-9]/g,'');
+  if(digits.length>15 || !Number.isSafeInteger(Number(digits))){
+    target.setCustomValidity('Nominal tidak boleh melebihi 15 digit.');
+    target.reportValidity();
+    return;
+  }
+  target.setCustomValidity('');
+  const value=digits?Number(digits):0;
+  const edited=simState.settlementEdits.get(f)||{};
+  edited[field]=value;
+  simState.settlementEdits.set(f,edited);
+  // Tetap tampilan pemisah ribuan, serta caret relatif terhadap digit di depan.
+  const pos=target.selectionStart??target.value.length;
+  const before=String(target.value).slice(0,pos).replace(/\D/g,'').length;
+  target.value=digits?v18Fmt(value):''; // kosong diperbolehkan selama mengetik (nilainya 0)
+  let count=0,caret=0;
+  while(caret<target.value.length && count<before){if(/\d/.test(target.value[caret])) count++;caret++;}
+  try{target.setSelectionRange(caret,caret);}catch(_){}
+  // Sinkronkan input di tahap 2 dan 3, tanpa membangun ulang elemen yang sedang aktif.
+  document.querySelectorAll('input[data-v279-field]').forEach(other=>{
+    if(other===target || other.dataset.v279Field!==field) return;
+    const otherIndex=Number(other.dataset.v279Index);
+    const otherFacilities=other.closest('#v279SimPayoffRows')
+      ? simSelectedFacilities()
+      : (other.closest('#v17SimMultiFacilityList')?simMultiEligibleFacilities(simState.debtor):simSelectedFacilities());
+    if(otherFacilities[otherIndex]===f) other.value=v18Fmt(value);
+  });
+  simUpdateMultiFacilitySummary();
+  if(inCalc) simRecalculate(false);
 }
 
 function simSelectedInstallmentForSource(source){
@@ -14599,13 +14703,13 @@ function simRenderMultiFacilityList(){
   list.innerHTML=facilities.map((f,i)=>{
     const key=String(f?.no_pinjaman||'');
     const checked=selectedKeys.has(key)?' checked':'';
-    return `<label class="v17-sim-multi-facility-item">
+    return `<div class="v279-payoff-card"><label class="v17-sim-multi-facility-item">
       <input type="checkbox" value="${i}"${checked}>
-      <span><b>${String(f.no_pinjaman||'-')} • ${String(f.tipe_pinjaman||'-')}</b><small>${simFacilitySource(f)||'-'} • Berjalan ${renewalPromoFacilityProgress(f).toFixed(0)}% • Angsuran ${simMoney(f.angsuran_eksisting||0)} • Sisa Pokok ${simMoney(f.baki_debet||0)}</small></span>
-    </label>`;
+      <span><b>${String(f.no_pinjaman||'-')} • ${String(f.tipe_pinjaman||'-')}</b><small>${simFacilitySource(f)||'-'} • Berjalan ${renewalPromoFacilityProgress(f).toFixed(0)}% • Angsuran ${simMoney(f.angsuran_eksisting||0)}</small></span>
+    </label>${simPayoffFields(f,i)}</div>`;
   }).join('');
 
-  simState.facilities=facilities.filter((f,i)=>list.querySelector(`input[value="${i}"]`)?.checked);
+  simState.facilities=facilities.filter((f,i)=>list.querySelector(`input[type="checkbox"][value="${i}"]`)?.checked);
   simState.facility=simState.facilities[0]||null;
   simUpdateMultiFacilitySummary();
 }
@@ -14613,7 +14717,7 @@ function simRenderMultiFacilityList(){
 function simSyncMultiFacilitySelection(){
   const list=document.getElementById('v17SimMultiFacilityList');
   const facilities=simMultiEligibleFacilities(simState.debtor);
-  simState.facilities=facilities.filter((f,i)=>list?.querySelector(`input[value="${i}"]`)?.checked);
+  simState.facilities=facilities.filter((f,i)=>list?.querySelector(`input[type="checkbox"][value="${i}"]`)?.checked);
   simState.facility=simState.facilities[0]||null;
   const musisi=document.getElementById('v17SimMusisiRefund');
   if(musisi) musisi.value=v18Fmt(simSettlementTotals().musisi);
@@ -14706,6 +14810,7 @@ function simResetPerson(){
   simState.debtor=null;
   simState.facility=null;
   simState.facilities=[];
+  simState.settlementEdits=new WeakMap();
   simState.mandatorySavingMultiplierEdited=false;
   if(simState.manualPipelineTimer) clearTimeout(simState.manualPipelineTimer);
   simState.manualPipelineTimer=null;
@@ -14932,6 +15037,9 @@ function simSelectDebtor(cif){
   const deb=cif&&typeof cif==='object'?cif:(cifDatabase?.[normalizeCif(cif)] || Object.values(cifDatabase||{}).find(x=>String(x.cif)===String(cif)));
   if(!deb) return;
   simState.debtor=deb;
+  simState.settlementEdits=new WeakMap();
+  simState.facilities=[];
+  simState.facility=null;
   simState.mandatorySavingMultiplierEdited=false;
 
   const rule=simProductRule();
@@ -14970,6 +15078,7 @@ function simRefreshFacilities(){
     wrap.style.display='none';
     simState.facility=null;
     simState.facilities=[];
+    simRenderSinglePayoff();
     return;
   }
 
@@ -14978,6 +15087,7 @@ function simRefreshFacilities(){
     select.parentElement.style.display='none';
     multiWrap.style.display='block';
     simRenderMultiFacilityList();
+    simRenderSinglePayoff();
     return;
   }
 
@@ -14991,6 +15101,7 @@ function simRefreshFacilities(){
   if(!facilities.length){
     select.innerHTML='<option value="">Tidak ada fasilitas pada sumber ini</option>';
     simState.facility=null;
+    simRenderSinglePayoff();
     return;
   }
 
@@ -15011,6 +15122,7 @@ function simRefreshFacilities(){
   }
 
   simState.facility=facilities[0];
+  simRenderSinglePayoff();
 }
 
 function simContinue(){
@@ -15053,6 +15165,7 @@ function simContinue(){
 
   document.getElementById('v17SimStepSearch').style.display='none';
   document.getElementById('v17SimStepCalc').style.display='';
+  simRenderCalcPayoff();
 
   document.getElementById('v17SimTenor').removeAttribute('max');
   document.getElementById('v17SimTenor').value='0';
@@ -15142,12 +15255,13 @@ function simPromoPct(){
 function v18SpecialRecalc(resetGross){
  const d=simState.debtor,c=v18Special();if(!d||!c)return;
  const isG2cRenew=simState.product==='G2C'&&simState.offer==='MENGULANG';
+ const isRenew=simState.offer==='MENGULANG';
  const settlement=simSettlementTotals();
  const releasedSalaryInstallment=isG2cRenew?simSelectedInstallmentForSource('GAJI'):0;
  document.getElementById('v17SimTopupInfo').style.display='none';
- document.getElementById('v17SimRenewInfo').style.display=isG2cRenew?'grid':'none';
- const musisiWrap=document.getElementById('v17SimMusisiRefundWrap');if(musisiWrap)musisiWrap.style.display=isG2cRenew?'block':'none';
- if(isG2cRenew){
+ document.getElementById('v17SimRenewInfo').style.display=isRenew?'grid':'none';
+ const musisiWrap=document.getElementById('v17SimMusisiRefundWrap');if(musisiWrap)musisiWrap.style.display=isRenew?'block':'none';
+ if(isRenew){
    document.getElementById('v17SimBaki').textContent=simMoney(settlement.baki);
    document.getElementById('v17SimRunningInterest').textContent=simMoney(settlement.bunga);
    const countEl=document.getElementById('v17SimRenewFacilityCount');if(countEl)countEl.textContent=settlement.count+' fasilitas';
@@ -15225,10 +15339,10 @@ function v18SpecialRecalc(resetGross){
  const mandatorySavingMultiplier=simMandatorySavingMultiplierValue(simState.product);
  let fees=simFeeCalc(
    gross,tenor,simState.product,'PNS',simState.insuranceAge||simState.age,
-   isG2cRenew?settlement.baki:0,
+   isRenew?settlement.baki:0,
    inst,
-   isG2cRenew?settlement.bunga:0,
-   isG2cRenew?v18Num(document.getElementById('v17SimMusisiRefund')?.value||0):0,
+   isRenew?settlement.bunga:0,
+   isRenew?v18Num(document.getElementById('v17SimMusisiRefund')?.value||0):0,
    specialAnnualRate,promo,
    Number(document.getElementById('v17SimNotary')?.value||0),
    mandatorySavingMultiplier
@@ -15282,15 +15396,18 @@ function v18SpecialRecalc(resetGross){
  const ir=document.getElementById('v17CostInterestRow');
  if(ir){
    const showGrace=simState.product==='G7G-GRACE PERIOD-PNS';
-   ir.style.display=(showGrace||isG2cRenew)?'flex':'none';
+   ir.style.display=(showGrace||isRenew)?'flex':'none';
    const x=ir.querySelector('span');
    if(showGrace){if(x)x.textContent='Bunga Grace Period Dibayar di Muka';document.getElementById('v17CostInterest').textContent=simMoney(upfront)}
-   else if(isG2cRenew){if(x)x.textContent='Total Bunga Berjalan';document.getElementById('v17CostInterest').textContent=simMoney(fees.bungaBerjalan||0)}
+   else if(isRenew){if(x)x.textContent='Total Bunga Berjalan';document.getElementById('v17CostInterest').textContent=simMoney(fees.bungaBerjalan||0)}
  }
- const bk=document.getElementById('v17CostBakiRow');if(bk)bk.style.display=isG2cRenew?'flex':'none';
- if(isG2cRenew)document.getElementById('v17CostBaki').textContent=simMoney(fees.pelunasanBakiDebet||0);
- const mr=document.getElementById('v17CostMusisiRow');if(mr)mr.style.display=isG2cRenew&&Number(fees.pengembalianMusisiAsuransi||0)>0?'flex':'none';
- if(isG2cRenew)document.getElementById('v17CostMusisi').textContent=simMoney(fees.pengembalianMusisiAsuransi||0);
+ const renewalInterestRow=document.getElementById('v279CostRenewalInterestRow');
+ if(renewalInterestRow)renewalInterestRow.style.display=isRenew&&simState.product==='G7G-GRACE PERIOD-PNS'?'flex':'none';
+ if(isRenew)document.getElementById('v279CostRenewalInterest').textContent=simMoney(fees.bungaBerjalan||0);
+ const bk=document.getElementById('v17CostBakiRow');if(bk)bk.style.display=isRenew?'flex':'none';
+ if(isRenew)document.getElementById('v17CostBaki').textContent=simMoney(fees.pelunasanBakiDebet||0);
+ const mr=document.getElementById('v17CostMusisiRow');if(mr)mr.style.display=isRenew&&Number(fees.pengembalianMusisiAsuransi||0)>0?'flex':'none';
+ if(isRenew)document.getElementById('v17CostMusisi').textContent=simMoney(fees.pengembalianMusisiAsuransi||0);
  const nw=document.getElementById('v17SimNotaryWrap'),nr=document.getElementById('v17CostNotaryRow');
  if(nw)nw.style.display=gross>500000000?'block':'none';if(nr)nr.style.display=gross>500000000?'flex':'none';
  document.getElementById('v17CostNotary').textContent=simMoney(fees.biayaNotaris||0);
@@ -15417,6 +15534,7 @@ function simRecalculate(resetGross){
 
   document.getElementById('v17CostBakiRow').style.display=isRenew?'flex':'none';
   document.getElementById('v17CostInterestRow').style.display=isRenew?'flex':'none';
+  document.getElementById('v279CostRenewalInterestRow').style.display='none';
   document.getElementById('v17CostMusisiRow').style.display=isRenew&&Number(fees.pengembalianMusisiAsuransi||0)>0?'flex':'none';
   document.getElementById('v17CostBaki').textContent=simMoney(fees.pelunasanBakiDebet);
   document.getElementById('v17CostInterest').textContent=simMoney(fees.bungaBerjalan);
@@ -15438,7 +15556,7 @@ function simCurrentSnapshot(){
 
   if(v18IsSpecial()){
     const gross=v18Num(document.getElementById('v17SimGross')?.value||0),tenor=Number(document.getElementById('v17SimTenor')?.value||0),fees=simState.v18Fees||{};
-    const settlement=simState.product==='G2C'?simSettlementTotals():{facilities:[],count:0,baki:0,bunga:0,musisi:0,installment:0};
+    const settlement=simState.offer==='MENGULANG'?simSettlementTotals():{facilities:[],count:0,baki:0,bunga:0,musisi:0,installment:0};
     const releasedSalaryInstallment=simState.product==='G2C'&&simState.offer==='MENGULANG'
       ? simSelectedInstallmentForSource('GAJI')
       : 0;
@@ -15485,7 +15603,7 @@ function simCurrentSnapshot(){
     Number(document.getElementById('v17SimNotary')?.value||0),
     simMandatorySavingMultiplierValue(simState.product)
   );
-  return {deb,rule,gross,tenor,baseRate,spread,effectiveRate,promoUsed,promoPct,installment,fees,facility:f,facilities:settlement.facilities,settlement};
+  return {deb,rule,gross,tenor,baseRate,spread,effectiveRate,promoUsed,promoPct,installment,fees,facility:settlement.facilities[0]||f,facilities:settlement.facilities,settlement};
 }
 
 function simWaMessage(){
@@ -15904,6 +16022,7 @@ function simBind(){
     simState.debtor=null;
     simState.facility=null;
     simState.facilities=[];
+    simState.settlementEdits=new WeakMap();
     document.getElementById('v17SimEmployeeCard').style.display='none';
     simSearch();
   });
@@ -15943,6 +16062,13 @@ function simBind(){
     simState.facility=arr[Number(e.target.value)||0]||null;
     const musisiRefund=document.getElementById('v17SimMusisiRefund');
     if(musisiRefund) musisiRefund.value=simState.offer==='MENGULANG' ? v18Fmt(Number(simState.facility?.musisi_asuransi||0)) : '0';
+    simRenderSinglePayoff();
+  });
+
+  ['v17SimMultiFacilityList','v279SimSinglePayoff','v279SimPayoffRows'].forEach(id=>{
+    const node=document.getElementById(id);
+    node?.addEventListener('input',e=>simPayoffInputChanged(e.target));
+    node?.addEventListener('focusout',e=>{if(e.target?.matches?.('input[data-v279-field]') && !e.target.value.trim())e.target.value='0';});
   });
 
   document.getElementById('v17SimMultiFacilityList')?.addEventListener('change',e=>{
